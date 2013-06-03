@@ -58,7 +58,7 @@ AC_CONFIG_FILES([BProf/Makefile])
 AC_CONFIG_FILES([Molly/Makefile])
 AC_CONFIG_FILES([HashCS/Makefile])
 #AC_CONFIG_FILES([Example/Makefile])
-AC_CONFIG_FILES([ncl/Makefile])
+#AC_CONFIG_FILES([ncl/Makefile])
 AC_CONFIG_FILES([TreeHouse/Makefile])
 
 AC_OUTPUT
