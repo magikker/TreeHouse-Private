@@ -15,10 +15,10 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 SUBDIRS = 
 SUBDIRS += TreeZip 
-SUBDIRS += Phlash 
-SUBDIRS += SetOp 
-SUBDIRS += BProf 
-SUBDIRS += Molly 
-SUBDIRS += HashCS 
+#SUBDIRS += Phlash 
+#SUBDIRS += SetOp 
+#SUBDIRS += BProf 
+#SUBDIRS += Molly 
+#SUBDIRS += HashCS 
 #SUBDIRS += Example
 SUBDIRS += TreeHouse
