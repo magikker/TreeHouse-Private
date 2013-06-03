@@ -1,0 +1,1305 @@
+//*****************************************************************/
+/*
+* TreeHouse is an interface for phylogenetic trees. 
+* It is based on TreeZip, developed by Suzanne Matthews and 
+* HashCS developed by Seung-Jin Sul.
+* 
+* Contributers to this project include Grant Brammer,
+* Arthur Philpott, and Mark Adamo. 
+*
+* (c) 2012 TreeHouse : Grant Brammer
+* (c) 2010 TreeZip: Suzanne Matthews
+* (c) 2009 HashRF : Seung-Jin Sul 
+* (c) 2009 HashCS : Seung-Jin Sul
+*
+* This file is part of TreeHouse.
+*
+* TreeHouse is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* TreeHouse is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with TreeZip.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
+
+#include <ctime>
+#include <iostream>
+
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#include <libxml++/libxml++.h>
+#include <libxml++/parsers/textreader.h>
+
+//Global Vars like the hashtable.
+//#include "global.h"
+#include "THGlobals.h"
+
+//The label map class. 
+#include "label-map.hh"
+
+//#include "HashTableSearch.h"
+
+#include "compressfunc.h"
+#include "bmerge.h"
+#include "buildtree.h"
+
+#include "UserFunctions.h"
+#include "BipartitionTable.h"
+
+// The lexer/parser
+#include    "pql.h"
+
+using namespace std;
+
+bool interactive = false;
+ofstream interactive_log;
+
+static char *line_read = (char *)NULL;
+
+//char* cmd [] ={ "hello", "world", "hell" ,"word", "quit", " " };
+
+
+ 
+void * xmalloc (int size)
+{
+    void *buf;
+ 
+    buf = malloc (size);
+    if (!buf) {
+        fprintf (stderr, "Error: Out of memory. Exiting.'n");
+        exit (1);
+    }
+ 
+    return buf;
+}
+char * dupstr (char* s) {
+  char *r;
+ 
+  r = (char*) xmalloc ((strlen (s) + 1));
+  strcpy (r, s);
+  return (r);
+}
+
+//~ char* my_generator(const char* text, int state){
+    //~ static int list_index, len;
+    //~ char *name;
+ //~ 
+    //~ if (!state) {
+        //~ list_index = 0;
+        //~ len = strlen (text);
+    //~ }
+ //~ 
+    //~ while (name = cmd[list_index]) {
+        //~ list_index++;
+ //~ 
+        //~ if (strncmp (name, text, len) == 0)
+            //~ return (dupstr(name));
+    //~ }
+ //~ 
+    //~ /* If no names matched, then return NULL. */
+    //~ return ((char *)NULL);
+ //~ 
+//~ }
+
+
+char* my_generator(const char* text, int state){
+    static int list_index, len;
+    //char *name;
+ 
+    if (!state) {
+        list_index = 0;
+        len = strlen (text);
+    }
+
+	for (unsigned int i = list_index; i < ::functionKeys.size(); i++) {
+		list_index++;
+		//char *name = new char[*iter->first.length()+1];
+		char name[::functionKeys[i].size()+1];
+		strcpy(name, ::functionKeys[i].c_str());
+		//cout << "name = " << name << endl;
+		if(strncmp(name, text, len) == 0)
+			return dupstr(name);
+    }
+
+    /* If no names matched, then return NULL. */
+    return ((char *)NULL);
+ 
+}
+
+static char** my_completion( const char * text , int start,  int end){ //this is where I could say to use each matching function. 
+    char **matches;
+ 
+    matches = (char **)NULL;
+ 
+    matches = rl_completion_matches ((char*)text, &my_generator);
+    
+    return (matches);
+}
+ 
+
+
+/* Read a string, and return a pointer to it.  Returns NULL on EOF. */
+char * do_gets ()
+{
+  /* If the buffer has already been allocated, return the memory
+     to the free pool. */
+  if (line_read != (char *)NULL)
+    {
+      free (line_read);
+      line_read = (char *)NULL;
+    }
+
+  /* Get a line from the user. */
+  line_read = readline ("");
+
+  /* If the line has any text in it, save it on the history. */
+  if (line_read && *line_read)
+    add_history (line_read);
+
+  return (line_read);
+}
+
+void differentLengthsOr(const bool * first, const unsigned int firstsize, bool * second){
+	for(unsigned int i = 0; i < firstsize; i++){
+		if (first[i] == 1){
+			second[i] = 1;
+		}
+	}
+}
+
+void load_data_from_trz_file(string file){  
+  
+	string mycount, ids, bipartition, line_type, str, taxa, treeline, bitstring, branches_int, branches_frac;
+	unsigned int bipart_count, ntaxa, nbipart, ndup_lines;
+	vector<bool> check;
+	vector<unsigned int> true_ids;
+	vector <bool> is_dup;
+	bipart_count = 0;
+	unsigned int num_unique;
+ 
+	ifstream fin(file.c_str(), ios::binary);
+	if (!fin) {
+		cerr << "cannot open file!\n";
+		exit(2);
+	}
+  
+	//read in taxa
+	getline(fin, str);  
+	int pos = str.find_first_of(" ");
+	line_type = str.substr(0, pos);
+	if (line_type != "TAXA"){
+		cerr << "Error! No taxa labels identified for file! Exiting..\n";
+		exit(2);
+	}
+	str = str.substr(pos+1);
+	pos = str.find_first_of("\n");
+	str = str.substr(0, pos);
+	stringstream ss(str);
+	ntaxa = 0;
+	while(getline(ss, taxa, ':')){ 
+		::lm.push(taxa);
+		ntaxa++;
+	}
+	//Biparttable.set_num_taxa(ntaxa);
+	::NUM_TAXA = ntaxa;
+	ss.clear();
+
+	//read in number of trees
+	getline(fin, str);
+	::NUM_TREES = get_ntrees(str);
+
+	//read in number of unique trees
+	getline(fin, str);
+	num_unique = get_unique(str, ::NUM_TREES);
+
+	//resize data structures
+	//::treetable.bipartitions.resize(NUM_TREES);
+	//::treetable.bs_sizes.resize(NUM_TREES);
+	::biparttable.tree_branches.resize(NUM_TREES);
+	
+	::inverted_index.resize(NUM_TREES);
+
+	check.resize(NUM_TREES);
+	true_ids.resize(num_unique);
+	is_dup.resize(NUM_TREES);
+	unsigned int * hold_integrals = NULL;
+
+	//read in number of bipartitions to be read
+	getline(fin, str);
+	parse_and_get(str, "NBIPARTITIONS", nbipart);
+	NUMBIPART = nbipart;
+  
+	//grb
+	for (unsigned int i = 0; i < NUM_TREES; i++){
+		bool *blankbs = new bool[::NUM_TAXA];
+		for (unsigned int j = 0; j < ::NUM_TAXA; j++){
+			blankbs[j] = (bool)0;
+		}
+		::taxa_in_trees.push_back(blankbs);
+	}
+
+  //skip nbipart lines, get the duplicate information
+  for (unsigned int i = 0; i < nbipart; i++)
+    getline(fin, str);
+  getline(fin, str); //now read the duplicates line
+  parse_and_get(str, "DUPLICATES", ndup_lines);
+  //cout << "ndup_lines is: " << ndup_lines << endl;
+  for (unsigned int i = 0; i < NUM_TREES; i++)
+    is_dup[i] = 0;
+  unsigned int decode_size = 0;
+  unsigned int * found, dec_loc, dec_val;
+  found = (unsigned int *)malloc(NUM_TREES*sizeof(unsigned int));
+  for (unsigned int i = 0; i < ndup_lines; i++){
+    getline(fin, str); //read in the line
+    pos = str.find_first_of("\n");
+    str = str.substr(0, pos); //get rid of the newline
+    decode_size = decode(str, found); //decode the line
+    dec_loc = found[0];
+    for (unsigned int j = 1; j < decode_size; j++){
+      dec_val = found[j];
+      ::tree_dups[dec_loc].push_back(dec_val);
+      //dups[dec_loc].push_back(dec_val); //add the elements of the array to the associated dup structure
+      is_dup[dec_val] = 1; //also set those locations in our bool structure to a 1
+    }
+  }
+
+  //populate true_ids... The order the trees were in in the input file. (first tree = tree 1) and so on. 
+  unsigned int tempj = 0;
+  for (unsigned int i = 0; i < num_unique; i++){
+    if (is_dup[tempj]){
+      while (is_dup[tempj])
+	  tempj++;
+    }
+    true_ids[i] = tempj;
+    tempj++;
+  }
+
+  //debug: print out the data structures
+  /*cout << "true_ids: " << endl;
+  for (unsigned int i  = 0; i < true_ids.size(); i++)
+    cout << i << "-->" << true_ids[i] << endl;
+  cout << endl;
+
+  cout << "dups: " << endl;
+  for (unsigned int i = 0; i < NUM_TREES; i++){
+    cout << i << ": ";
+    for (unsigned int j = 0; j < dups[i].size(); j++){
+      cout << dups[i][j] << " ";
+    }
+    cout << endl;
+    }*/
+  fin.close(); //now close the file
+  fin.open(file.c_str(), ios::binary); //reopen
+  if (!fin) {
+    cerr << "cannot open file!\n";
+    exit(2);
+  }
+  for (unsigned int i  =0; i < 4; i++) //go back to where we need to be in order to start reading in the bipartitions
+    getline(fin, str); 
+
+  unsigned int counter = 0;
+  unsigned int count = 0;
+  unsigned int bipart_loc = 0;
+  unsigned int numtrees_strsize, my_count;
+  stringstream tmpss;
+  string numtrees_str;
+  unsigned int encode_size = 0;
+  vector<unsigned int> my_set_of_ids;
+  tmpss << NUM_TREES;
+  tmpss >> numtrees_str;
+  numtrees_strsize = numtrees_str.size();
+  encode_size = (numtrees_strsize+1)/2;
+  unsigned int maxLength = 0;
+
+
+  while ( counter < nbipart) { 
+	vector <unsigned int> v1;
+	::biparttable.searchtable.push_back(v1);
+
+        bool * tt1 = new bool[NUM_TREES]; //tt
+	for (unsigned int i = 0; i < NUM_TREES; i++) {
+	  tt1[i] = 0;
+	}
+	::biparttable.treetable.push_back(tt1); //tt
+	
+    getline(fin, str);  
+    pos = str.find_first_of(" ");
+    bitstring = str.substr(0, pos); //contains bitstring
+    str = str.substr(pos+1);
+    pos = str.find_first_of("\n");
+    treeline = str.substr(0, pos);
+
+    //process bitstring first
+    maxLength = get_bitstring_length(bitstring);//determine length of bitstring maxLength
+    bool *bs = new bool[maxLength]; //allocate it to be maxLength	
+    decode_bitstring(bitstring, bs, maxLength);
+    //grb
+    ::biparttable.length_of_bitstrings.push_back(maxLength);
+    //::length_of_bitstrings.push_back(maxLength);
+
+    //next, process tree line
+    //first, determine the number of TIDs in the line:
+    pos = treeline.find_first_of(":");
+    line_type = treeline.substr(0, pos);
+    treeline = treeline.substr(pos+1);
+    pos = treeline.find_first_of(":");
+    mycount = treeline.substr(0, pos);
+    count = atoi(mycount.c_str());
+    treeline = treeline.substr(pos+1);
+    pos = treeline.find_first_of(" ");
+    if (pos != -1){
+      if (!WEIGHTED){
+		fprintf(stderr, "\nFile has branch lengths! Weighted option: ON\n\n");	
+		WEIGHTED = true;
+		hold_integrals = (unsigned int*)malloc(NUM_TREES*sizeof(unsigned int));
+		for (unsigned int x = 0; x < NUM_TREES; x++){
+			hold_integrals[x] = 0;
+		}
+      }
+    }
+    if (WEIGHTED){
+      ids = treeline.substr(0, pos);
+      treeline = treeline.substr(pos+1);
+      pos = treeline.find_first_of(" ");
+      branches_int = treeline.substr(0, pos); //integral portion of branches
+      treeline = treeline.substr(pos+1);
+      pos = treeline.find_first_of("\n");
+      branches_frac = treeline.substr(0, pos); //fractional component of branches
+    }
+    else{
+      pos = treeline.find_first_of("\n");
+      ids = treeline.substr(0, pos);
+    }
+
+    //process tree ids
+    if (count == 0) //bipartition that every tree has
+	{ 
+	  //grb1
+      //hashtable[counter] = (unsigned int *)malloc(NUM_TREES*sizeof(unsigned int));
+      //hash_lengths[counter] = NUM_TREES;
+      for (unsigned int b = 0; b < ::NUM_TREES; ++b) 
+	  { 
+		//grb1
+		//hashtable[counter][b] = b;
+		//::treetable.bipartitions[b].push_back(bs);
+		//::treetable.bs_sizes[b].push_back(maxLength);
+		
+		
+		//::all_bs[b].push_back(bs); //push bipartition into everything
+		//::bs_sizes[b].push_back(maxLength); //push bipartition length into everything
+		::inverted_index[b].push_back(bipart_loc);
+        //grb
+		::biparttable.searchtable[counter].push_back(b);
+	        ::biparttable.treetable[counter][b] = 1; //tt
+	    
+		//differentLengthsOr(bs, maxLength, ::taxa_in_trees[b]);
+      }
+      //vec_bs.push_back(bs); //this is a strict consensus bipartition       
+      if (WEIGHTED)
+	  {
+		if (branches_int != "")
+	      populate_integrals(hold_integrals, branches_int, encode_size);
+	    my_set_of_ids.resize(NUM_TREES);
+	    
+	    decompress_branch(hold_integrals, my_set_of_ids, ::biparttable.tree_branches, branches_frac);
+	    //decompress_branch(hold_integrals, my_set_of_ids, ::all_branches, branches_frac);
+      }
+      bipart_count++;
+    }      
+    else { //count != 0 (so we have tree ids to process)
+      my_count = decode(ids, found);
+      assert(my_count == count);
+
+    if (line_type == "-") { //compressed line
+		for (unsigned int i = 0; i < count; ++i) {
+			unsigned int temp = found[i];
+			check[temp] = true;
+		}
+		unsigned int true_id, sec_id;
+		//cout << "we do get here though? num_unique is: " << num_unique << endl;
+		for (unsigned int i = 0; i < num_unique; ++i) {
+			if (check[i] == false) {
+				true_id = true_ids[i];
+				my_set_of_ids.push_back(true_id);
+				
+				//::all_bs[true_id].push_back(bs);
+				//::bs_sizes[true_id].push_back(maxLength);
+				::inverted_index[true_id].push_back(bipart_loc);
+				//grb
+				//differentLengthsOr(bs, maxLength, ::taxa_in_trees[true_id]);
+				//::treetable.bipartitions[true_id].push_back(bs);
+				//::treetable.bs_sizes[true_id].push_back(maxLength);
+
+				if (::tree_dups[true_id].size() > 0){
+				  for (unsigned int j = 0; j< ::tree_dups[true_id].size(); j++){
+						sec_id = ::tree_dups[true_id][j];
+
+						//::treetable.bipartitions[sec_id].push_back(bs);
+						//::treetable.bs_sizes[sec_id].push_back(maxLength);
+						
+						//::all_bs[sec_id].push_back(bs);
+						//::bs_sizes[sec_id].push_back(maxLength);
+						::inverted_index[sec_id].push_back(bipart_loc);
+						//differentLengthsOr(bs, maxLength, ::taxa_in_trees[sec_id]);
+						my_set_of_ids.push_back(sec_id);
+					}
+				}
+				//cout << "end of for stat" << endl;
+			}
+			else
+				check[i] = false;
+		}
+		//now, take care of of the bipartition associated with this
+		sort(my_set_of_ids.begin(), my_set_of_ids.end());
+		unsigned int mytotalsize = my_set_of_ids.size();
+		//grb1
+		//hashtable[counter] = (unsigned int *)malloc(mytotalsize*sizeof(unsigned int));
+		//hash_lengths[counter] = mytotalsize;
+		for (unsigned int j = 0; j < mytotalsize; j++){
+			//grb
+			::biparttable.searchtable[counter].push_back(my_set_of_ids[j]);
+		        ::biparttable.treetable[counter][my_set_of_ids[j]] = 1; //tt
+			//grb1
+			//hashtable[counter][j]  = my_set_of_ids[j];
+		}
+		if (WEIGHTED){	  
+			if (branches_int != "")
+				populate_integrals(hold_integrals, branches_int, encode_size);
+			
+			decompress_branch(hold_integrals, my_set_of_ids, ::biparttable.tree_branches, branches_frac);			
+			//decompress_branch(hold_integrals, my_set_of_ids, ::all_branches, branches_frac);
+		}
+      }
+      else { //line is not compressed
+		unsigned int true_id, sec_id;
+		for (unsigned int i = 0; i < count; ++i) { 
+			unsigned int temp = found[i];
+			true_id = true_ids[temp];
+
+			//::treetable.bipartitions[true_id].push_back(bs);
+			//::treetable.bs_sizes[true_id].push_back(maxLength);
+			
+			//::all_bs[true_id].push_back(bs);
+			//::bs_sizes[true_id].push_back(maxLength);
+			::inverted_index[true_id].push_back(bipart_loc);
+			//differentLengthsOr(bs, maxLength, ::taxa_in_trees[true_id]);
+			my_set_of_ids.push_back(true_id);
+			if (::tree_dups[true_id].size() > 0){
+				for (unsigned int j = 0; j < ::tree_dups[true_id].size(); j++){
+					sec_id = ::tree_dups[true_id][j];
+
+					//::treetable.bipartitions[sec_id].push_back(bs);
+					//::treetable.bs_sizes[sec_id].push_back(maxLength);
+
+					//::all_bs[sec_id].push_back(bs);
+					//::bs_sizes[sec_id].push_back(maxLength);
+					::inverted_index[sec_id].push_back(bipart_loc);
+					//differentLengthsOr(bs, maxLength, ::taxa_in_trees[sec_id]);
+					my_set_of_ids.push_back(sec_id);
+				}
+			}
+		}	 
+		sort(my_set_of_ids.begin(), my_set_of_ids.end());	 
+		unsigned int mytotalsize = my_set_of_ids.size();
+		//grb1
+		//hashtable[counter] = (unsigned int *)malloc(mytotalsize*sizeof(unsigned int));
+		//hash_lengths[counter] = mytotalsize;
+		for (unsigned int j = 0; j < mytotalsize; j++){
+			//grb
+			::biparttable.searchtable[counter].push_back(my_set_of_ids[j]);
+		        ::biparttable.treetable[counter][my_set_of_ids[j]] = 1; //tt
+			//grb1
+			//hashtable[counter][j]  = my_set_of_ids[j];
+		}
+		if (WEIGHTED){
+			if (branches_int != "")
+				populate_integrals(hold_integrals, branches_int, encode_size);
+			decompress_branch(hold_integrals, my_set_of_ids, ::biparttable.tree_branches, branches_frac);
+			//decompress_branch(hold_integrals, my_set_of_ids, ::all_branches, branches_frac);
+		}
+      }
+      bipart_count++;
+    } //end if count != 0
+    //grb
+    ::biparttable.bipartitions.push_back(bs);
+    //::list_bs.push_back(bs); //push into the list 
+    
+    my_set_of_ids.clear();
+    bipart_loc++;
+    counter++;
+  }
+  free(hold_integrals);
+  free(found);
+  if (bipart_count != counter) { 
+    cerr << "ERROR! Bipartitions not processed correctly!" << endl;
+    cout << "bipart_count: " << bipart_count << endl;
+    cout << "counter: " << counter << endl;
+    exit(1);
+  }
+  assert(::lm.size()!=0); 
+  
+	//~ for (int tree = 0; tree < all_bs.size(); tree++){
+		//~ for (int bip = 0; bip < all_bs[tree].size(); bip++){
+			//~ differentLengthsOr(all_bs[tree][bip], bs_sizes[tree][bip], ::taxa_in_trees[tree]);
+		//~ }
+	//~ }
+
+	for (unsigned int tree = 0; tree < ::NUM_TREES; tree++){
+	  vector<bool *> tree_bipartitions;
+	  vector<unsigned int> tree_bs_sizes;
+	  vector<float> tree_branches;
+	  get_tree_data(tree, tree_bipartitions, tree_bs_sizes, tree_branches);
+		for (unsigned int bip = 0; bip < tree_bipartitions.size(); bip++){
+			differentLengthsOr(tree_bipartitions[bip], tree_bs_sizes[bip], ::taxa_in_trees[tree]);
+		}
+	}
+
+
+    for (unsigned int i = 0; i < ::NUM_TREES; i++){
+		//cout << i << ": ";
+		for (unsigned int j = 0; j < ::tree_dups[i].size(); j++){
+			//cout << ::dups[i][j] << " ";
+			if (::tree_dups[::tree_dups[i][j]].size() == 0){
+				::tree_dups[::tree_dups[i][j]].push_back(i);
+			}
+		}
+		//cout << endl;
+    }
+   
+	debugstatement("Hey! you got to the end of the parsing from file function. Nice.");
+   
+} 
+
+void load_classification(string filename) {
+  xmlpp::TextReader reader(filename);
+  reader.read();
+  if (reader.get_name() != "taxa") {
+    cerr << "Error in XML parse of '" << filename << "'. Expected <taxa> as top-level tag." << endl;
+    exit(3);
+  }
+  reader.read();
+  if (reader.get_name() == "#text")
+    reader.read();
+  while (reader.get_name() != "taxa") {
+    if (reader.get_name() != "taxon") {
+      cerr << "Error in XML parse of '" << filename << "'. Expected <taxon> statement but found <" << reader.get_name() << ">." << endl;
+      exit(3);
+    }
+    string label = reader.get_attribute("label");
+    if (label == "") {
+      cerr << "Error in XML parse of '" << filename << "'. One of the given taxa has no label attribute." << endl;
+      exit(3);
+    }
+    int ind = index_in_labelmap(label);
+    if (ind == -1) {
+      cerr << "Error in XML parse of '" << filename << "'. Label '" << label << "' does not exist in labelmap." << endl;
+      exit(3);
+    }
+    reader.read();
+    if (reader.get_name() == "#text")
+      reader.read();
+    while (reader.get_name() != "taxon" && reader.get_name() != "taxa") { //while we are in a taxon block
+      string rank = reader.get_name();
+      reader.read();
+      if (reader.get_name() == rank) { //if tag contents are empty
+	reader.read();
+	if (reader.get_name() == "#text")
+	  reader.read();
+	continue;
+      }
+      string info = reader.read_string();
+      if (rank == "d") ::taxa_info[ind]->d = info;
+      else if (rank == "k") ::taxa_info[ind]->k = info;
+      else if (rank == "p") ::taxa_info[ind]->p = info;
+      else if (rank == "c") ::taxa_info[ind]->c = info;
+      else if (rank == "o") ::taxa_info[ind]->o = info;
+      else if (rank == "f") ::taxa_info[ind]->f = info;
+      else if (rank == "g") ::taxa_info[ind]->g = info;
+      else if (rank == "tr") {
+	for (unsigned int i=0; i<info.size(); i++) {
+	  string tempstr = "";
+	  tempstr.push_back(info[i]);
+	  ::taxa_info[ind]->traits.push_back(stoi(tempstr));
+	}
+      }
+      else {
+	cerr << "Error in XML parse of '" << filename << "'. '" << rank << "' does not denote a valid taxonomic rank or trait node. Valid taxonomic ranks are d, k, p, c, o, f, and g." << endl;
+	exit(3);
+      }
+      reader.read();
+      reader.read();
+      if (reader.get_name() == "#text")
+	reader.read();
+    }
+  }
+  cout << "Classification data loaded successfully!" << endl;
+}	
+
+
+int ANTLR3_CDECL parse_input_file(string inputstring, bool flag ){ 
+
+    // Now we declare the ANTLR related local variables we need.
+    // Note that unless you are convinced you will never need thread safe
+    // versions for your project, then you should always create such things
+    // as instance variables for each invocation.
+    // -------------------
+
+    // Name of the input file. Note that we always use the abstract type pANTLR3_UINT8
+    // for ASCII/8 bit strings - the runtime library garauntees that this will be
+    // good on all platforms. This is a general rule - always use the ANTLR3 supplied
+    // typedefs for pointers/types/etc.
+    //
+    pANTLR3_UINT8	    fName;
+
+    // The ANTLR3 character input stream, which abstracts the input source such that
+    // it is easy to privide inpput from different sources such as files, or 
+    // memory strings.
+    //
+    // For an ASCII/latin-1 memory string use:
+    //	    input = antlr3NewAsciiStringInPlaceStream (stringtouse, (ANTLR3_UINT64) length, NULL);
+    //
+    // For a UCS2 (16 bit) memory string use:
+    //	    input = antlr3NewUCS2StringInPlaceStream (stringtouse, (ANTLR3_UINT64) length, NULL);
+    //
+    // For input from a file, see code below
+    //
+    // Note that this is essentially a pointer to a structure containing pointers to functions.
+    // You can create your own input stream type (copy one of the existing ones) and override any
+    // individual function by installing your own pointer after you have created the standard 
+    // version.
+    //
+    pANTLR3_INPUT_STREAM    input;
+
+    // The lexer is of course generated by ANTLR, and so the lexer type is not upper case.
+    // The lexer is supplied with a pANTLR3_INPUT_STREAM from whence it consumes its
+    // input and generates a token stream as output.
+    //
+    ppqlLexer		    lxr;
+
+    // The token stream is produced by the ANTLR3 generated lexer. Again it is a structure based
+    // API/Object, which you can customise and override methods of as you wish. a Token stream is
+    // supplied to the generated parser, and you can write your own token stream and pass this in
+    // if you wish.
+    //
+    pANTLR3_COMMON_TOKEN_STREAM	    tstream;
+
+    // The C parser is also generated by ANTLR and accepts a token stream as explained
+    // above. The token stream can be any source in fact, so long as it implements the 
+    // ANTLR3_TOKEN_SOURCE interface. In this case the parser does not return anything
+    // but it can of cousre speficy any kind of return type from the rule you invoke
+    // when calling it.
+    //
+    ppqlParser				psr;
+
+    // Create the input stream based upon the argument supplied to us on the command line
+    // for this example, the input will always default to ./input if there is no explicit
+    // argument.
+  
+	char *a = new char[inputstring.size()+1];
+	a[inputstring.size()] = 0;
+	memcpy(a,inputstring.c_str(),inputstring.size());
+
+	fName	= (pANTLR3_UINT8)a;
+  
+
+    // Create the input stream using the supplied file name
+    // (Use antlr3AsciiFileStreamNew for UCS2/16bit input).
+    //
+    if (!flag) {
+      input	= antlr3AsciiFileStreamNew(fName);
+    }
+    else {
+      input = antlr3NewAsciiStringCopyStream (fName, (ANTLR3_UINT64) inputstring.size(), NULL);
+    }
+
+    // The input will be created successfully, providing that there is enough
+    // memory and the file exists etc
+    //
+    if ( input == NULL )
+    {
+	    fprintf(stderr, "Unable to open file %s\n", (char *)fName);
+	    exit(ANTLR3_ERR_NOMEM);
+    }
+
+    // Our input stream is now open and all set to go, so we can create a new instance of our
+    // lexer and set the lexer input to our input stream:
+    //  (file | memory | ?) --> inputstream -> lexer --> tokenstream --> parser ( --> treeparser )?
+    //
+    lxr	    = pqlLexerNew(input);	    // CLexerNew is generated by ANTLR
+
+    // Need to check for errors
+    //
+    if (lxr == NULL )
+    {
+	    fprintf(stderr, "Unable to cuniquereate the lexer due to malloc() failure1\n");
+	    exit(ANTLR3_ERR_NOMEM);
+	}
+
+    // Our lexer is in place, so we can create the token stream from it
+    // NB: Nothing happens yet other than the file has been read. We are just 
+    // connecting all these things together and they will be invoked when we
+    // call the parser rule. ANTLR3_SIZE_HINT can be left at the default usually
+    // unless you have a very large token stream/input. Each generated lexer
+    // provides a token source interface, which is the second argument to the
+    // token stream creator.
+    // Note tha even if you implement your own token structure, it will always
+    // contain a standard common token within it and this is the pointer that
+    // you pass around to everything else. A common token as a pointer within
+    // it that should point to your own outer token structure.
+    //
+    tstream = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, TOKENSOURCE(lxr));
+
+    if (tstream == NULL)
+    {
+		fprintf(stderr, "Out of memory trying to allocate token stream\n");
+		exit(ANTLR3_ERR_NOMEM);
+    }
+
+    // Finally, now that we have our lexer constructed, we can create the parser
+    //
+    psr	    = pqlParserNew(tstream);  // CParserNew is generated by ANTLR3
+
+    if (tstream == NULL)
+    {
+		fprintf(stderr, "Out of memory trying to allocate parser\n");
+		exit(ANTLR3_ERR_NOMEM);
+    }
+
+    // We are all ready to go. Though that looked complicated at first glance,
+    // I am sure, you will see that in fact most of the code above is dealing
+    // with errors and there isn;t really that much to do (isn;t this always the
+    // case in C? ;-).
+    //
+    // So, we now invoke the parser. All elements of ANTLR3 generated C components
+    // as well as the ANTLR C runtime library itself are pseudo objects. This means
+    // that they are represented as pointers to structures, which contain any
+    // instance data they need, and a set of pointers to other interfaces or
+    // 'methods'. Note that in general, these few pointers we have created here are
+    // the only things you will ever explicitly free() as everythign else is created
+    // via factories, that alloacte memory efficiently and free() everything they use
+    // automatically when you close the parser/lexer/etc.
+    //
+    // Note that this means only that the methods are always called via the object
+    // pointer and the first argument to any method, is a pointer to the structure itself.
+    // It also has the side advantage, if you are using an IDE such as VS2005 that can do it,
+    // that when you type ->, you will see a list of all the methods the object supports.
+    //
+	debugstatement("Entering the parser");
+	psr->prog(psr);	
+	debugstatement("Exited parser");
+
+    //free it all. 
+    psr	    ->free  (psr);	     	psr = NULL;
+    tstream ->free  (tstream);	    tstream = NULL;
+    lxr	    ->free  (lxr);	    	lxr = NULL;
+    input   ->close (input);	    input = NULL;
+    delete[] a;
+    return 0;  
+}
+
+
+
+int ANTLR3_CDECL call_parser(string inputstring, bool flag ){ 
+
+    // Now we declare the ANTLR related local variables we need.
+    // Note that unless you are convinced you will never need thread safe
+    // versions for your project, then you should always create such things
+    // as instance variables for each invocation.
+    // -------------------
+
+    // Name of the input file. Note that we always use the abstract type pANTLR3_UINT8
+    // for ASCII/8 bit strings - the runtime library garauntees that this will be
+    // good on all platforms. This is a general rule - always use the ANTLR3 supplied
+    // typedefs for pointers/types/etc.
+    //
+    pANTLR3_UINT8	    fName;
+
+    // The ANTLR3 character input stream, which abstracts the input source such that
+    // it is easy to privide inpput from different sources such as files, or 
+    // memory strings.
+    //
+    // For an ASCII/latin-1 memory string use:
+    //	    input = antlr3NewAsciiStringInPlaceStream (stringtouse, (ANTLR3_UINT64) length, NULL);
+    //
+    // For a UCS2 (16 bit) memory string use:
+    //	    input = antlr3NewUCS2StringInPlaceStream (stringtouse, (ANTLR3_UINT64) length, NULL);
+    //
+    // For input from a file, see code below
+    //
+    // Note that this is essentially a pointer to a structure containing pointers to functions.
+    // You can create your own input stream type (copy one of the existing ones) and override any
+    // individual function by installing your own pointer after you have created the standard 
+    // version.
+    //
+    pANTLR3_INPUT_STREAM    input;
+
+    // The lexer is of course generated by ANTLR, and so the lexer type is not upper case.
+    // The lexer is supplied with a pANTLR3_INPUT_STREAM from whence it consumes its
+    // input and generates a token stream as output.
+    //
+    ppqlLexer		    lxr;
+
+    // The token stream is produced by the ANTLR3 generated lexer. Again it is a structure based
+    // API/Object, which you can customise and override methods of as you wish. a Token stream is
+    // supplied to the generated parser, and you can write your own token stream and pass this in
+    // if you wish.
+    //
+    pANTLR3_COMMON_TOKEN_STREAM	    tstream;
+
+    // The C parser is also generated by ANTLR and accepts a token stream as explained
+    // above. The token stream can be any source in fact, so long as it implements the 
+    // ANTLR3_TOKEN_SOURCE interface. In this case the parser does not return anything
+    // but it can of cousre speficy any kind of return type from the rule you invoke
+    // when calling it.
+    //
+    ppqlParser				psr;
+
+    // Create the input stream based upon the argument supplied to us on the command line
+    // for this example, the input will always default to ./input if there is no explicit
+    // argument.
+  
+  
+	char *a = new char[inputstring.size()+1];
+	a[inputstring.size()] = 0;
+	memcpy(a,inputstring.c_str(),inputstring.size());
+
+	fName	= (pANTLR3_UINT8)a;
+  
+
+    // Create the input stream using the supplied file name
+    // (Use antlr3AsciiFileStreamNew for UCS2/16bit input).
+    //
+    if (!flag) {
+      input	= antlr3AsciiFileStreamNew(fName);
+    }
+    else {
+      input = antlr3NewAsciiStringCopyStream (fName, (ANTLR3_UINT64) inputstring.size(), NULL);
+    }
+
+    // The input will be created successfully, providing that there is enough
+    // memory and the file exists etc
+    //
+    if ( input == NULL )
+    {
+	    fprintf(stderr, "Unable to open file %s\n", (char *)fName);
+	    exit(ANTLR3_ERR_NOMEM);
+    }
+
+    // Our input stream is now open and all set to go, so we can create a new instance of our
+    // lexer and set the lexer input to our input stream:
+    //  (file | memory | ?) --> inputstream -> lexer --> tokenstream --> parser ( --> treeparser )?
+    //
+    lxr	    = pqlLexerNew(input);	    // CLexerNew is generated by ANTLR
+
+    // Need to check for errors
+    //
+    if (lxr == NULL )
+    {
+	    fprintf(stderr, "Unable to cuniquereate the lexer due to malloc() failure1\n");
+	    exit(ANTLR3_ERR_NOMEM);
+	}
+
+    // Our lexer is in place, so we can create the token stream from it
+    // NB: Nothing happens yet other than the file has been read. We are just 
+    // connecting all these things together and they will be invoked when we
+    // call the parser rule. ANTLR3_SIZE_HINT can be left at the default usually
+    // unless you have a very large token stream/input. Each generated lexer
+    // provides a token source interface, which is the second argument to the
+    // token stream creator.
+    // Note tha even if you implement your own token structure, it will always
+    // contain a standard common token within it and this is the pointer that
+    // you pass around to everything else. A common token as a pointer within
+    // it that should point to your own outer token structure.
+    //
+    tstream = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, TOKENSOURCE(lxr));
+
+    if (tstream == NULL)
+    {
+		fprintf(stderr, "Out of memory trying to allocate token stream\n");
+		exit(ANTLR3_ERR_NOMEM);
+    }
+
+    // Finally, now that we have our lexer constructed, we can create the parser
+    //
+    psr	    = pqlParserNew(tstream);  // CParserNew is generated by ANTLR3
+
+    if (tstream == NULL)
+    {
+		fprintf(stderr, "Out of memory trying to allocate parser\n");
+		exit(ANTLR3_ERR_NOMEM);
+    }
+
+    // We are all ready to go. Though that looked complicated at first glance,
+    // I am sure, you will see that in fact most of the code above is dealing
+    // with errors and there isn;t really that much to do (isn;t this always the
+    // case in C? ;-).
+    //
+    // So, we now invoke the parser. All elements of ANTLR3 generated C components
+    // as well as the ANTLR C runtime library itself are pseudo objects. This means
+    // that they are represented as pointers to structures, which contain any
+    // instance data they need, and a set of pointers to other interfaces or
+    // 'methods'. Note that in general, these few pointers we have created here are
+    // the only things you will ever explicitly free() as everythign else is created
+    // via factories, that alloacte memory efficiently and free() everything they use
+    // automatically when you close the parser/lexer/etc.
+    //
+    // Note that this means only that the methods are always called via the object
+    // pointer and the first argument to any method, is a pointer to the structure itself.
+    // It also has the side advantage, if you are using an IDE such as VS2005 that can do it,
+    // that when you type ->, you will see a list of all the methods the object supports.
+    //
+	debugstatement("Entering the parser");
+	psr->prog(psr);	
+	debugstatement("Exited parser");
+
+    //free it all. 
+    psr	    ->free  (psr);	     	psr = NULL;
+    tstream ->free  (tstream);	    tstream = NULL;
+    lxr	    ->free  (lxr);	    	lxr = NULL;
+    input   ->close (input);	    input = NULL;
+    delete[] a;
+    return 0;  
+}
+
+
+
+
+double ANTLR3_CDECL call_parser(string inputstring ){ 
+	
+    pANTLR3_INPUT_STREAM input = antlr3NewAsciiStringCopyStream((pANTLR3_UINT8)inputstring.c_str(), (ANTLR3_UINT64) inputstring.size(), NULL);
+
+    ppqlLexer lxr;
+
+    pANTLR3_COMMON_TOKEN_STREAM tstream;
+
+    ppqlParser psr;
+
+    if ( input == NULL ){
+	    cout<<"Input string is null" <<endl; 
+    }
+
+    lxr = pqlLexerNew(input);
+
+    if (lxr == NULL ){
+	    fprintf(stderr, "Unable to cuniquereate the lexer due to malloc() failure1\n");
+	    exit(ANTLR3_ERR_NOMEM);
+	}
+
+    tstream = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, TOKENSOURCE(lxr));
+
+    if (tstream == NULL)
+    {
+		fprintf(stderr, "Out of memory trying to allocate token stream\n");
+		exit(ANTLR3_ERR_NOMEM);
+    }
+
+    // Finally, now that we have our lexer constructed, we can create the parser
+    //
+    psr	    = pqlParserNew(tstream);  // CParserNew is generated by ANTLR3
+
+    if (tstream == NULL)
+    {
+		fprintf(stderr, "Out of memory trying to allocate parser\n");
+		exit(ANTLR3_ERR_NOMEM);
+    }
+
+  	debugstatement("Entering the parser");
+  	start_clock();
+	psr->prog(psr);	
+	double TimeOfRun = stop_clockbp();
+	debugstatement("Exited parser");
+
+    //free it all. 
+    psr	    ->free  (psr);	     	psr = NULL;
+    tstream ->free  (tstream);	    tstream = NULL;
+    lxr	    ->free  (lxr);	    	lxr = NULL;
+    input   ->close (input);	    input = NULL;
+    return TimeOfRun;  
+}
+
+int free_things(){
+	while(!::taxa_in_trees.empty()){
+		delete[] ::taxa_in_trees.back();
+		::taxa_in_trees.pop_back();
+	}
+	
+	//~ while(!::list_bs.empty()){
+		//~ delete[] ::list_bs.back();
+		//~ ::list_bs.pop_back();
+	//~ }
+	
+	while(!::query_results.empty()){
+		delete ::query_results.back();
+		::query_results.pop_back();
+	}
+	
+	for ( std::map<std::string, pqlsymbol * >::const_iterator i = symbol_table.begin(); i != symbol_table.end(); ++i ){
+		delete i->second;
+		//i->second = 0; // I don't think this is strictly necessary...
+	}
+	
+	return 1;
+	
+}
+
+void init_the_constants(){
+  ::NUM_TREES_INIT = ::NUM_TREES;
+	for(unsigned int i = 0; i < NUM_TREES; i++){
+		::all_trees.insert(i);
+	        ::original_trees.insert(i);
+	}
+
+	//initialize a Taxon object in taxa_info for each taxon
+	for (unsigned int i = 0; i < ::NUM_TAXA; i++) {
+	  ::taxa_info.push_back(new Taxon);
+	  ::taxa_info[i]->label = ::lm.name(i);
+	}
+
+	//Make taxa names constants.  
+	vector<string> taxaset;
+	for (unsigned int i = 0; i < lm.size(); i ++ ){
+		if(isalpha(lm.name(i)[0])){
+			symbol_table[lm.name(i)] = new pqlsymbol(lm.name(i));
+			constant_table[lm.name(i)] = true;
+			taxaset.push_back(lm.name(i));
+		}
+		else{
+			string str = "t";
+			str.append(lm.name(i));
+			symbol_table[str] = new pqlsymbol(lm.name(i));
+			constant_table[str] = true;
+			taxaset.push_back(str);
+		}
+		
+		//cout << lm.name(i) << endl;
+	}
+	symbol_table["true"] = new pqlsymbol(true);
+	constant_table["true"] = true;
+	symbol_table["false"] = new pqlsymbol(false);
+	constant_table["false"] = true;
+	symbol_table["taxa"] = new pqlsymbol(taxaset);
+	constant_table["taxa"] = true;
+	symbol_table["trees"] = new pqlsymbol(all_trees, (unsigned int)::NUM_TREES);
+	constant_table["trees"] = true;
+	symbol_table["original_trees"] = new pqlsymbol(original_trees, (unsigned int)::NUM_TREES_INIT);
+	constant_table["original_trees"] = true;
+	
+	//for (unsigned int i=0; i < ::NUM_TAXA; ++i) 
+	//	::shuffledTaxa.push_back(i); // 1 2 3 4 5 6 7 8 9	
+}
+
+void stripwhite (char *string){
+  register int i = 0;
+
+  while (whitespace (string[i]))
+    i++;
+
+  if (i)
+    strcpy (string, string + i);
+
+  i = strlen (string) - 1;
+
+  while (i > 0 && whitespace (string[i]))
+    i--;
+
+  string[++i] = '\0';
+}
+
+
+int main(int argc, char **argv){
+
+  srand(time(NULL));
+
+	
+	init_output();
+	rl_attempted_completion_function = my_completion;
+	//DEBUGMODE = true;
+	DEBUGMODE = false;
+		
+	unsigned int QueryResultsSize = query_results.size();
+
+	if(::DEBUGMODE){
+		write_to_output("Debug Mode is on\n");
+		write_to_output("Session started at ");
+		write_to_output(get_time_stamp());
+		write_to_output("\n");		
+		
+		if (::HETERO){
+			write_to_output( "HETERO = true\n");
+		}
+		else{
+			write_to_output( "HETERO = false\n");
+		}
+		cout << "HETERO = " << HETERO << endl;
+	} 
+   
+	if (argc != 3 && argc != 4){
+	  cerr << "usage: ./sample trzfile commandfile" << endl;
+	  cerr << "   or: ./sample trzfile classificationfile commandfile" << endl;
+	  cerr << "This program searches the trzfile for the trees matching the search commands in the command file" << endl;
+	  return 2;
+	}
+
+	start_clock();
+
+	// Get the name of the database
+	string trzfilename = argv[1];
+	//std::clock_t start1 = std::clock();
+	// Unpack the trees into the hash table
+	load_data_from_trz_file(trzfilename);
+  
+	cout << "ParsingTime = " << stop_clockbp() << endl;
+
+	start_clock();
+	init_the_constants(); // This loads the constant varibles
+	init_the_functs(); // This loads the language functions into usable data structures.
+	
+	
+	//The main input file for the pql commands 
+
+	string inputfilename; //, interactive_input;
+ 
+	int cmdind = 2; // where commandfile is in argv
+
+	if (argc == 4) { // if there is a classification file...
+	  load_classification(argv[2]); // load it
+	  cmdind = 3; // commandfile must be argv[3]
+	}
+	cout << "SetupTime = " << stop_clockbp() << endl;
+
+	// Get path of TreeHouse directory, change to it
+	//string thpath = argv[0];
+	//thpath.resize(thpath.size() - 9);
+	//chdir(thpath.c_str());
+	//if (chdir(thpath.c_str()) == -1){
+	//	cout << "setting the path to the current TreeHouse directory failed." << strerror (errno) << endl;
+	//}
+
+	//start_clock();
+	if (strcmp(argv[cmdind],"-i") == 0) {
+		interactive = true;
+		interactive_log.open("logs/interactive_log.txt");
+		if(interactive_log){
+			debugstatement("interactive log opened");
+		}
+
+		// Get path of TreeHouse directory, change to it
+		string thpath = argv[0];
+		thpath.resize(thpath.size() - 9);
+		if (chdir(thpath.c_str()) == -1){
+			cout << "setting the path to the current TreeHouse directory failed." << endl;
+		}
+		
+		interactive_log  << "Session opened at " << get_time_stamp() << endl;
+		bool done = 0;
+		while (!done){
+			char *line;
+			line = readline ("TH>: ");
+			stripwhite (line);
+			string interactive_input = line;
+			interactive_input.append("\n");
+
+			if (!line || interactive_input == "quit()\n"){
+				done = 1;             /* Encountered EOF at top level. */
+				interactive_log  << "Session closed at " << get_time_stamp() << endl;
+				interactive_log.close();
+			}
+			else{
+				if (*line){	
+					double TimeOfRun = call_parser(interactive_input);
+					if( QueryResultsSize < query_results.size() ){
+						QueryResultsSize++;
+						interactive_log << "Command: "<< interactive_input;
+						interactive_log << "Command issued at: " << get_time_stamp();
+						interactive_log << "Result:" << query_results.back()->value_to_string() << endl;
+						interactive_log << "Runtime:" << TimeOfRun << endl;
+						interactive_log << endl;
+					}
+					else{
+						interactive_log << "Input: "<< interactive_input;
+					}			
+					add_history (line);
+				}
+			}
+			if (line)
+				free (line);
+		}
+	}
+  
+	else {		
+		interactive_log.open("logs/batch_log.txt");
+		interactive_log  << "Session opened at " << get_time_stamp() << endl;
+		interactive_log  << "Batch file : " << argv[cmdind] << endl;
+		
+		ifstream ifs( argv[cmdind] );
+		string batch_input;
+
+		// Get path of TreeHouse directory, change to it
+		string thpath = argv[0];
+		thpath.resize(thpath.size() - 9);
+		//chdir(thpath.c_str());
+		if (chdir(thpath.c_str()) == -1){
+			cout << "setting the path to the current TreeHouse directory failed." << endl;
+		}
+		
+		while(getline( ifs, batch_input ) ) {
+			batch_input.append("\n");
+			double TimeOfRun = call_parser(batch_input);
+			if( QueryResultsSize < query_results.size() ){
+				QueryResultsSize++;
+				interactive_log << "Command: "<< batch_input;
+				interactive_log << "Command issued at: " << get_time_stamp();
+				interactive_log << "Result:" << query_results.back()->value_to_string() << endl;
+				interactive_log << "Runtime:" << TimeOfRun << endl;
+				interactive_log << endl;
+			}
+			else{
+				interactive_log << "Input: "<< batch_input;
+			}
+		}
+		interactive_log  << "Session closed at " << get_time_stamp() << endl;
+		interactive_log.close();
+	}
+
+	
+	//cout << "ExeTime = " << stop_clockbp() << endl;
+
+	//cout << "SetTime = " << ::SetTime << endl;
+
+
+	if(DEBUGMODE){
+		::lm.printMap();
+		//print_hashtable();
+		
+		std::cout<< "taxa_in_trees = " << ::taxa_in_trees.size() << endl;
+		//print_taxa_in_trees();
+		//std::cout<< "all_branches = " << ::all_branches.size() << endl;
+		//std::cout<< "bs_sizes = " << ::bs_sizes.size() << endl;
+		std::cout<< "all_trees = " << ::all_trees.size() << endl;
+
+		//std::cout<< "length_of_bitstrings = " << ::length_of_bitstrings.size() << endl;
+		//std::cout<< "list_bs = " << ::list_bs.size() << endl;
+		//std::cout<< "list_branches = " << ::list_branches.size() << endl;
+		//std::cout<< "all_bs = " << ::all_bs.size() << endl;
+		std::cout<< "inverted_index = " << ::inverted_index.size() << endl;
+
+		//::biparttable.print_searchtable();
+		::biparttable.print_hashtable();
+		//for (unsigned int x = 0; x < NUM_TREES; x++){
+		//cout << compute_tree(::lm, ::all_bs[x], ::all_branches[x], x, 0, ::bs_sizes[x]) << endl;
+		//}
+	}
+	
+  free_things();
+
+  return 0;
+
+}
