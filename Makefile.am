@@ -3,6 +3,8 @@
 # Please make sure it's checked into git this way so you don't annoy the next person!
 #
 
+ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS} 
+
 #
 # To build a distribution (make dist) for only a subset of the directories:
 # a). Comment out the SUBDIRS lines for directories that will NOT be built
