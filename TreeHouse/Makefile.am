@@ -4,13 +4,16 @@ comdir = ${top_srcdir}/Common
 randir = ${comdir}/RandomLib
 tclap  = ${top_srcdir}/tclap
 treezipdir = ${top_srcdir}/TreeZip
+antlrdir = ${top_srcdir}/TreeHouse/antlr/libantlr3c-3.1.4-SNAPSHOT
 #ncl  = ${top_srcdir}/ncl
 
 #AM_LDFLAGS = ${ncl}/libncl.la
-AM_CXXFLAGS = -std=c++11 -Wall -O2 -funroll-loops -fexpensive-optimizations -g -I.
+AM_CXXFLAGS = -std=c++0x -Wall -O2 -funroll-loops -fexpensive-optimizations -g -I.
 AM_CXXFLAGS += -I${top_srcdir}
 AM_CXXFLAGS += -I${comdir}
 AM_CXXFLAGS += -I${treezipdir}
+AM_CXXFLAGS += -I${antlrdir}
+AM_CXXFLAGS += -I${antlrdir}/include
 AM_CXXFLAGS += `pkg-config --cflags --libs libxml++-2.6`
 #AM_CXXFLAGS += -I${ncl}
 
@@ -24,6 +27,9 @@ treehouse_SOURCES =
 treehouse_SOURCES += ${comdir}/hashfunc.hh ${comdir}/randomc.h ${comdir}/hashfunc.cc
 treehouse_SOURCES += ${comdir}/label-map.hh ${comdir}/label-map.cc
 treehouse_SOURCES += ${comdir}/hash.hh ${comdir}/hash.cc
+
+#antlr sources
+treehouse_SOURCES += ${antlrdir}/include/antlr3.h ${antlrdir}/antlr3config.h
 
 # common sources: Newick parser
 treehouse_SOURCES += ${comdir}/newick.h ${comdir}/newick.c
@@ -71,4 +77,4 @@ treehouse_SOURCES += SearchFunctions.h SearchFunctions.cc
 treehouse_SOURCES += InterfaceFunctions.h InterfaceFunctions.cc
 treehouse_SOURCES += UserFunctions.h UserFunctions.cc
 treehouse_SOURCES += TreeHouse.cc
-treehouse_LDADD = -lantlr3c -lreadline -lncurses
+treehouse_LDADD = ${antlrdir}/libantlr3c.la -lreadline -lncurses
