@@ -21,12 +21,14 @@ void generate_random_bt(){
 	return;
 }
 
+//Returns a vector representing the bipartitions which are in all input trees
 std::vector<unsigned int> biparts_in_all_trees(set<unsigned int> inputtrees){
-	std::vector<unsigned int> bipartsInAll;
+	std::vector<unsigned int> bipartsInAll; //vector to return
 	for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //for each bipartition
-		vector<unsigned int> temp = ::biparttable.searchtable[i];
+		vector<unsigned int> temp = ::biparttable.searchtable[i]; //The list of trees for bipart at index i
 		set<unsigned int> sinter;
 		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter(sinter, sinter.begin()));
+		//Intersection of the vectors is the size of the input set: bipartition is in all trees
 		if (sinter.size() == inputtrees.size() ){
 			bipartsInAll.push_back(i);
 		}
@@ -39,12 +41,14 @@ std::vector<unsigned int> biparts_in_all_trees(set<unsigned int> inputtrees){
 	return bipartsInAll;
 }
 
+//Returns a vector of biparts which are in none of the input trees
 std::vector<unsigned int> biparts_in_no_trees(set<unsigned int> inputtrees){
-	std::vector<unsigned int> bipartsInNo;
+	std::vector<unsigned int> bipartsInNo; // vector to be returned
 	for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //for each bipartition
-		vector<unsigned int> temp = ::biparttable.searchtable[i];
+		vector<unsigned int> temp = ::biparttable.searchtable[i]; //The list of trees for bipart at index i
 		set<unsigned int> sinter;
 		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter(sinter, sinter.begin()));
+	        //intersection of the vectors is empty: there are no trees with the bipartition
 		if (sinter.size() == 0 ){
 			bipartsInNo.push_back(i);
 		}
@@ -57,8 +61,9 @@ std::vector<unsigned int> biparts_in_no_trees(set<unsigned int> inputtrees){
 	return bipartsInNo;
 }
 
+//Outputs the vector of bipartitions which are in all of the trees in one set, and none of the trees in the other
 std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2){
-	vector<int> result; 
+	vector<int> result; //Vector to be returned
 	
 	vector<unsigned int> inAll1 = biparts_in_all_trees(inputtrees1);
 	vector<unsigned int> inNo1 = biparts_in_no_trees(inputtrees1);
@@ -70,9 +75,9 @@ std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsign
 
 	vector<unsigned int> inNo;
 	std::set_union(inNo1.begin(), inNo1.end(), inNo2.begin(), inNo2.end(), std::inserter(inNo, inNo.end()));
-
+	//The intersection will contain all bipartions which are in one set of trees but not he other
 	std::set_intersection(inAll.begin(), inAll.end(), inNo.begin(), inNo.end(), std::inserter(result, result.end()));
-	
+	//Prints each bipartition
 	for (unsigned int i = 0; i < result.size(); i++){ //for each bipartition
 		cout << "printing: ";
 		printBipartition(i);
@@ -81,46 +86,47 @@ std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsign
 	return result;
 }
 
-
+//Returns the vector of taxa in are present in all of the input trees
 std::vector<string> taxa_in_all_trees(set<unsigned int> inputtrees){
-	vector<string> allTaxa = get_all_taxa_vect();
-	
+	vector<string> allTaxa = get_all_taxa_vect();// Vector to return
+	//For each input tree
 	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos) {
 	vector<string> temp = get_taxa_in_tree(*pos);
-	std::vector<string> s; 
+	std::vector<string> s; //Stores intersection temporarily
 	std::set_intersection(allTaxa.begin(), allTaxa.end(), temp.begin(), temp.end(),  std::inserter(s, s.end()));
-	allTaxa.swap(s);
+	allTaxa.swap(s); //Places the value of s in allTaxa and allTaxa in s
 	}
 	return allTaxa;
 }
 
+//Returns a vector of the taxa which are present in none of the input trees
 std::vector<string> taxa_in_no_trees(set<unsigned int> inputtrees){
-	vector<string> allTaxa = get_all_taxa_vect();
-	
+	vector<string> allTaxa = get_all_taxa_vect(); //Vector to return
+	//for each input tree	
 	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos) {
-	vector<string> temp = get_taxa_in_tree(*pos);
-	std::vector<string> s; 
+	vector<string> temp = get_taxa_in_tree(*pos); //Taxa in current tree
+	std::vector<string> s; //Stores the intersection temporarily
 	std::set_difference(allTaxa.begin(), allTaxa.end(), temp.begin(), temp.end(),  std::inserter(s, s.end()));
-	allTaxa.swap(s);
+	allTaxa.swap(s); //Places the value of s in allTaxa and allTaxa in s
 	}
 	return allTaxa;
 }
 
 //The taxa that appear in all of one set and none of the other. 
 std::vector<string> distinguishing_taxa(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2){
-	vector<string> result; 
+	vector<string> result; //vector to be returned
 	
 	vector<string> inAll1 = taxa_in_all_trees(inputtrees1);
 	vector<string> inNo1 = taxa_in_no_trees(inputtrees1);
 	vector<string> inAll2 = taxa_in_all_trees(inputtrees2);
 	vector<string> inNo2 = taxa_in_no_trees(inputtrees2);
 	
-	vector<string> inAll;
+	vector<string> inAll; //Taxa in all of the trees from both sets
 	std::set_union(inAll1.begin(), inAll1.end(), inAll2.begin(), inAll2.end(), std::inserter(inAll, inAll.end()));
 
-	vector<string> inNo;
+	vector<string> inNo; //Taxa in none of the trees from either set
 	std::set_union(inNo1.begin(), inNo1.end(), inNo2.begin(), inNo2.end(), std::inserter(inNo, inNo.end()));
-
+	//Intersection contains those that are in none of one set and all of the other
 	std::set_intersection(inAll.begin(), inAll.end(), inNo.begin(), inNo.end(), std::inserter(result, result.end()));
 
 	return result;
