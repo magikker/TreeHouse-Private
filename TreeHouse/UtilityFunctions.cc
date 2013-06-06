@@ -961,6 +961,22 @@ set <unsigned int> unique(set< unsigned int> treesin){
 	return uniquetrees;
 }
 
+int unique_biparts(set< unsigned int > treesin)
+{
+	cout << "unique biparts has been called" << endl;
+	//returns the unique bipartitions contained in a set of trees
+	set<bool*> retSet; //the set we are going to return
+
+	for(int i = 0; i < treesin.size(); i++) //iterate through all of the input trees
+		{
+			vector<bool *> tree_biparts = get_tree_bipartitions(i);
+			for(int j = 0; j < tree_biparts.size(); j++){			
+				retSet.insert(tree_biparts[j]);	  
+			}
+		}
+	return retSet.size();
+}
+
 vector <unsigned int> unique(vector<unsigned int> treesin){
 	//Returns the unique trees in a tree set. 
 	vector<unsigned int> uniquetrees = treesin;

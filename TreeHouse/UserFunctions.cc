@@ -777,6 +777,26 @@ pqlsymbol * u_unique(vector<pqlsymbol * > arglist)
 	return result;
 }
 
+//unique_biparts(set< unsigned int > treesin)
+pqlsymbol * u_unique_biparts(vector<pqlsymbol *> arglist)
+{
+	pqlsymbol * result;
+
+	if(arglist.size() != 1){	
+		cout << "Error: unique_biparts expects one argument of type tree set";
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	else if(!arglist[0]->is_treeset() ){
+		cout << "Error: unique_biparts takes a tree set, Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	else{
+		result = new pqlsymbol(unique_biparts(arglist[0]->get_treeset()));
+		//result = new pqlsymbol(ERROR, "Type Error");
+	}
+
+	return result;
+}
 
 // takes an int. Returns the ints which share the same topology. 
 pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist) 
@@ -1529,6 +1549,8 @@ void init_the_functs()
 	//analysis
 	add_function("count", &u_count, "Returns the number of objects in the treeset or list");
 	add_function("unique", &u_unique, "Returns the a subset of trees from a given treeset each with a unique topology.");
+	add_function("unique_biparts", &u_unique_biparts, "Returns the number of all unique bipartitions given a treeset");
+
 	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
 		//consensus
 		add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.");

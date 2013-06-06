@@ -131,6 +131,8 @@ vector <unsigned int> unique(vector<unsigned int> treesin);
 
 vector <int> unique(vector<int> treesin);
 
+int unique_biparts(set< unsigned int > treesin);
+
 vector<string> split(const char *str, char c );
 
 int pANTLR3_COMMON_TOKEN_to_int(pANTLR3_COMMON_TOKEN tok);
