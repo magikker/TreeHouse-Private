@@ -1191,9 +1191,9 @@ int main(int argc, char **argv){
 			debugstatement("interactive log opened");
 		}
 
-		// Get path of TreeHouse directory, change to it
+		// Get path of TreeHouse directory, change to i
 		string thpath = argv[0];
-		thpath.resize(thpath.size() - 9);
+		thpath.resize(thpath.size() - 19);
 		if (chdir(thpath.c_str()) == -1){
 			cout << "setting the path to the current TreeHouse directory failed." << endl;
 		}
@@ -1244,7 +1244,7 @@ int main(int argc, char **argv){
 
 		// Get path of TreeHouse directory, change to it
 		string thpath = argv[0];
-		thpath.resize(thpath.size() - 9);
+		thpath.resize(thpath.size() - 19);
 		//chdir(thpath.c_str());
 		if (chdir(thpath.c_str()) == -1){
 			cout << "setting the path to the current TreeHouse directory failed." << endl;
