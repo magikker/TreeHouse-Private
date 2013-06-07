@@ -170,4 +170,8 @@ void print_hashtable();
 void print_set(set<unsigned int> t);
 
 void print_vector_of_strings(vector< string > bitstrings);
+
+bool isInVector(vector<int> toSearch, int x);
+
+bool areBitsSame(bool* BS, int length); //checks if all of the bits in a bitstring are the same
 #endif

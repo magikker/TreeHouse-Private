@@ -48,7 +48,7 @@ public:
 		return count;
 	}
 	
-	int number_of_zeros(int bitstringindex){
+	int number_of_zeros(int bitstringindex){ //NOTE- this only counts the number of zeros of the literal bitstring, not included omitted zeros at the end
 		int count = 0;
 		for(unsigned int i = 0; i < length_of_bitstrings[bitstringindex]; i ++ ){
 			if (bipartitions[bitstringindex][i] == 0){

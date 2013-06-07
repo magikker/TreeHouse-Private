@@ -127,6 +127,47 @@ string missedTaxaErrorMessage(vector<string> missedtaxanames1, vector<string> mi
 					errorstring += ", ";
 	}
 }
+//set<unsigned int> clade_size_search(vector<int> required, int size)
+pqlsymbol * u_clade_size_search(vector< pqlsymbol * > arglist) {
+	pqlsymbol * result;
+
+	//make sure we have two arguments: first is a vector of ints, second is an int
+	if(arglist.size() != 2) {
+		cout << "clade_size_search expects 2 arguments: a StringVec/IntVec and an integer. " << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR,"Type Error");
+	}
+	else if (arglist[0]->is_atom() && arglist[0]->is_string() && arglist[1]->is_int()) {
+		vector<string> temp;
+		temp.push_back(arglist[0]->get_string());
+		vector<string> missednames = ::lm.catchDeclaredTaxa(temp);
+		if(missednames.size() > 0){
+			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
+		}
+		else{
+			result = new pqlsymbol(clade_size_search(temp, arglist[1]->get_int() ), ::NUM_TREES );
+		}
+	}
+	else if (arglist[0]->is_vect() && arglist[0]->is_string() && arglist[1]->is_int()) {
+		vector<string> missednames = ::lm.catchDeclaredTaxa(arglist[0]->get_string_vect());
+		if(missednames.size() > 0){
+			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
+		}
+		else{
+			result = new pqlsymbol(clade_size_search(arglist[0]->get_string_vect(), arglist[1]->get_int() ), ::NUM_TREES );
+		}
+		
+	}
+	else if (arglist[0]->is_vect() && arglist[0]->is_int() && arglist[1]->is_int()) {
+		result = new pqlsymbol(clade_size_search(arglist[0]->get_int_vect(), arglist[1]->get_int() ), ::NUM_TREES );
+	}
+	else {
+		cout << "clade_size_search expects a StringVec/Intvec and an Integer" << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+
+
+}
 
 pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {  
 	pqlsymbol * result;
@@ -1516,6 +1557,7 @@ void init_the_functs()
 	add_function("get_trees_without_taxa", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa");
 	add_function("gtwot", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa");
 
+	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa");
 	add_function("get_trees_with_taxa", &u_get_trees_with_taxa, "Returns the trees that have the input taxa");
 	add_function("gtwt", &u_get_trees_with_taxa, "Returns the trees that have the input taxa");
 
