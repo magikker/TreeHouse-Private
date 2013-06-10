@@ -52,6 +52,42 @@ void handle_newick_error(int err){
   exit(0);
 }
 
+
+vector< vector <int > > compute_bitstrings_h(string inputstring) {
+	NEWICKTREE *newickTree;
+	int err;
+	char * cs = strdup(inputstring.c_str());
+	newickTree = stringloadnewicktree(cs, &err);
+	vector< vector < int > > treeout;
+
+	if (!newickTree) {
+		switch (err) {
+			case -1:
+				cout << "Out of memory" << endl;
+				break;
+			case -2:
+				cout << "Parse error" << endl;
+				break;
+			case -3:
+				cout << "Can't load file" << endl;
+				break;
+			default:
+				cout << "Error " << err << endl;
+			exit(0);
+			}
+	}
+	else {
+		bool * bs = dfs_compute_bitstrings(newickTree->root, NULL, treeout);
+		delete[] bs;
+	}
+
+	free(cs);
+
+	return treeout;
+}
+
+//A very similar version of this function is found in SearchFunctions.cc (defferences are some code not commented
+//in this version, and &solution is a vector<vector <unsigned int> > in SearchFunctions.cc
 bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector< vector < unsigned > > &solution )
 {
   if (HETERO && !HCHECK)

@@ -22,6 +22,8 @@ set<unsigned int> smallest_clade(vector<string> RequiredTaxa);
 
 set<unsigned int> clade_size_search(vector<string> RequiredTaxa, int size);
 
+set<unsigned int> similarity_search(string intputtree);
+
 set<unsigned int> get_trees_with_taxa(vector<int> required);
 
 set<unsigned int> get_trees_without_taxa(vector<int> excluded);
@@ -41,6 +43,8 @@ set<unsigned int> search_hashtable_strict(vector<int> leftside, vector<int> righ
 set<unsigned int> search_hashtable_strict_and_timed(vector<int> leftside, vector<int> rightside, int side);
 
 set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> rightside, int side);
+
+vector <vector <int> > compute_bitstrings_h(string inputstring);
 
 bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector< vector < int > > &solution );
 
