@@ -114,8 +114,11 @@ bool is_taxa_homogenious(set<unsigned int> treeset){
 }
 
 bool are_taxa_in_tree(int treeindex, vector<int> setoftaxa){
+	cout << "first taxon is: " << setoftaxa[0] << endl;
+
 	for(unsigned int i = 0; i < setoftaxa.size(); i++){
-		if(taxa_in_trees[treeindex][i] == 0){
+		if(taxa_in_trees[treeindex][setoftaxa[i]] == 0){ 
+	//	NOTE- ABOVE LINE USED TO BE:	if(taxa_in_trees[treeindex][i] == 0){ 
 			return false;
 		}
 	}
