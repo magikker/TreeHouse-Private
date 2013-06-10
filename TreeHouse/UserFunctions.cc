@@ -126,6 +126,7 @@ string missedTaxaErrorMessage(vector<string> missedtaxanames1, vector<string> mi
 				if (i != missedtaxanames2.size()-1)
 					errorstring += ", ";
 	}
+	return errorstring;
 }
 
 pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {  
@@ -334,7 +335,56 @@ pqlsymbol * u_consen(vector<pqlsymbol * > arglist)
 	return new pqlsymbol(consen(tset, threshold) );
 	
 }
- 
+
+pqlsymbol * u_consensus_reso_rate(vector<pqlsymbol *> arglist)
+{
+	set<unsigned int> tset;
+	float threshold = 50.0;
+
+	if (arglist.size() > 0 && arglist[0]->is_treeset()){
+		tset = arglist[0]->get_treeset();
+	}
+	else{
+
+		cout << "u_consensus_reso_rate expects either 1 set of tree or a set of trees and a percentage " << "Found " << get_arg_types(move(arglist)) << endl;
+		return new pqlsymbol(ERROR, "Type Error, 1st value");
+	}
+	
+	if (arglist.size() > 1 && arglist[1]->is_int()){
+			threshold = (float)arglist[1]->get_int();
+	}
+	else if (arglist.size() > 1 && arglist[1]->is_double()){
+			threshold = (float)arglist[1]->get_double();
+	}
+	else if (arglist.size() > 1 && arglist[1]->is_float()){
+			threshold = (float)arglist[1]->get_float();
+	}
+	else if (arglist.size() > 1){
+		cout << "u_consensus_reso_rate expects either 1 set of tree or a set of trees and a percentage " << "Found " << get_arg_types(move(arglist)) << endl;
+		return new pqlsymbol(ERROR, "Type Error, 2nd value");
+	}
+
+	if(!is_taxa_homogenious(tset) ){
+		return new pqlsymbol(ERROR, "Can only handle taxa homogenious treesets. Taxa heterogenious trees were found");
+	}
+
+	return new pqlsymbol(consensus_reso_rate(tset, threshold));
+}
+
+pqlsymbol * u_reso_rate(vector<pqlsymbol *> arglist)
+{
+	string stree;
+
+	if (arglist.size() == 1 && arglist[0]->is_string()){
+		stree = arglist[0]->get_string();
+	}
+	else{
+		cout << "reso_rate expects a single string representing a tree " << "Found " << get_arg_types(move(arglist)) << endl;
+	}
+	return new pqlsymbol(reso_rate(stree));
+
+}
+
  pqlsymbol * u_HashCS(vector<pqlsymbol * > arglist) {  
 	 pqlsymbol * result;
  
@@ -1556,6 +1606,9 @@ void init_the_functs()
 		add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.");
 		add_function("strict_consensus", &u_strict_consen, "Returns the newick string for the strict consensus tree for the input treeset.");
 		add_function("majority_consensus", &u_majority_consen, "Returns the newick string for the majority consensus tree for the input treeset.");
+		add_function("consensus_reso_rate", &u_consensus_reso_rate, "Returns the consensus resolution rate for a set of trees and a given consensus strictness.");
+		add_function("crr", &u_consensus_reso_rate, "Returns the consensus resolution rate fora  set of trees and a given consensus strictness.");
+		add_function("reso_rate", &u_reso_rate, "Returns the resolution rate for a given tree.");
 
 		add_function("greedy_consen", &u_greedy_consen, " ");	
 		add_function("least_conflict", &u_least_conflict, " ");
@@ -1566,7 +1619,7 @@ void init_the_functs()
 
 	//visualization
 	add_function("show", &u_show, "Displays images of the specified tree or trees (Int, IntVect, or Treeset). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
-	add_function("show_newick", &u_show_newick, "Displays images of the specified Newick strings (String or StringVect). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text."); 
+	add_function("show_newick", &u_show_newick, "Displays images of the specified Newick strings (String or StringVect). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
 	add_function("export", &u_export, "Exports images of the specified tree or trees (Int, IntVect, or Treeset) to the specified folder path (String). Takes an optional String mode argument ('ortho' or 'radial') to export an SVG image. Default mode is text.");
 	add_function("export_newick", &u_export_newick, "Exports images of the specified Newick strings (String or StringVect) to the specified folder path (String). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
 

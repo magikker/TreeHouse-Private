@@ -216,6 +216,74 @@ string consen(set<unsigned int> inputtrees, float percent){
 }
 
 
+//Returns consensus resolution rate for a set of trees and a given consensus strictness
+float consensus_reso_rate(set<unsigned int> inputtrees, float percent){
+	string temp = consen(inputtrees, percent);
+	float result;
+	//Runs the resolution rate function on the output of forming a consensus tree
+	result = reso_rate(temp);
+
+	return result;
+
+
+}
+
+//Returns the resolution rate of a given tree
+float reso_rate(string inputtree){
+
+	float result; // Float to be returned
+	
+	//Block Necessary to use dfs_compute_bitstrings()
+	NEWICKTREE *newickTree;
+	int err;
+	char * cs = strdup(inputtree.c_str());
+	newickTree = stringloadnewicktree(cs, &err);
+	vector< vector < int > > treei; 
+	
+	//Testing for stringloadnewicktree errors
+	if (!newickTree) {
+		switch (err) {
+			case -1:
+			cout << "Out of memory" << endl;
+			break;
+		case -2:
+			cout << "parse error" << endl;
+			break;
+		case -3:
+			cout << "Can't load file" << endl;
+			break;
+		default:
+			cout << "Error " << err << endl;
+		exit(0);
+		}
+   	 }
+
+    	else {
+		//Computes a bitstring from the string input (more useful for computation)
+    	    	bool * bs = dfs_compute_bitstrings(newickTree->root, NULL, treei);
+		delete[] bs;
+		//Only valid because homogeneous treesets, same number of taxa in all trees
+		vector<string> temp = get_taxa_in_tree(0);
+		float taxa = temp.size();
+		//Computes the number of possible bipartitions
+		float total_biparts = taxa - 3;
+		//Computes the number of non-trivial bipartitions
+		float num_tree_biparts = treei.size() - taxa;
+			cout << "Number of Bipartitions = " << num_tree_biparts << endl;
+		//Computes the resolution value
+		result = num_tree_biparts / total_biparts;
+			cout << "Result is : " << result << endl;	
+		}
+
+	free(cs); //Part of running dfs_compute_bitstrings(), frees the char string;
+
+	return result;
+
+
+
+}
+
+
   
 BipartitionTable least_conflict_bt(set<unsigned int> inputtrees) {
   BipartitionTable consen_bt = get_consen_bt(inputtrees, 100);

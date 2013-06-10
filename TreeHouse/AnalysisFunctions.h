@@ -11,6 +11,9 @@
 //The label map class. 
 #include "label-map.hh"
 
+#include "newick.h"
+#include "SearchFunctions.h"
+
 using namespace std;
 
 void generate_random_bt();
@@ -24,6 +27,10 @@ void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, v
 unsigned int compute_threshold(unsigned int numberofTrees, float threshold);
 
 string consen(set<unsigned int> inputtrees, float percent);
+
+float consensus_reso_rate(set<unsigned int> inputtrees, float percent);
+
+float reso_rate(string inputtree);
   
 BipartitionTable least_conflict_bt(set<unsigned int> inputtrees);
 
