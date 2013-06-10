@@ -1,5 +1,143 @@
 #include "SearchFunctions.h"
 
+
+
+set<unsigned int> clade_size_search(vector<int> required, int size)
+{
+	set<unsigned int> retSet;
+
+	vector<int> goodBipartitions; //the bipartitions with the required clade and right size
+
+	for(int b = 0; b < biparttable.bipartitions.size(); b++){ //for each bipartition
+		cout << "Bipartition # " << b << ", ";
+		for(int k = 0; k < biparttable.length_of_bitstrings[b]; k++){
+			cout << biparttable.bipartitions[b][k];
+		} cout << endl;
+		
+		
+		//create a partial bitstring out of the bipartition that represents all of the places of required	
+		bool partialBS[required.size()];
+				
+		for(int i = 0; i < required.size(); i++){ //fill the partial bitstring
+			if(biparttable.length_of_bitstrings[b] <= i){ //we have a 0
+				partialBS[i] = 0;
+				}			
+			else{
+				partialBS[i] = biparttable.bipartitions[b][required.at(i)];
+				}
+			}
+		
+		cout << "Partial BS is: "; for(int i = 0; i < required.size(); i++) { cout << partialBS[i]; } cout << endl; 		
+
+		//now, check that the partial bitstring is either all 1s or all 0s (meaning its in the clade)
+		if(areBitsSame(partialBS, required.size())){
+			//now we know that all of the taxa in required are in a clade. Find out if the clade is the 1s or the 0s
+			bool cladeBit = partialBS[0];
+			//now, count the number of members on that side of the bipartition
+			int bSize;			
+			if(cladeBit){
+				bSize = biparttable.number_of_ones(b);
+				}
+			else{
+				//we're counting 0s, but trailing zeros are cut off, so we have to account for that since number_of_zeros doesn't
+				bSize =  biparttable.number_of_zeros(b) + (::NUM_TAXA - biparttable.length_of_bitstrings[b]); 
+				}		
+
+			cout << "Clade found, bSize is: " << bSize << endl;			
+			if(bSize == size){
+				goodBipartitions.push_back(b);
+				cout << "Good partition added!" << endl;
+				}
+			}		
+		}	
+
+
+
+	//now we have a list of bipartitions which satisfy the desired clade. Add all trees that contain these to the return set
+	for(int i = 0; i < goodBipartitions.size(); i++){ //for each bipartition whose trees we want
+		cout << "Good Bipartition: " << goodBipartitions[i] << endl;
+		cout << "Search table is: "; for(int q = 0; q < biparttable.searchtable[goodBipartitions[i]].size(); q++) { cout << biparttable.searchtable[goodBipartitions[i]][q];} cout << endl;
+		
+		for(int j = 0; j < biparttable.searchtable[goodBipartitions[i]].size(); j++){ //for each tree in the searchtable
+			retSet.insert(biparttable.searchtable[goodBipartitions[i]][j]);
+			cout << biparttable.searchtable[goodBipartitions[i]][j] << " inserted!" << endl;
+			}
+		}
+	return retSet;
+}
+
+//wrapper function for if we're given a set of strinsg
+set<unsigned int> clade_size_search(vector<string> RequiredTaxa, int size) {
+	vector<int> required = ::lm.lookUpLabels(RequiredTaxa);
+	return clade_size_search(required, size);
+}
+
+set<unsigned int> smallest_clade(vector<int> required){
+	set<unsigned int> retSet;
+	int smallest = biparttable.searchtable.size();
+
+	vector<int> goodBipartitions; //the bipartitions with the smallest clade possible
+	int index = 0; //an index to where in the vector is. This vector will act in a circular way. Every time we find a smaller clade, we reset the index to 0
+
+	for(int b = 0; b < biparttable.bipartitions.size(); b++){ //for each bipartition
+		bool partialBS[required.size()];
+		for(int i = 0; i < required.size(); i++){ //fill the partial bitstring
+			if(biparttable.length_of_bitstrings[b] <= i){ //we have a 0
+				partialBS[i] = 0;
+				}			
+			else{
+				partialBS[i] = biparttable.bipartitions[b][required.at(i)];
+				}
+			}
+		if(areBitsSame(partialBS, required.size())){
+			bool cladeBit = partialBS[0];
+			int bSize;			
+			if(cladeBit){
+				bSize = biparttable.number_of_ones(b);
+				}
+			else{
+				//we're counting 0s, but trailing zeros are cut off, so we have to account for that since number_of_zeros doesn't
+				bSize =  biparttable.number_of_zeros(b) + (::NUM_TAXA - biparttable.length_of_bitstrings[b]); 
+				}		
+
+			if(bSize < smallest){
+				cout << "new smallest clade size found of size " << bSize << "!" << endl;
+				smallest = bSize; 
+				index = 0;
+				if(goodBipartitions.size()<=index){
+					goodBipartitions.push_back(b);
+					}
+				else{ 
+					goodBipartitions.at(index) = b;}
+				index++;
+				}			
+			else if(bSize==smallest){
+				cout << "Bipartition matches smallest clade, inserting at index " << index << endl;
+				if(goodBipartitions.size()<=index){
+					goodBipartitions.push_back(b);
+					}
+				else{ 
+					goodBipartitions.at(index) = b;}
+				index++;
+				}
+			}		
+		}	
+	cout << endl << "The smallest clade found is of size " << smallest << ", found in trees:";
+	for(int i = 0; i < index; i++){ //for each bipartition whose trees we want
+		for(int j = 0; j < biparttable.searchtable[goodBipartitions[i]].size(); j++){ //for each tree in the searchtable
+			retSet.insert(biparttable.searchtable[goodBipartitions[i]][j]);
+			}
+		}
+	return retSet;
+
+}
+
+
+set<unsigned int> smallest_clade(vector<string> RequiredTaxa){
+	vector<int> required = ::lm.lookUpLabels(RequiredTaxa);
+	return smallest_clade(required);
+}
+
 set<unsigned int> get_trees_with_taxa(vector<int> required){
     set<unsigned int> trees;
 	//set<int>::iterator it;

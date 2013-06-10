@@ -14,6 +14,14 @@
 
 using namespace std;
 
+set<unsigned int> clade_size_search(vector<int> required, int size);
+
+set<unsigned int> smallest_clade(vector<int> required);
+
+set<unsigned int> smallest_clade(vector<string> RequiredTaxa);
+
+set<unsigned int> clade_size_search(vector<string> RequiredTaxa, int size);
+
 set<unsigned int> get_trees_with_taxa(vector<int> required);
 
 set<unsigned int> get_trees_without_taxa(vector<int> excluded);

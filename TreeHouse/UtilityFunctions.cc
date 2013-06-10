@@ -1323,4 +1323,29 @@ void print_vector_of_strings(vector< string > bitstrings){
   }
 }
 
+//TODO- make using template
+bool isInVector(vector<int> toSearch, int x){
+
+	for(int i = 0; i < toSearch.size(); i++)
+		{
+		if(toSearch.at(i)==x){
+			return true;
+			}
+		}
+	return false;
+}
+
+bool areBitsSame(bool* BS, int length) //checks if all of the bits in a bitstring are the same
+{
+	if(length<=0) {return false;}
+	bool firstBit = BS[0];
+	for(int i = 1; i < length; i++){ //iterate through all subsequent bits
+		if(BS[i]!=firstBit) {
+			return false;
+			}
+		}
+	return true;
+}
+
+
 
