@@ -170,8 +170,6 @@ pqlsymbol * u_clade_size_search(vector< pqlsymbol * > arglist) {
 pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
 	pqlsymbol * result;
 
-	cout << "Called smallest clade. first argument is: " << arglist[0]->value_to_string() << ", also, printdtype is: "; arglist[0]->print_dtype();
-
 	//make sure we have two arguments: first is a vector of ints, second is an int
 	if(arglist.size() != 1) {
 		result = new pqlsymbol(ERROR,"Type Error");
