@@ -235,11 +235,11 @@ float reso_rate(string inputtree){
 	
 	//vector< vector < int > > treei;
 
-	vector< vector <int> > treei = compute_bitstrings_h(inputtree); //The bitstring representation of the input tree
-	
+	//The bitstring representation of the input tree
+	vector< vector <int> > treei = compute_bitstrings_h(inputtree); 	
 		//Only valid because homogeneous treesets, same number of taxa in all trees
-		vector<string> temp = get_taxa_in_tree(0);
-		float taxa = temp.size();
+		//vector<string> temp = get_taxa_in_tree(0);
+		float taxa = ::NUM_TAXA;
 		//Computes the number of possible bipartitions
 		float total_biparts = taxa - 3;
 		//Computes the number of non-trivial bipartitions
