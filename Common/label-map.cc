@@ -6,6 +6,8 @@
 #include "global.h"
 #include <iostream>
 #include <algorithm>
+#include <boost/algorithm/string/predicate.hpp>
+
 using namespace std;
 
 size_t
@@ -125,6 +127,35 @@ LabelMap::catchDeclaredTaxa(vector<string> taxanames){
 		}
 	}
 	return misses;
+}
+
+vector<string> LabelMap::get_all_taxa_vect(){
+	vector<string> taxavect;
+	for(unsigned int i = 0; i < _names.size(); i ++ ){
+			taxavect.push_back(_names[i]);
+	}
+	return taxavect;
+}
+
+set<string> LabelMap::get_all_taxa_set(){
+	set<string> taxaset;
+	for(unsigned int i = 0; i < _names.size(); i ++ ){
+			taxaset.insert(_names[i]);
+	}
+	return taxaset;
+}
+
+//upper/lower checking for taxa labels.... Mark's ancestral distance stuff uses it. . 
+
+int LabelMap::index_in_labelmap(string label) {
+  int ind = -1;
+  for (unsigned int i = 0; i < _names.size(); i++) {
+    if (boost::iequals(_names[i], label)) {
+      ind = i;
+      break;
+    }
+  }
+  return ind;
 }
 
 

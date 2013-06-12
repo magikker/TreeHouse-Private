@@ -17,14 +17,14 @@
 void generate_random_bt(){
 	BipartitionTable rand_bt;
 	rand_bt.create_random_bt();
-	rand_bt.print_hashtable();
+	rand_bt.print_biparttable();
 	return;
 }
 
 std::vector<unsigned int> biparts_in_all_trees(set<unsigned int> inputtrees){
 	std::vector<unsigned int> bipartsInAll;
-	for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //for each bipartition
-		vector<unsigned int> temp = ::biparttable.searchtable[i];
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //for each bipartition
+		vector<unsigned int> temp = ::biparttable.get_trees(i);
 		set<unsigned int> sinter;
 		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter(sinter, sinter.begin()));
 		if (sinter.size() == inputtrees.size() ){
@@ -41,8 +41,8 @@ std::vector<unsigned int> biparts_in_all_trees(set<unsigned int> inputtrees){
 
 std::vector<unsigned int> biparts_in_no_trees(set<unsigned int> inputtrees){
 	std::vector<unsigned int> bipartsInNo;
-	for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //for each bipartition
-		vector<unsigned int> temp = ::biparttable.searchtable[i];
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //for each bipartition
+		vector<unsigned int> temp = ::biparttable.get_trees(i);
 		set<unsigned int> sinter;
 		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter(sinter, sinter.begin()));
 		if (sinter.size() == 0 ){
@@ -83,10 +83,10 @@ std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsign
 
 
 std::vector<string> taxa_in_all_trees(set<unsigned int> inputtrees){
-	vector<string> allTaxa = get_all_taxa_vect();
+	vector<string> allTaxa = ::biparttable.lm.get_all_taxa_vect();
 	
 	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos) {
-	vector<string> temp = get_taxa_in_tree(*pos);
+	vector<string> temp = ::biparttable.get_taxa_in_tree(*pos);
 	std::vector<string> s; 
 	std::set_intersection(allTaxa.begin(), allTaxa.end(), temp.begin(), temp.end(),  std::inserter(s, s.end()));
 	allTaxa.swap(s);
@@ -95,10 +95,10 @@ std::vector<string> taxa_in_all_trees(set<unsigned int> inputtrees){
 }
 
 std::vector<string> taxa_in_no_trees(set<unsigned int> inputtrees){
-	vector<string> allTaxa = get_all_taxa_vect();
+	vector<string> allTaxa = ::biparttable.lm.get_all_taxa_vect();
 	
 	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos) {
-	vector<string> temp = get_taxa_in_tree(*pos);
+	vector<string> temp = ::biparttable.get_taxa_in_tree(*pos);
 	std::vector<string> s; 
 	std::set_difference(allTaxa.begin(), allTaxa.end(), temp.begin(), temp.end(),  std::inserter(s, s.end()));
 	allTaxa.swap(s);
@@ -151,9 +151,10 @@ std::vector<string> taxa_set_xor(set<unsigned int> inputtrees1, set<unsigned int
 }
 */
 
+/*
 void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< bool * > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes){
-	for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //for each bipartition
-		vector<unsigned int> temp = ::biparttable.searchtable[i];
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //for each bipartition
+		vector<unsigned int> temp = ::biparttable.get_trees(i);
 		set<unsigned int> sinter;
 		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter( sinter, sinter.begin() ) );
 		
@@ -162,6 +163,23 @@ void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, v
 			//consensus_branchs.push_back(::list_branches[i]);
 			consensus_branchs.push_back(1.0);
 			consensus_bs_sizes.push_back(::biparttable.length_of_bitstrings[i]);
+		}
+	}
+}
+*/
+//should really phase out
+void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< bool * > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes){
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //for each bipartition
+		vector<unsigned int> temp = ::biparttable.get_trees(i);
+		set<unsigned int> sinter;
+		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter( sinter, sinter.begin() ) );
+		
+		if (sinter.size() >= threshold){
+			consensus_bs.push_back(::biparttable.get_boolarray(i));
+			//consensus_branchs.push_back(::biparttable.get_branchlengths(i));
+			consensus_bs_sizes.push_back(::biparttable.bitstring_size(i));
+			//GRB Do we need a branch length? 
+			consensus_branchs.push_back(1.0);
 		}
 	}
 }
@@ -183,6 +201,7 @@ unsigned int compute_threshold(unsigned int numberofTrees, float threshold){
 
 string consen(set<unsigned int> inputtrees, float percent){
 	int threshold; 
+	vector<Bipartition> consensus_bipartitions;
 	vector< bool * > consensus_bs;
 	vector< float > consensus_branchs;
 	vector< unsigned int> consensus_bs_sizes;
@@ -190,6 +209,9 @@ string consen(set<unsigned int> inputtrees, float percent){
 	
 	threshold = compute_threshold(inputtrees.size(), percent);
 
+
+
+	//GRB Need to come in and clean up the boolarrays this spawns
 	bitpartitions_by_frequency(inputtrees, threshold, consensus_bs, consensus_branchs, consensus_bs_sizes);
 
 	//cout << "consensus_bs = "<< consensus_bs.size() << endl;
@@ -198,7 +220,7 @@ string consen(set<unsigned int> inputtrees, float percent){
 
 	//need a function to find return the bitstrings that appear in a certain percent of trees. 
 	
-	consensus_tree = compute_tree(::lm, consensus_bs, consensus_branchs, 0, false, consensus_bs_sizes); // change false to true to enable branch lengths.
+	consensus_tree = compute_tree(::biparttable.lm, consensus_bs, consensus_branchs, 0, false, consensus_bs_sizes); // change false to true to enable branch lengths.
 
 	for (unsigned int i=0; i<consensus_bs.size(); i++) {
 	  for (unsigned int j=0; j<consensus_bs_sizes[i]; j++)
@@ -209,54 +231,65 @@ string consen(set<unsigned int> inputtrees, float percent){
     return consensus_tree;
 }
 
-
-  
 BipartitionTable least_conflict_bt(set<unsigned int> inputtrees) {
-  BipartitionTable consen_bt = get_consen_bt(inputtrees, 100);
+  BipartitionTable consen_bt = get_consen_bt(inputtrees, 100); // start with a strict consensus bipartition table. 
+  // these are the bipartition that don't conflict with any other bipartition (threshold 0)
+  
   vector<set <unsigned int> > all_incompat;
-  for (unsigned int i = 0; i < ::biparttable.get_size(); i++) { //for each bipartition
-      vector<unsigned int> incompat_indices_vect = find_incompat(::biparttable.bipartitions[i], ::biparttable.length_of_bitstrings[i], inputtrees);
+  for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++) { //for each bipartition find the bipartitions that are incompatible with it. 
+      vector<unsigned int> incompat_indices_vect = find_incompat(::biparttable.get_bitstring(i), inputtrees);
       set<unsigned int> incompat_indices(incompat_indices_vect.begin(), incompat_indices_vect.end());
       all_incompat.push_back(incompat_indices);
   }
-     
-    for (unsigned int threshold = 1; threshold < (::biparttable.get_size()); threshold++) {
-      for (unsigned int i = 0; i < ::biparttable.get_size(); i++) {
-	if (all_incompat[i].size() == threshold) {
-	  set<unsigned int> consen_biparts;
-	  for (unsigned int j = 0; j < consen_bt.searchtable.size(); j++) {
-	    consen_biparts.insert(consen_bt.global_indices[j]);
-	  }
-	  set<unsigned int> conflicts;
-	  set_intersection(all_incompat[i].begin(), all_incompat[i].end(), consen_biparts.begin(), consen_biparts.end(), std::inserter(conflicts, conflicts.begin()));
-	  set<unsigned int> sinter;
-	  set_intersection(::biparttable.searchtable[i].begin(),::biparttable.searchtable[i].begin(), inputtrees.begin(), inputtrees.end(), std::inserter(sinter, sinter.begin()));
-	  if (conflicts.size() == 0 && sinter.size() >= 0) {
-	    int insert_ind = 0;
-	    for (unsigned int k = 0; k < consen_bt.global_indices.size(); k++) {
-	      if (i < consen_bt.global_indices[k]) {
-		insert_ind = k;
-		break;
-	      }
+
+  for (unsigned int threshold = 1; threshold < (::biparttable.biparttable_size()); threshold++) { //iterate the thresholds, threshold 1 are biparts that conflict with only one other bipartition
+    for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++) {
+	  if (all_incompat[i].size() == threshold) {
+	    set<unsigned int> consen_biparts;
+	    for (unsigned int j = 0; j < consen_bt.biparttable_size(); j++) {
+	      consen_biparts.insert(consen_bt.global_indices[j]);
 	    }
-	    consen_bt.bipartitions.insert(consen_bt.bipartitions.begin()+insert_ind, ::biparttable.bipartitions[i]);
-	    //consensus_branchs.push_back(::list_branches[i]);
-	    consen_bt.branches.insert(consen_bt.branches.begin()+insert_ind, 1.0);
-	    consen_bt.length_of_bitstrings.insert(consen_bt.length_of_bitstrings.begin()+insert_ind, ::biparttable.length_of_bitstrings[i]);
-	    vector<unsigned int> incompat_vect(all_incompat[i].begin(), all_incompat[i].end());
-	    consen_bt.searchtable.insert(consen_bt.searchtable.begin()+insert_ind, incompat_vect);
-	    consen_bt.global_indices.insert(consen_bt.global_indices.begin()+insert_ind, i);
+	    
+	    set<unsigned int> conflicts;
+	    set_intersection(all_incompat[i].begin(), all_incompat[i].end(), consen_biparts.begin(), consen_biparts.end(), std::inserter(conflicts, conflicts.begin()));
+	    set<unsigned int> sinter;
+	    //BUG ? begin was used twice in a row
+	    set_intersection(::biparttable.trees_begin(i),::biparttable.trees_end(i), inputtrees.begin(), inputtrees.end(), std::inserter(sinter, sinter.begin()));
+	    if (conflicts.size() == 0 && sinter.size() >= 0) {
+	      int insert_ind = 0;
+	      for (unsigned int k = 0; k < consen_bt.global_indices.size(); k++) {
+	        if (i < consen_bt.global_indices[k]) {
+		      insert_ind = k;
+		      break;
+	        }
+	      }
+	      //consen_bt.BipartitionTable.insert(consen_bt.BipartitionTable.begin()+insert_ind, ::biparttable.get_bipartition(i));
+	      //consensus_branchs.push_back(::list_branches[i]);
+	      //consen_bt.branches.insert(consen_bt.branches.begin()+insert_ind, 1.0);
+	      //consen_bt.length_of_bitstrings.insert(consen_bt.length_of_bitstrings.begin()+insert_ind, ::biparttable.bitstring_size(i));
+	      vector<unsigned int> incompat_vect(all_incompat[i].begin(), all_incompat[i].end());
+	      Bipartition tempbipart(::biparttable.get_bitstring(i), incompat_vect, 1.0);
+	      consen_bt.BipartitionTable.insert(consen_bt.BipartitionTable.begin()+insert_ind, tempbipart);
+	      //consen_bt.searchtable.insert(consen_bt.searchtable.begin()+insert_ind, incompat_vect);
+	      consen_bt.global_indices.insert(consen_bt.global_indices.begin()+insert_ind, i);
+	    }
 	  }
-	}
-      }
     }
-    return consen_bt;
+  }
+  return consen_bt;
 }
 
 string least_conflict(set<unsigned int> inputtrees) {
   BipartitionTable consen_bt = least_conflict_bt(inputtrees);
-  string consensus_tree = compute_tree(::lm, consen_bt.bipartitions, consen_bt.branches, 0, false, consen_bt.length_of_bitstrings);
-  consen_bt.print_hashtable();
+  vector<bool *> biparts = consen_bt.get_compute_tree_bipartitions();
+  string consensus_tree = compute_tree(::biparttable.lm, biparts, consen_bt.get_compute_tree_bipartitions_branchlens(), 0, false, consen_bt.get_compute_tree_bipartitions_bitlens());
+  consen_bt.print_biparttable();
+  //cleaning up the mess made by using bool *'s
+  while(! biparts.empty()){
+		delete[] biparts.back();
+		biparts.pop_back();
+	}
+  
   return consensus_tree;
 }
 
@@ -265,20 +298,28 @@ BipartitionTable get_consen_bt(set<unsigned int> inputtrees, float percent) {
   BipartitionTable consen_bt;
   unsigned int threshold = compute_threshold(inputtrees.size(), percent);
 
-  for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //for each bipartition
-    vector<unsigned int> temp = ::biparttable.searchtable[i];
+  for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //for each bipartition
+    vector<unsigned int> temp = ::biparttable.get_trees(i);
     set<unsigned int> sinter;
     set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter( sinter, sinter.begin() ) );
     if (sinter.size() >= threshold){
-      consen_bt.bipartitions.push_back(::biparttable.bipartitions[i]);
+		
+      //consen_bt.bipartitions.push_back(::biparttable.bipartitions[i]);
       //consensus_branchs.push_back(::list_branches[i]);
-      consen_bt.branches.push_back(1.0);
-      consen_bt.length_of_bitstrings.push_back(::biparttable.length_of_bitstrings[i]);
+      //consen_bt.branches.push_back(1.0);
+      //consen_bt.length_of_bitstrings.push_back(::biparttable.length_of_bitstrings[i]);
       vector<unsigned int> incompat_indices;
-      if (percent < 100)
-	incompat_indices = find_incompat(::biparttable.bipartitions[i], ::biparttable.length_of_bitstrings[i], inputtrees);
-      consen_bt.searchtable.push_back(incompat_indices);
+      if (percent < 100){
+	    incompat_indices = find_incompat(::biparttable.get_bitstring(i), inputtrees);
+      }
+      
+      //consen_bt.searchtable.push_back(incompat_indices);
+
+      Bipartition tempbipart(::biparttable.get_bitstring(i), incompat_indices, 1.0);
+      consen_bt.BipartitionTable.push_back(tempbipart);
+
       consen_bt.global_indices.push_back(i);
+      
     }
   }
   return consen_bt;
@@ -288,15 +329,14 @@ BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent) {
   BipartitionTable consen_bt = get_consen_bt(inputtrees, percent);
 
   set<unsigned int> all_incompat;
-  for (unsigned int i = 0; i < consen_bt.searchtable.size(); i++) {
-    set<unsigned int> incompat_indices(consen_bt.searchtable[i].begin(), consen_bt.searchtable[i].end());
+  for (unsigned int i = 0; i < consen_bt.biparttable_size(); i++) {
+    set<unsigned int> incompat_indices(consen_bt.trees_begin(i), consen_bt.trees_end(i));
     std::set_union(all_incompat.begin(), all_incompat.end(), incompat_indices.begin(), incompat_indices.end(), std::inserter(all_incompat, all_incompat.begin()));
   }
 
   set<unsigned int> all_indices;
-  for (unsigned int i = 0; i < biparttable.bipartitions.size(); i++) {
-    
-    set<unsigned int> trees_with_bipart(biparttable.searchtable[i].begin(), biparttable.searchtable[i].end());
+  for (unsigned int i = 0; i < biparttable.biparttable_size(); i++) {
+    set<unsigned int> trees_with_bipart(biparttable.trees_begin(i), biparttable.trees_end(i));
     set<unsigned int> isect;
     std::set_intersection(inputtrees.begin(), inputtrees.end(), trees_with_bipart.begin(), trees_with_bipart.end(), std::inserter(isect, isect.begin()));
     if (!isect.empty()) {
@@ -313,7 +353,7 @@ BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent) {
   for (unsigned int base_popularity = ::NUM_TREES; base_popularity >= 1; base_popularity--) { 
     unsigned int i = 0; 
     while (i < all_compat.size()) {
-      if (::biparttable.searchtable[all_compat[i]].size() >= base_popularity) {
+      if (::biparttable.trees_size(all_compat[i]) >= base_popularity) {
 	int insert_ind;
 	for (unsigned int j = 0; j < consen_bt.global_indices.size(); j++) {
 	  if (all_compat[i] < consen_bt.global_indices[j]) {
@@ -321,11 +361,14 @@ BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent) {
 	    break;
 	  }
 	}
-	consen_bt.bipartitions.insert(consen_bt.bipartitions.begin()+insert_ind, ::biparttable.bipartitions[all_compat[i]]);
-	consen_bt.branches.insert(consen_bt.branches.begin()+insert_ind, 1.0);
-	consen_bt.length_of_bitstrings.insert(consen_bt.length_of_bitstrings.begin()+insert_ind, ::biparttable.length_of_bitstrings[all_compat[i]]);
-	vector<unsigned int> incompat_indices = find_incompat(::biparttable.bipartitions[all_compat[i]], ::biparttable.length_of_bitstrings[all_compat[i]], inputtrees);
-	consen_bt.searchtable.insert(consen_bt.searchtable.begin()+insert_ind, incompat_indices);
+	
+	//consen_bt.bipartitions.insert(consen_bt.bipartitions.begin()+insert_ind, ::biparttable.bipartitions[all_compat[i]]);
+	//consen_bt.branches.insert(consen_bt.branches.begin()+insert_ind, 1.0);
+	//consen_bt.length_of_bitstrings.insert(consen_bt.length_of_bitstrings.begin()+insert_ind, ::biparttable.length_of_bitstrings[all_compat[i]]);
+	vector<unsigned int> incompat_indices = find_incompat(::biparttable.get_bitstring(all_compat[i]), inputtrees);
+	//consen_bt.searchtable.insert(consen_bt.searchtable.begin()+insert_ind, incompat_indices);
+	Bipartition tempbipart(::biparttable.get_bitstring(all_compat[i]), incompat_indices, 1.0);
+    consen_bt.BipartitionTable.insert(consen_bt.BipartitionTable.begin()+insert_ind, tempbipart);
 	consen_bt.global_indices.insert(consen_bt.global_indices.begin()+insert_ind, all_compat[i]);
 	
 	set<unsigned int> compat_set(all_compat.begin(), all_compat.end());
@@ -344,9 +387,19 @@ BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent) {
 
 string greedy_consen(set<unsigned int> inputtrees, float percent) {
   BipartitionTable consen_bt = greedy_consen_bt(inputtrees, percent);
-  string consensus_tree = compute_tree(::lm, consen_bt.bipartitions, consen_bt.branches, 0, false, consen_bt.length_of_bitstrings);
-  consen_bt.print_hashtable();
+  vector<bool *> biparts = consen_bt.get_compute_tree_bipartitions();
+  
+  string consensus_tree = compute_tree(::biparttable.lm, biparts, consen_bt.get_compute_tree_bipartitions_branchlens(), 0, false, consen_bt.get_compute_tree_bipartitions_bitlens());
+  consen_bt.print_biparttable();
+
+  //cleaning up the mess made by using bool *'s
+  while(! biparts.empty()){
+	delete[] biparts.back();
+	biparts.pop_back();
+  }
+  
   return consensus_tree;
+ 
 }
 
 void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned int tree, int iterations, string folder) {
@@ -367,7 +420,7 @@ void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned
 	parsed_tree[i] != ";" &&
 	parsed_tree[i] != "") {
       string taxonstring = parsed_tree[i];
-      taxa_in_tree.insert(::lm.position(taxonstring));
+      taxa_in_tree.insert(::biparttable.lm.position(taxonstring));
     }
   }
   
@@ -401,7 +454,7 @@ void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned
       if (indep_taxa.find(dep_taxon) != indep_taxa.end()) {
 	closest_with_indep = dep_taxon;
 	min_distance = 0;
-	cout << "          " << ::lm.name(dep_taxon) << "/" << taxa_info[dep_taxon]->label << " has independent trait: ";
+	cout << "          " << ::biparttable.lm.name(dep_taxon) << "/" << taxa_info[dep_taxon]->label << " has independent trait: ";
 	for (unsigned int i=0; i<taxa_info[dep_taxon]->traits.size(); i++)
 	  cout << ::taxa_info[dep_taxon]->traits[i];
 	cout << endl;

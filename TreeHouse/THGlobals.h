@@ -44,11 +44,11 @@ extern bool DEBUGMODE;
 extern BipartitionTable biparttable;
 //extern TreeTable treetable;
 
-extern LabelMap lm;										// A mapping between taxa name and placement in bitstring
+//extern LabelMap lm;		// A mapping between taxa name and placement in bitstring
 
 extern vector<Taxon *> taxa_info;
 //These objects are number of total trees long
-extern vector< bool* > taxa_in_trees;					//Which taxa are in which trees // bitstrings 1's are in the tree. place in the bitsting maps to the Lable map.
+//extern vector< bool* > taxa_in_trees;					//Which taxa are in which trees // bitstrings 1's are in the tree. place in the bitsting maps to the Lable map.
 
 extern vector< vector< unsigned int> > inverted_index;	//???
 
@@ -87,21 +87,22 @@ bool write_to_output(string input);
 bool change_output_pointer(string input);
 bool init_output();
 
-bool are_taxa_in_tree(int treeindex, vector<int> setoftaxa);
+//bool are_taxa_in_tree(int treeindex, vector<int> setoftaxa);
 
-int num_taxa_in_tree(int treeindex);
-vector<string> get_taxa_in_tree(unsigned int treeindex);
-vector<string> get_all_taxa_vect();
-set<string> get_all_taxa_set();
+//int num_taxa_in_tree(int treeindex);
+//vector<string> get_taxa_in_tree(unsigned int treeindex);
+//vector<string> get_all_taxa_vect();
+//set<string> get_all_taxa_set();
 vector<int> get_taxa_with_trait(unsigned int trait_id, int trait_value);
 vector<int> get_taxa_without_trait(unsigned int trait_id, int trait_value);
 vector<int> get_taxa_in_clade(vector<int> taxa, unsigned int tree);
 int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
 int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
 
-string to_lower(string str);
+//string to_lower(string str);
 int index_in_labelmap(string label);
-vector< bool *> get_tree_bipartitions(unsigned int id);
+vector< Bipartition > get_tree_bipartitions(unsigned int id);
+//vector< bool *> get_tree_bipartitions(unsigned int id);
 vector<unsigned int> get_tree_bs_sizes(unsigned int id);
 vector<float> get_tree_branches(unsigned int id);
 vector<unsigned int> get_tree_data(unsigned int id, vector < bool *>& tree_bipartitions, vector <unsigned int>& tree_bs_sizes, vector<float>& tree_branches);
@@ -122,13 +123,15 @@ bool is_strict_homog(int bitstringindex, vector<int> positions);
 bool is_strict_homog(int bitstringindex, vector<int> positions, int &bitcomps);
 
 bool is_taxa_homogenious(set<unsigned int> treeset);
-vector<string> get_common_taxa();
-vector<string> get_mask_for_homog();
+//vector<string> get_common_taxa();
+//vector<string> get_mask_for_homog();
 
-bool is_compat(bool *bitstring1, int length1, bool *bitstring2, int length2);
+//bool is_compat(bool *bitstring1, int length1, bool *bitstring2, int length2);
+bool is_compat(boost::dynamic_bitset<>  bitstring1, boost::dynamic_bitset<>  bitstring2);
 bool is_compat(int bitstringindex1, int bitstringindex2);
-bool is_compat(bool *bitstring1, int length1, int bitstringindex2);
-vector<unsigned int> find_incompat(bool *bitstring, int length, set<unsigned int> inputtrees);
+bool is_compat(bool *bitstring1, int bitstringindex2);
+vector<unsigned int> find_incompat(boost::dynamic_bitset<> bitstring, set<unsigned int> inputtrees);
+//vector<unsigned int> find_incompat(bool *bitstring, int length, set<unsigned int> inputtrees);
 vector<unsigned int> find_incompat_old(bool *bitstring, int length, set<unsigned int> inputtrees);
 BipartitionTable get_consen_bt(set<unsigned int> inputtrees, float percent);
 

@@ -7,6 +7,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 #include <stdexcept>
 #include <string>
 
@@ -42,6 +43,10 @@ public:
   bool areLegalTaxa(std::vector<std::string> taxanames);
   std::vector<std::string> catchDeclaredTaxa(std::vector<std::string> taxanames);
   
+  std::vector<std::string> get_all_taxa_vect();
+  std::set<std::string> get_all_taxa_set();
+  int index_in_labelmap(std::string label);
+
   void printMap();
   int position(std::string label);
   size_t operator[](std::string label) throw(UnkownLabelEx);

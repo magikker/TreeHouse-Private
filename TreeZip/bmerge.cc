@@ -124,6 +124,8 @@ void decode_bitstring(string bitstring, bool * bs, unsigned int maxLength){
   assert(j == maxLength);
 } 
 
+
+
 unsigned int get_bitstring_length(string bitstring){ //determines the size of the bitstring 
   short bitstring_size = bitstring.size();
   int x = 0;

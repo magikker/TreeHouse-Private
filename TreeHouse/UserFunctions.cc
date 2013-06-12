@@ -73,8 +73,8 @@ pqlsymbol * u_get_trees_by_taxa(vector< pqlsymbol * > arglist){
 	//type check and catch errors and handle any method overloading. 
 	if (arglist.size() == 2 && arglist[0]->is_vect() && arglist[0]->is_string() && arglist[1]->is_vect() && arglist[1]->is_string() ) {
 
-		vector<string> missednames1 = ::lm.catchDeclaredTaxa(arglist[0]->get_string_vect());
-		vector<string> missednames2 = ::lm.catchDeclaredTaxa(arglist[1]->get_string_vect());
+		vector<string> missednames1 = ::biparttable.lm.catchDeclaredTaxa(arglist[0]->get_string_vect());
+		vector<string> missednames2 = ::biparttable.lm.catchDeclaredTaxa(arglist[1]->get_string_vect());
 		
 		if(missednames1.size() > 0 || missednames2.size() > 0){
 			string err = "Taxa ";
@@ -113,7 +113,7 @@ string missedTaxaErrorMessage(vector<string> missedtaxanames){
 }
 
 
-
+//should be tested for use
 string missedTaxaErrorMessage(vector<string> missedtaxanames1, vector<string> missedtaxanames2 ){
 	string errorstring = "The following taxa don't appear in any trees: ";
 	for (unsigned int i = 0; i < missedtaxanames1.size(); i++){
@@ -126,6 +126,7 @@ string missedTaxaErrorMessage(vector<string> missedtaxanames1, vector<string> mi
 				if (i != missedtaxanames2.size()-1)
 					errorstring += ", ";
 	}
+	return errorstring;
 }
 
 pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {  
@@ -140,7 +141,7 @@ pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {
 	else if (arglist[0]->is_atom() && arglist[0]->is_string() ) {
 		vector<string> temp;
 		temp.push_back(arglist[0]->get_string());
-		vector<string> missednames = ::lm.catchDeclaredTaxa(temp);
+		vector<string> missednames = ::biparttable.lm.catchDeclaredTaxa(temp);
 		if(missednames.size() > 0){
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
@@ -149,7 +150,7 @@ pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {
 		}
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_string() ) {
-		vector<string> missednames = ::lm.catchDeclaredTaxa(arglist[0]->get_string_vect());
+		vector<string> missednames = ::biparttable.lm.catchDeclaredTaxa(arglist[0]->get_string_vect());
 		
 		if(missednames.size() > 0){
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
@@ -255,7 +256,7 @@ pqlsymbol * u_strict_consen(vector<pqlsymbol * > arglist)
 {  
 	pqlsymbol * result;
 	
-	if (arglist.size() > 0 && arglist[0]->is_treeset() && is_taxa_homogenious(arglist[0]->get_treeset() ) ){
+	if (arglist.size() > 0 && arglist[0]->is_treeset() && ::biparttable.is_taxa_homogenious(arglist[0]->get_treeset() ) ){
 	
 		if (arglist.size() == 1 && arglist[0]->is_treeset()){
 			result = new pqlsymbol(consen(arglist[0]->get_treeset(), 100 ) );
@@ -276,7 +277,7 @@ pqlsymbol * u_majority_consen(vector<pqlsymbol * > arglist)
 {  
 	pqlsymbol * result;
 	
-	if (arglist.size() > 0 && arglist[0]->is_treeset() && is_taxa_homogenious(arglist[0]->get_treeset() ) ){
+	if (arglist.size() > 0 && arglist[0]->is_treeset() && ::biparttable.is_taxa_homogenious(arglist[0]->get_treeset() ) ){
 	
 		if (arglist.size() == 1 && arglist[0]->is_treeset()){
 			result = new pqlsymbol(consen(arglist[0]->get_treeset(), 50 ) );
@@ -301,7 +302,7 @@ pqlsymbol * u_majority_consen(vector<pqlsymbol * > arglist)
 
 pqlsymbol * u_consen(vector<pqlsymbol * > arglist) 
 {  
-	pqlsymbol * result;
+	//pqlsymbol * result;
 	
 	set<unsigned int> tset;
 	float threshold = 50.0;
@@ -327,7 +328,7 @@ pqlsymbol * u_consen(vector<pqlsymbol * > arglist)
 		return new pqlsymbol(ERROR, "Type Error, 2nd value");
 	}
 	
-	if(!is_taxa_homogenious(tset) ){
+	if(!::biparttable.is_taxa_homogenious(tset) ){
 		return new pqlsymbol(ERROR, "Consensus can only handle taxa homogenious treesets. Taxa heterogenious trees were found");
 	}
 	
@@ -355,7 +356,7 @@ pqlsymbol * u_consen(vector<pqlsymbol * > arglist)
 	 }
 	 return result;
  }
-
+/*
 pqlsymbol * u_search_hashtable_strict(vector<pqlsymbol * > arglist) 
 {  
 	pqlsymbol * result;
@@ -427,7 +428,7 @@ pqlsymbol * u_search_hashtable_strict(vector<pqlsymbol * > arglist)
 	
 	return result;
 }
-
+*/
 pqlsymbol * u_random_search(vector<pqlsymbol * > arglist) {  
 	pqlsymbol * result;
 	
@@ -478,7 +479,7 @@ pqlsymbol * u_random_search2(vector<pqlsymbol * > arglist) {
 	
 	return result;
 }
-
+/*
 pqlsymbol * u_search_hashtable_auto_and_timed(vector<pqlsymbol * > arglist) {  
 	pqlsymbol * result;
 	
@@ -547,7 +548,7 @@ pqlsymbol * u_search_hashtable_auto_and_timed(vector<pqlsymbol * > arglist) {
 	
 	return result;
 }
-
+*/
 pqlsymbol * u_search_hashtable_strict_and_timed(vector<pqlsymbol * > arglist) {  
 	pqlsymbol * result;
 	
@@ -564,11 +565,11 @@ pqlsymbol * u_search_hashtable_strict_and_timed(vector<pqlsymbol * > arglist) {
 		if (arglist[0]->is_string() ){
 			if (arglist[0]->is_vect() ){
 				LeftIsGood = true;
-				left = ::lm.lookUpLabels(arglist[0]->get_string_vect());
+				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string_vect());
 			}
 			else if ( arglist[0]->is_atom() ){
 				LeftIsGood = true;
-				left = ::lm.lookUpLabels(arglist[0]->get_string());
+				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string());
 			}
 		}
 		
@@ -579,11 +580,11 @@ pqlsymbol * u_search_hashtable_strict_and_timed(vector<pqlsymbol * > arglist) {
 		if (arglist[1]->is_string() ){
 			if (arglist[1]->is_vect() ){
 				RightIsGood = true;
-				right = ::lm.lookUpLabels(arglist[1]->get_string_vect());
+				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string_vect());
 			}
 			else if ( arglist[1]->is_atom() ){
 				RightIsGood = true;
-				right = ::lm.lookUpLabels(arglist[1]->get_string());
+				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string());
 			}
 		}
 		else if ( arglist[1]->is_emptylist() ){
@@ -634,11 +635,11 @@ pqlsymbol * u_new_search_hashtable_strict(vector<pqlsymbol * > arglist)
 		if (arglist[0]->is_string() ){
 			if (arglist[0]->is_vect() ){
 				LeftIsGood = true;
-				left = ::lm.lookUpLabels(arglist[0]->get_string_vect());
+				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string_vect());
 			}
 			else if ( arglist[0]->is_atom() ){
 				LeftIsGood = true;
-				left = ::lm.lookUpLabels(arglist[0]->get_string());
+				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string());
 			}
 		}
 		
@@ -649,11 +650,11 @@ pqlsymbol * u_new_search_hashtable_strict(vector<pqlsymbol * > arglist)
 		if (arglist[1]->is_string() ){
 			if (arglist[1]->is_vect() ){
 				RightIsGood = true;
-				right = ::lm.lookUpLabels(arglist[1]->get_string_vect());
+				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string_vect());
 			}
 			else if ( arglist[1]->is_atom() ){
 				RightIsGood = true;
-				right = ::lm.lookUpLabels(arglist[1]->get_string());
+				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string());
 			}
 		}
 		else if ( arglist[1]->is_emptylist() ){
@@ -921,7 +922,7 @@ pqlsymbol * u_show(vector<pqlsymbol * > arglist) {
   system("echo \"<table border=\\\"1\\\">\" > temp/svg.html");
   
   //type check and catch errors and handle any method overloading. 
-  if (arglist.size() != 1 && (arglist.size() != 2) || (arglist.size() == 2 && !(arglist[1]->is_string()))) {
+  if (((arglist.size() != 1) && (arglist.size() != 2)) || (arglist.size() == 2 && !(arglist[1]->is_string()))) {
     cout << "show expects one IntVect or Int argument, and one optional string argument: \"text\", \"ortho\", or \"radial\". " << "Found " << get_arg_types(move(arglist)) << endl;
     return result = new pqlsymbol(ERROR, "Type Error");
   }
@@ -955,7 +956,7 @@ pqlsymbol * u_show_newick(vector<pqlsymbol * > arglist) {
   pqlsymbol * result = new pqlsymbol();
   string mode = "";
   system("echo \"<table border=\\\"1\\\">\" > temp/svg.html"); 
-  if (arglist.size() != 1 && (arglist.size() != 2) || (arglist.size() == 2 && !(arglist[1]->is_string()))) {
+  if (arglist.size() != 1 && (arglist.size() != 2) || ((arglist.size() == 2) && !(arglist[1]->is_string()))) {
     cout << "show_newick expects one String or StringVect argument, and one optional string argument: \"text\", \"ortho\", or \"radial\". " << "Found " << get_arg_types(move(arglist)) << endl;
     return result = new pqlsymbol(ERROR, "Type Error");
   }
@@ -1109,7 +1110,10 @@ pqlsymbol * u_show_group_in_tree(vector<pqlsymbol * > arglist) {
     mode = "ortho";
   }
   if (arglist.size() == 3 && arglist[2]->is_string()) {
-    mode = to_lower(arglist[2]->get_string());
+	  
+    mode = arglist[2]->get_string();
+    std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
+
     if (mode != "ortho" && mode != "radial") {
       cout << "Invalid mode argument. Mode must be either 'ortho' or 'radial'" << endl;
       return result = new pqlsymbol(ERROR, "Invalid Argument");
@@ -1142,7 +1146,8 @@ pqlsymbol * u_show_group(vector<pqlsymbol * > arglist) {
     mode = "ortho";
   }
   if (arglist.size() == 3 && arglist[2]->is_string()) {
-    mode = to_lower(arglist[2]->get_string());
+    mode = arglist[2]->get_string();
+    std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
     if (mode != "ortho" && mode != "radial") {
       cout << "Invalid mode argument. Mode must be either 'ortho' or 'radial'" << endl;
       return result = new pqlsymbol(ERROR, "Invalid Argument");
@@ -1175,7 +1180,8 @@ pqlsymbol * u_show_level(vector<pqlsymbol * > arglist) {
     mode = "text";
   }
   if (arglist.size() == 3 && arglist[2]->is_string()) {
-    mode = to_lower(arglist[2]->get_string());
+    mode = arglist[2]->get_string();
+    std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
     if (mode != "text" && mode != "ortho" && mode != "radial") {
       cout << "Invalid mode argument. Mode must be either 'text', 'ortho', or 'radial'" << endl;
       return result = new pqlsymbol(ERROR, "Invalid Argument");
@@ -1207,7 +1213,9 @@ pqlsymbol * u_show_only(vector<pqlsymbol * > arglist) {
     mode = "ortho";
   }
   if (arglist.size() == 3 && arglist[2]->is_string()) {
-    mode = to_lower(arglist[2]->get_string());
+    mode = arglist[2]->get_string();
+    std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
+
     if (mode != "ortho" && mode != "radial") {
       cout << "Invalid mode argument. Mode must be either 'ortho' or 'radial'" << endl;
       return result = new pqlsymbol(ERROR, "Invalid Argument");
@@ -1266,7 +1274,7 @@ pqlsymbol * u_test_trait_correlation(vector<pqlsymbol * > arglist) {
   }
   return result;
 }
-
+/*
 pqlsymbol * u_taxa_filter(vector<pqlsymbol * > arglist) {  
   pqlsymbol * result = new pqlsymbol();
   vector<string> taxavect;
@@ -1293,7 +1301,8 @@ pqlsymbol * u_taxa_filter(vector<pqlsymbol * > arglist) {
   }
   return result;
 }
-
+*/
+/*
 pqlsymbol * u_group_filter(vector<pqlsymbol * > arglist) {  
   pqlsymbol * result = new pqlsymbol();
   vector<string> taxavect;
@@ -1320,7 +1329,8 @@ pqlsymbol * u_group_filter(vector<pqlsymbol * > arglist) {
   }
   return result;
 }
-
+*/
+/*
 pqlsymbol * u_delete_tree(vector<pqlsymbol * > arglist) {
   pqlsymbol * result = new pqlsymbol();
   if (arglist.size() != 1) {
@@ -1342,7 +1352,7 @@ pqlsymbol * u_delete_tree(vector<pqlsymbol * > arglist) {
   }
   return result;
 }
-
+*/
 pqlsymbol * u_write_trz(vector<pqlsymbol * > arglist) {  
   pqlsymbol * result = new pqlsymbol();
   if (arglist.size() != 2 || !(arglist[1]->is_string())) {
@@ -1406,14 +1416,14 @@ pqlsymbol * u_set_hetero(vector<pqlsymbol * > arglist) {
 pqlsymbol * u_print_taxa_in_trees(vector<pqlsymbol * > arglist) {  
 	pqlsymbol * result;
 	result = new pqlsymbol("Printing taxa In trees");
-	print_taxa_in_trees();
+	::biparttable.print_taxa_in_trees();
 	return result;
 }
 
 pqlsymbol * u_get_taxa_in_tree(vector<pqlsymbol * > arglist) {  
 	pqlsymbol * result;
 	if (arglist[0]->is_int()){
-	result = new pqlsymbol(get_taxa_in_tree(arglist[0]->get_int()));
+	result = new pqlsymbol(biparttable.get_taxa_in_tree(arglist[0]->get_int()));
 	}
 	else {
 		cout << "get_taxa_in_tree expects one Int"  << "Found " << get_arg_types(move(arglist)) << endl;
@@ -1424,14 +1434,14 @@ pqlsymbol * u_get_taxa_in_tree(vector<pqlsymbol * > arglist) {
 
 pqlsymbol * u_print_biparttable(vector<pqlsymbol * > arglist) {
   pqlsymbol * result = new pqlsymbol();
-  ::biparttable.print_hashtable();
+  ::biparttable.print_biparttable();
   return result;
 }
 
 
 pqlsymbol * u_print_label_map(vector<pqlsymbol * > arglist){
   pqlsymbol * result = new pqlsymbol();
-  ::lm.printMap();
+  ::biparttable.lm.printMap();
   return result;
 }
 
@@ -1503,12 +1513,14 @@ void init_the_functs()
 	add_function("get_trees_by_subtree", &u_get_trees_by_subtree, "Returns the trees that contain the input subtree");
 
 	add_function("subtree_search", &u_get_trees_by_subtree, "Returns the trees that contain the input subtree");
-	add_function("search_by_relationship", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
-	add_function("structural_search", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
-	add_function("ss", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
-	add_function("newss", &u_new_search_hashtable_strict, "Returns the trees that have the input bipartition");
-
-	add_function("timedsearch", &u_search_hashtable_auto_and_timed, "for testing only");
+	//add_function("search_by_relationship", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	add_function("structural_search", &u_new_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	add_function("ss", &u_new_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	
+	
+	//add_function("ss", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	
+	add_function("timedsearch", &u_search_hashtable_strict_and_timed, "for testing only");
 
 
 	//interface with outside programs
@@ -1563,9 +1575,9 @@ void init_the_functs()
 	add_function("test_trait_correlation", &u_test_trait_correlation, "Runs algorithm to test correlated evolution of specified traits");
 
 	//modify treeset
-	add_function("taxa_filter", &u_taxa_filter, "Creates a new tree or trees by removing all but the specified taxa from the specified tree(s). Original trees are kept intact.");
-	add_function("group_filter", &u_group_filter, "Creates a new tree or trees by removing all taxa except the ones in the specified taxonomic groups from the specified tree(s). Original trees are kept intact.");
-	add_function("delete_tree", &u_delete_tree, "Deletes the specified tree(s) from the working data set.");
+	//add_function("taxa_filter", &u_taxa_filter, "Creates a new tree or trees by removing all but the specified taxa from the specified tree(s). Original trees are kept intact.");
+	//add_function("group_filter", &u_group_filter, "Creates a new tree or trees by removing all taxa except the ones in the specified taxonomic groups from the specified tree(s). Original trees are kept intact.");
+	//add_function("delete_tree", &u_delete_tree, "Deletes the specified tree(s) from the working data set.");
 	add_function("write_trz", &u_write_trz, "Writes specified Tree/TreeVect/Treeset to a .trz file with specified filename.");
 
 	//Developer Functions
@@ -1578,7 +1590,6 @@ void init_the_functs()
  	add_function("tier", &u_tier, " ");
  	add_function("tttier", &u_tttier, " ");
  	add_function("rate_tiers", &u_rate_tiers, " ");
- 	add_function("timed_search",&u_search_hashtable_auto_and_timed, " ");
  	add_function("print_label_map", &u_print_label_map, " ");
  	add_function("get_taxa_in_tree", &u_get_taxa_in_tree, "Returns the taxa in a given tree. Takes a tree index");
  	add_function("distinguishing_taxa", &u_distinguishing_taxa, "Takes two Treesets. Returns the taxa that are in of one treeset and none of the other.");

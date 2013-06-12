@@ -5,6 +5,80 @@ Bipartition::Bipartition(int len){
 	bitstring = boost::dynamic_bitset<>(len);
 }
 
+Bipartition::Bipartition(boost::dynamic_bitset<> bs, vector<unsigned int> t, vector<float> branchl ){
+	bitstring = bs;
+	trees = t;
+	branchlengths = branchl;
+	
+}
+
+Bipartition::Bipartition(boost::dynamic_bitset<> bs, vector<unsigned int> t, float branchl ){
+	bitstring = bs;
+	trees = t;
+	for (int i = 0; i < t.size(); i++){
+		branchlengths.push_back(branchl);
+	}
+}
+
+std::vector<unsigned int>::iterator Bipartition::trees_begin() { 
+	return trees.begin(); 
+}
+std::vector<unsigned int>::iterator Bipartition::trees_end() { 
+	return trees.end(); 
+}
+std::vector<unsigned int>::reverse_iterator Bipartition::trees_rbegin() { 
+	return trees.rbegin(); 
+}
+std::vector<unsigned int>::reverse_iterator Bipartition::trees_rend() { 
+	return trees.rend(); 
+}
+std::vector<unsigned int>::const_iterator Bipartition::trees_cbegin() const{
+	return trees.cbegin();
+}
+std::vector<unsigned int>::const_iterator Bipartition::trees_cend() const{
+	return trees.cend();
+}
+std::vector<unsigned int>::const_reverse_iterator Bipartition::trees_crbegin() const{
+	return trees.crbegin();
+}
+std::vector<unsigned int>::const_reverse_iterator Bipartition::trees_crend() const{
+	return trees.crend();
+}
+
+
+bool Bipartition::get_bit(int bitindex){
+	return bitstring[bitindex];
+}
+
+float Bipartition::get_ave_branchlength(){
+	float ave;
+	for (unsigned int i = 0; i < branchlengths.size(); i++){
+		ave += branchlengths[i];
+	}
+	ave /= branchlengths.size();
+	return ave;
+}
+
+vector<float> Bipartition::get_branchlengths(){
+	return branchlengths;
+}
+
+
+unsigned int Bipartition::num_trees(){
+	return trees.size();
+}
+	
+vector<unsigned int> Bipartition::get_trees(){
+	return trees;
+}
+unsigned int Bipartition::get_tree(int index){
+	return trees[index];
+}
+
+boost::dynamic_bitset<> Bipartition::get_bitstring(){
+	return bitstring;
+}
+
 void Bipartition::set(int place, bool val){
 	if(bitstring.size() > (unsigned)place){
 		bitstring[place] = val;
@@ -98,6 +172,14 @@ bool Bipartition::is_one(int position){
 		return false;
 	}
 }
+
+unsigned int Bipartition::bitstring_size(){
+	return bitstring.size();
+}
+unsigned int Bipartition::trees_size(){
+	return trees.size();
+}
+
 
 void Bipartition::print_bitstring(bool endline){
 	for (unsigned int i = 0; i < bitstring.size(); i++){

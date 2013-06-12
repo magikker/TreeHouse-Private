@@ -2,6 +2,7 @@
 #define _TAXON_H_
 
 #include <string>
+#include <boost/algorithm/string/predicate.hpp>
 
 using namespace std;
 
@@ -24,14 +25,14 @@ class Taxon {
   vector<int> traits;
 
   bool is_member(string group) {
-    group = to_lower(group);
-    return (to_lower(g) == group ||
-	    to_lower(f) == group ||
-	    to_lower(o) == group ||
-	    to_lower(c) == group ||
-	    to_lower(p) == group ||
-	    to_lower(k) == group ||
-	    to_lower(d) == group);
+    //group = to_lower(group);
+    return (boost::iequals(g, group) ||
+	    boost::iequals(f,group) ||
+	    boost::iequals(o,group) ||
+	    boost::iequals(c,group) ||
+	    boost::iequals(p,group) ||
+	    boost::iequals(k,group) ||
+	    boost::iequals(d,group) );
   }
 
   

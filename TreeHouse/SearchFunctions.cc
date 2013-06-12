@@ -12,7 +12,7 @@ set<unsigned int> get_trees_with_taxa(vector<int> required){
 		int flag = 0;
 
         for (unsigned int j = 0; j < required.size(); j++) { //for each search taxa
-			if(::taxa_in_trees[i][required[j]] == 0) {
+			if(::biparttable.taxa_in_trees[i][required[j]] == 0) {
 				flag = 1;
 				break;
 			}
@@ -34,7 +34,7 @@ set<unsigned int> get_trees_without_taxa(vector<int> excluded){
 		int flag = 0;
 		
 		for ( unsigned int j = 0; j < excluded.size(); j++) {
-			if(::taxa_in_trees[i][excluded[j]] == 1) {
+			if(::biparttable.taxa_in_trees[i][excluded[j]] == 1) {
 				flag = 1;
 				break;
 			}
@@ -50,33 +50,33 @@ set<unsigned int> get_trees_without_taxa(vector<int> excluded){
 }
 
 set<unsigned int> get_trees_without_taxa(vector<string> ExcludedTaxa){
-	vector<int> excluded = ::lm.lookUpLabels(ExcludedTaxa);
+	vector<int> excluded = ::biparttable.lm.lookUpLabels(ExcludedTaxa);
 	return get_trees_without_taxa(excluded); 
 }
 
 set<unsigned int> get_trees_with_taxa(vector<string> RequiredTaxa) {
-	vector<int> required = ::lm.lookUpLabels(RequiredTaxa);
+	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
 	return get_trees_with_taxa(required);
 }
 
 set<unsigned int> get_trees_by_taxa(vector<string> RequiredTaxa, vector<string> ExcludedTaxa) {
     set<unsigned int> trees;
 
-	vector<int> required = ::lm.lookUpLabels(RequiredTaxa);
-	vector<int> excluded = ::lm.lookUpLabels(ExcludedTaxa);
+	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
+	vector<int> excluded = ::biparttable.lm.lookUpLabels(ExcludedTaxa);
 	
     for (unsigned int i = 0; i < ::NUM_TREES; i++) {
 		int flag = 0;
 
         for (unsigned int j = 0; j < required.size(); j++) {
-			if(::taxa_in_trees[i][required[j]] == 0) {
+			if(::biparttable.taxa_in_trees[i][required[j]] == 0) {
 				flag = 1;
 				break;
 			}
 		} 
 		
 		for (unsigned int j = 0; j < excluded.size(); j++) {
-			if(::taxa_in_trees[i][excluded[j]] == 1) {
+			if(::biparttable.taxa_in_trees[i][excluded[j]] == 1) {
 				flag = 1;
 				break;
 			}
@@ -90,6 +90,7 @@ set<unsigned int> get_trees_by_taxa(vector<string> RequiredTaxa, vector<string> 
     return trees;
 }
 
+//GRB at min needs a rename
 set<unsigned int> search_hashtable_ktets(vector < vector < int > > subtrees){ 
 	set<unsigned int> total_trees( ::all_trees.begin(), ::all_trees.end()); //assume all trees have all biparts. 
 
@@ -97,7 +98,7 @@ set<unsigned int> search_hashtable_ktets(vector < vector < int > > subtrees){
 		set<unsigned int> trees;
 		set<unsigned int> temp;
 
-	for (unsigned int j = 0; j < ::biparttable.get_size(); j++) { // for each bipartition in the hashtable
+	for (unsigned int j = 0; j < ::biparttable.biparttable_size(); j++) { // for each bipartition in the hashtable
 		int numones = ::biparttable.number_of_ones(j);
 		bool foundFlag = true;
 		for(unsigned int k = 0; k < subtrees[i].size(); k++){ // for each piece of the subtree
@@ -107,7 +108,7 @@ set<unsigned int> search_hashtable_ktets(vector < vector < int > > subtrees){
 			}
 		 
 		 //cout << "subtrees[i][k] = " << subtrees[i][k] << endl;
-         if(subtrees[i][k] >= (int)::biparttable.length_of_bitstrings[j] || ::biparttable.bipartitions[j][subtrees[i][k]] == 0 ){
+         if(subtrees[i][k] >= (int)::biparttable.bitstring_size(j) || ::biparttable.get_bit(j, subtrees[i][k]) == 0 ){
 		   //cout << "That taxa relationship wasn't in the tree" << endl;
            foundFlag= false;
 		   break;
@@ -115,9 +116,7 @@ set<unsigned int> search_hashtable_ktets(vector < vector < int > > subtrees){
        }
 
        if (foundFlag == true){
-         for (unsigned int l = 0; l < ::biparttable.searchtable[j].size(); l++){	
-	       trees.insert(::biparttable.searchtable[j][l]);
-	     }
+	     trees.insert(::biparttable.trees_begin(j), ::biparttable.trees_end(j));
        }
      }
 
@@ -187,7 +186,7 @@ set<unsigned int> get_trees_by_subtree(string subtree)
 	return trees;
 }
 
-
+/*
 set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> rightside, int side){
   //cout << "We show the bipartitions found by the search and corresponding trees" << endl;
   //keep in mind that hashtable and hash_lengths are global variables
@@ -197,7 +196,7 @@ set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> 
   bool lvalue = 0;
   bool rvalue = 0;
   
-  for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //Each bipartition in the treeset
+  for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //Each bipartition in the treeset
 
     foundFlag = true; //assume true and check each case for a contridiction to set it as false. If it passes the tests then it is true. 
 	
@@ -210,7 +209,7 @@ set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> 
 			lvalue = 0;
 		}
 		else{
-			lvalue = ::biparttable.bipartitions[i][leftside[0]]; 
+			lvalue = ::biparttable.get_bit(i, leftside[0]); 
 		}
 
 		for (unsigned int j = 0; j < leftside.size(); j++){  // Each taxa on the left side 
@@ -223,7 +222,7 @@ set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> 
 			  		break; //Break at any mistakes. 
 				}
 			}
-			else if (::biparttable.bipartitions[i][leftside[j]] != lvalue){
+			else if (::biparttable.get_bit(i,leftside[j]) != lvalue){
 				//cout<< "broke on if (list_bs[i][leftside[j]] != lvalue)" << endl;
 				foundFlag = false;
 		  		break; //Break at any mistakes. 
@@ -232,24 +231,24 @@ set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> 
 	}
 
 	if (rightside.size() > 0){
-		if (::biparttable.bipartitions[i][rightside[0]] > ::biparttable.length_of_bitstrings[i]) {
+		if (::biparttable.get_bit(i,rightside[0]) > ::biparttable.bitstring_size(i)) {
 			rvalue = 0;
 		}
 		else{
-			rvalue = ::biparttable.bipartitions[i][rightside[0]];
+			rvalue = ::biparttable.get_bit(i,rightside[0]);
 		}
 
 		for (unsigned int j = 0; j < rightside.size(); j++){ // Each taxa on the left side 
 			//cout << length_of_bitstrings[i] <<" " << rightside[j] << " " << rvalue << endl;
 
-			if(::biparttable.length_of_bitstrings[i] <= rightside[j]){	
+			if(::biparttable.bitstring_size(i) <= rightside[j]){	
 				if(rvalue == 1){	
 				//	cout<< "if(length_of_bitstrings[i] < rightside[j]  && rvalue == 1)" << endl;
 					foundFlag = false;
 			  		break; //Break at any mistakes. 
 				}
 			}
-			else if (::biparttable.bipartitions[i][rightside[j]] != rvalue){
+			else if (::biparttable.get_bit(i,rightside[j]) != rvalue){
 				//cout<< "broke on if (list_bs[i][rightside[j]] != rvalue)" << endl;
 				foundFlag = false;
 		  		break; //Break at any mistakes. 
@@ -299,34 +298,34 @@ set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> 
 
 	//if we got here and it's true it passed all the checks. 
 	if (foundFlag == true){
-      for (unsigned int l = 0; l < ::biparttable.searchtable[i].size(); l++){
+      for (unsigned int l = 0; l < ::biparttable.trees_size(i); l++){
 		if (HETERO == true){
 			bool taxaFlag = true;
 			for (unsigned int j = 0; j < leftside.size(); j++){ // Each taxa on the left side
-				if (::taxa_in_trees[::biparttable.searchtable[i][l]][leftside[j]] == 0){
+				if (::taxa_in_trees[::biparttable.get_tree(i,l)][leftside[j]] == 0){
 					taxaFlag = false;
 					break;
 				}
 			}
 			for (unsigned int j = 0; j < rightside.size(); j++){ // Each taxa on the left side 
-				if (::taxa_in_trees[::biparttable.searchtable[i][l]][rightside[j]] == 0){
+				if (::taxa_in_trees[::biparttable.get_tree(i,l)][rightside[j]] == 0){
 					taxaFlag = false;
 					break;
 				}
 			}
 			if (taxaFlag == true){
-				trees.insert(::biparttable.searchtable[i][l]);
+				trees.insert(::biparttable.get_tree(i,l));
 			}
 		}
 		else{		
-			trees.insert(::biparttable.searchtable[i][l]);
+			trees.insert(::biparttable.get_tree(i,l));
 		}
       }
     }
 	}
   return trees;
 }
-
+*/
 
 
 
@@ -344,7 +343,7 @@ bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector<
   ///fprintf(stderr, "AT NODE: ");
   if (startNode->Nchildren == 0) { // leaf node
     string temp(startNode->label);
-    unsigned int idx = ::lm[temp];
+    unsigned int idx = ::biparttable.lm[temp];
     bool * bs = new bool[::NUM_TAXA];
 	
     for (unsigned int i = 0; i < ::NUM_TAXA; i++){
@@ -455,7 +454,7 @@ set<unsigned int> search_hashtable_strict(vector<int> leftside, vector<int> righ
 	}
 	
 	
-	for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //Each bipartition in the treeset
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //Each bipartition in the treeset
 		//foundFlag = true; //assume true and check each case for a contridiction to set it as false. If it passes the tests then it is true. 
 		// if the first taxa on the left and the first taxa on the right side of the search bipart are on the same side of the bipart
 		// we know we can bail out before checking anything else. But first we need to make sure there are taxa on each side of the | or we
@@ -516,17 +515,17 @@ set<unsigned int> search_hashtable_strict(vector<int> leftside, vector<int> righ
 			if (side > 0){//if at least one side is strict
 				//cout << "side is > 0" << endl;
 				if (side == 1 && ::is_strict_homog(i, leftside) ){//left side strict
-					matchingtrees = ::biparttable.searchtable[i];
+					matchingtrees = ::biparttable.get_trees(i);
 				}
 				if (side == 2 && ::is_strict_homog(i, rightside) ){//right side strict
-					matchingtrees = ::biparttable.searchtable[i];
+					matchingtrees = ::biparttable.get_trees(i);
 				}
 				if (side == 3 && ::is_strict_homog(i, leftside) && ::is_strict_homog(i, rightside) ){//both sides strict
-					matchingtrees = ::biparttable.searchtable[i];
+					matchingtrees = ::biparttable.get_trees(i);
 				}
 			}
 			else{//neither is strict
-				matchingtrees = ::biparttable.searchtable[i];
+				matchingtrees = ::biparttable.get_trees(i);
 			}			
 		}
 		trees.insert(matchingtrees.begin(), matchingtrees.end());
@@ -536,7 +535,7 @@ return trees;
 }
 
 //not safe, Infinite loop when too many taxa can be requested
-vector<int> random_nums_generated(int number){
+/*vector<int> random_nums_generated(unsigned int number){
 	set<int> randoms;
 
 	while(randoms.size() != number){
@@ -547,7 +546,7 @@ vector<int> random_nums_generated(int number){
 }
 
 //not safe, Infinite loop when too many taxa can be requested. 
-vector<int> random_nums_generated2(int number, std::uniform_int_distribution<> d,  std::minstd_rand g){
+vector<int> random_nums_generated2(unsigned int number, std::uniform_int_distribution<> d,  std::minstd_rand g){
 	set<int> randoms;
 	
 	while(randoms.size() != number){
@@ -556,9 +555,9 @@ vector<int> random_nums_generated2(int number, std::uniform_int_distribution<> d
 	vector<int> v(randoms.begin(), randoms.end());
 	return v;
 }
-
+*/
 int random_search2(int left, int right, int side, int iterations){
-
+	cout<< "entering rsearch2" <<endl;
 	vector<int>::iterator it;
 	set<unsigned int> trees;		
 	
@@ -572,55 +571,50 @@ int random_search2(int left, int right, int side, int iterations){
 	
 	start_clock();
 	srand ( time(NULL) );
-	std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
-	std::minstd_rand g(time(NULL));
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
 	vector<int> CulRandVect;
 	vector<unsigned int> CulTrees;
 
 	vector<int> randomVect;
 	
-	for (int i = 0; i < ::NUM_TAXA; ++i){
+	for (unsigned int i = 0; i < ::NUM_TAXA; ++i){
 		randomVect.push_back(i);
 	}
 	
-// This version of the random number generator fails when asked for more taxa than in the set. 
+	cout << "rsearch2 initialization complete" << endl;
 	
-//	for (unsigned int i = 0; i < iterations; i++){
-//		vector<int> randomVect;
-//		while(randomVect.size() != left+right){
-//			int i = d(g);
-//			if(std::find(randomVect.begin(), randomVect.end(), i) != randomVect.end()) {
-//				continue;
-//			}
-//			else{
-//				randomVect.push_back(i);
-//			}
-//		}
-
-	for (unsigned int i = 0; i < iterations; i++){
-		vector<int> randomVect;
+	
+	for (int i = 0; i < iterations; i++){
+		//vector<int> randomVect;
 
 		set<unsigned int> trees;
 
 		random_shuffle ( randomVect.begin(), randomVect.end() );
-
-		for (int j = 0; j < randomVect.size(); j++){
+		
+		cout << "suffled" << endl;
+		
+		for (unsigned int j = 0; j < randomVect.size(); j++){
 			CulRandVect.push_back(randomVect[j]);
-		}		
+		}
+		
 		
 		std::vector<int> leftside(randomVect.begin(), randomVect.begin() + left);
 		std::vector<int> rightside(randomVect.begin() + left, randomVect.begin() + left+right);
-				
-		//vector <int>::iterator it;
-		//for (it=leftside.begin(); it!=leftside.end(); it++)
-		//	cout << *it << " ";
-		//cout << "| ";
-		//for (it=rightside.begin(); it!=rightside.end(); it++)
-		//	cout << *it << " ";
-		//cout << endl;    
+		
+		cout << "left and right side created" << endl;
+		
+		vector <int>::iterator it;
+		for (it=leftside.begin(); it!=leftside.end(); it++)
+			cout << *it << " ";
+		cout << "| ";
+		for (it=rightside.begin(); it!=rightside.end(); it++)
+			cout << *it << " ";
+		cout << endl;    
 
 		
 		//trees = search_hashtable_strict_and_timed(leftside, rightside, side);
+		cout << "about to run a search"<<endl;
 		trees = search_hashtable_strict_and_timed(leftside, rightside, side);
 		TreesFound += trees.size();
 		
@@ -698,17 +692,17 @@ int random_search(int left, int right, int side, int iterations){
 	
 	vector<int> randomVect;
 	
-	for (int i = 0; i < ::NUM_TAXA; ++i){
+	for (unsigned int i = 0; i < ::NUM_TAXA; ++i){
 		randomVect.push_back(i);
 	}
 	
-	for (unsigned int i = 0; i < iterations; i++){
+	for (int i = 0; i < iterations; i++){
 
 		set<unsigned int> trees;
 
 		random_shuffle ( randomVect.begin(), randomVect.end() );
 
-		for (int j = 0; j < randomVect.size(); j++){
+		for (unsigned int j = 0; j < randomVect.size(); j++){
 			CulRandVect.push_back(randomVect[j]);
 		}		
 		
@@ -785,20 +779,20 @@ int random_search(int left, int right, int side, int iterations){
 
 
 set<unsigned int> search_hashtable_strict_and_timed(vector<int> leftside, vector<int> rightside, int side){
-	//cout << "We show the bipartitions found by the search and corresponding trees" << endl;
+	cout << "We show the bipartitions found by the search and corresponding trees" << endl;
 	//keep in mind that hashtable and hash_lengths are global variables
-	//cout << "hetero = " << hetero << endl;
+	cout << "hetero = " << ::HETERO << endl;
 	
 	set<unsigned int> trees;
 	vector<unsigned int> matchingtrees;
 	
-	for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //Each bipartition in the treeset
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //Each bipartition in the treeset
 		//foundFlag = true; //assume true and check each case for a contridiction to set it as false. If it passes the tests then it is true. 
 		// if the first taxa on the left and the first taxa on the right side of the search bipart are on the same side of the bipart
 		// we know we can bail out before checking anything else. But first we need to make sure there are taxa on each side of the | or we
 		// get a segfault. 
 		
-		//cout << "Looking at bipartition " << i << endl;
+		cout << "Looking at bipartition " << i << endl;
 		
 		if (leftside.size() > 0){
 			if (! ::biparttable.same_bitstring_value(i, leftside) ) { // taxa on the left side of bipartition are all on 1's or 0's
@@ -846,7 +840,7 @@ set<unsigned int> search_hashtable_strict_and_timed(vector<int> leftside, vector
 				}
 			}
 			else{//neither is strict
-				matchingtrees = ::biparttable.searchtable[i];
+				matchingtrees = ::biparttable.get_trees(i);
 			}
 		::HetTime += stop_clockbp();
 		}
@@ -857,17 +851,17 @@ set<unsigned int> search_hashtable_strict_and_timed(vector<int> leftside, vector
 			if (side > 0){//if at least one side is strict
 				//cout << "side is > 0" << endl;
 				if (side == 1 && ::is_strict_homog(i, leftside) ){//left side strict
-					matchingtrees = ::biparttable.searchtable[i];
+					matchingtrees = ::biparttable.get_trees(i);
 				}
 				if (side == 2 && ::is_strict_homog(i, rightside) ){//right side strict
-					matchingtrees = ::biparttable.searchtable[i];
+					matchingtrees = ::biparttable.get_trees(i);
 				}
 				if (side == 3 && ::is_strict_homog(i, leftside) && ::is_strict_homog(i, rightside) ){//both sides strict
-					matchingtrees = ::biparttable.searchtable[i];
+					matchingtrees = ::biparttable.get_trees(i);
 				}
 			}
 			else{//neither is strict
-				matchingtrees = ::biparttable.searchtable[i];
+				matchingtrees = ::biparttable.get_trees(i);
 			}
 		}
 				

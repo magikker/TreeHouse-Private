@@ -54,11 +54,11 @@ treehouse_SOURCES += ${comdir}/parsing.h ${comdir}/parsing.cc
 
 # TreeZip Files
 #treehouse_SOURCES += ${treezipdir}/normalizer.h ${treezipdir}/normalizer.cpp
-treehouse_SOURCES += ${treezipdir}/nexus_compress.hh ${treezipdir}/nexus_compress.cc
-treehouse_SOURCES += ${treezipdir}/nexus_decompress.hh ${treezipdir}/nexus_decompress.cc
-treehouse_SOURCES += ${treezipdir}/compressfunc.h ${treezipdir}/compressfunc.cc
-treehouse_SOURCES += ${treezipdir}/bmerge.h ${treezipdir}/bmerge.cc
-treehouse_SOURCES += ${treezipdir}/tmerge.h ${treezipdir}/tmerge.cc
+#treehouse_SOURCES += ${treezipdir}/nexus_compress.hh ${treezipdir}/nexus_compress.cc
+#treehouse_SOURCES += ${treezipdir}/nexus_decompress.hh ${treezipdir}/nexus_decompress.cc
+#treehouse_SOURCES += ${treezipdir}/compressfunc.h ${treezipdir}/compressfunc.cc
+#treehouse_SOURCES += ${treezipdir}/bmerge.h ${treezipdir}/bmerge.cc
+#treehouse_SOURCES += ${treezipdir}/tmerge.h ${treezipdir}/tmerge.cc
 
 #begin treehouse sources
 

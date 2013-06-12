@@ -15,73 +15,230 @@ class BipartitionTable {
 public:
 
 	vector<Bipartition> BipartitionTable;
+	LabelMap lm;
+	
+	vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
 
+	
 	//by bipartitions
-	vector < vector < unsigned int > > searchtable; //number of biparts long by which trees with the bipart wide
+	/**///vector < vector < unsigned int > > searchtable; //number of biparts long by which trees with the bipart wide
 	vector < bool * > treetable; //number of biparts long by number of trees wide
-	vector < bool * > bipartitions; //number of biparts long by number of taxa wide
-	vector< unsigned int> length_of_bitstrings; //number of biparts long. value correlates to bipartitions
+	/**///vector < bool * > bipartitions; //number of biparts long by number of taxa wide
+	/**///vector< unsigned int> length_of_bitstrings; //number of biparts long. value correlates to bipartitions
 	
 	vector< vector <float> > tree_branches;
-
+	
 	//for consensus trees
 	vector<unsigned int> global_indices;
 	vector< float > branches; //seems to only be used for compute tree which is called by the consensus functions
 	
-	bool in_bitstring(int bitstring, int place){
-		//cout << "length_of_bitstrings[bitstring] " << length_of_bitstrings[bitstring] << ", Place = "  << place << endl;
-		if(length_of_bitstrings[bitstring] > place){
-			//cout << "it's in the bitstring" << endl;
-			return true;
-		}
-		//cout << "it's NOT in the bitstring" << endl;
-		return false;
-	}
 	
-	int number_of_ones(int bitstringindex){
-		int count = 0;
-		for(unsigned int i = 0; i < length_of_bitstrings[bitstringindex]; i ++ ){
-			if (bipartitions[bitstringindex][i] == 1){
-				count += 1;
+void print_taxa_in_trees(){
+	cout << "taxa_in_trees" << endl;
+	for(unsigned int i = 0; i < taxa_in_trees.size(); i++) {
+		for (unsigned int j = 0; j < ::NUM_TAXA; j++){
+			cout << taxa_in_trees[i][j]; 
+		}
+		cout << endl; 
+	} 
+}
+
+bool is_taxa_homogenious(set<unsigned int> treeset){
+	if(!::HETERO){
+		return true;
+	}
+	else{
+		for (unsigned int i = 0; i < treeset.size(); i++){
+			for (unsigned int j = 0; j < lm.size(); j++){
+				if (taxa_in_trees[0][j] != taxa_in_trees[i][j]){
+					return false;
+				}
 			}
 		}
-		return count;
+	}
+	return true;
+}
+vector<string> get_taxa_in_tree(unsigned int treeindex){
+	set<string> taxaset;
+	for(unsigned int i = 0; i < lm.size(); i ++ ){
+		if (taxa_in_trees[treeindex][i] == 1){
+			taxaset.insert(lm.name(i));
+		}
+	}
+	vector<string> taxavect(taxaset.begin(), taxaset.end());
+	return taxavect;
+}
+
+bool are_taxa_in_tree(int treeindex, vector<int> setoftaxa){
+	for(unsigned int i = 0; i < setoftaxa.size(); i++){
+		if(taxa_in_trees[treeindex][i] == 0){
+			return false;
+		}
+	}
+	return true;
+}
+
+
+int num_taxa_in_tree(int treeindex){
+	int count = 0;
+	for(unsigned int i = 0; i < lm.size(); i ++ ){
+		if (taxa_in_trees[treeindex][i] == 1){
+			count += 1;
+		}
+	}
+	return count;
+}
+
+
+	//test needed
+	vector<string> get_common_taxa(){
+		set<string> taxaset = lm.get_all_taxa_set();
+		for(unsigned int i = 0; i < taxa_in_trees.size(); i++ ){
+			for(unsigned int j = 0; j < ::NUM_TAXA; j++ ){
+				if (taxa_in_trees[i][j] == 0){
+					taxaset.erase(lm.name(j));
+				}
+			}
+		}
+		vector<string> taxavect(taxaset.begin(), taxaset.end());
+		return taxavect;
+	}
+	//test needed
+	vector<string> get_mask_for_homog(){
+		set<string> taxaset;
+		for(unsigned int i = 0; i < taxa_in_trees.size(); i++ ){
+			for(unsigned int j = 0; j < ::NUM_TAXA; j++ ){
+				if (taxa_in_trees[i][j] == 0){
+					taxaset.insert(lm.name(j));
+				}
+			}
+		}
+		vector<string> taxavect(taxaset.begin(), taxaset.end());
+		return taxavect;
+	}
+
+
+	
+	std::vector<unsigned int>::iterator trees_begin(int bitstringindex) { 
+		return BipartitionTable[bitstringindex].trees_begin(); 
+	}
+	std::vector<unsigned int>::iterator trees_end(int bitstringindex) { 
+		return BipartitionTable[bitstringindex].trees_end(); 
+	}
+	std::vector<unsigned int>::reverse_iterator trees_rbegin(int bitstringindex) { 
+		return BipartitionTable[bitstringindex].trees_rbegin(); 
+	}
+	std::vector<unsigned int>::reverse_iterator trees_rend(int bitstringindex) { 
+		return BipartitionTable[bitstringindex].trees_rend(); 
+	}
+	std::vector<unsigned int>::const_iterator trees_cbegin(int bitstringindex) const{
+		return BipartitionTable[bitstringindex].trees_cbegin();
+	}
+	std::vector<unsigned int>::const_iterator trees_cend(int bitstringindex) const{
+		return BipartitionTable[bitstringindex].trees_cend();
+	}
+	std::vector<unsigned int>::const_reverse_iterator trees_crbegin(int bitstringindex) const{
+		return BipartitionTable[bitstringindex].trees_crbegin();
+	}
+	std::vector<unsigned int>::const_reverse_iterator trees_crend(int bitstringindex) const{
+		return BipartitionTable[bitstringindex].trees_crend();
+	}
+
+	unsigned int bitstring_size(int bitstringindex){
+		return BipartitionTable[bitstringindex].bitstring_size();
+	}
+
+	bool get_bit(int bitstringindex, int bitindex){
+		return BipartitionTable[bitstringindex].get_bit(bitindex);
+	}
+	
+	bool* get_boolarray (int bitstringindex){
+		bool *boolarray = new bool[bitstring_size(bitstringindex)];
+		for (unsigned int i = 0; i < bitstring_size(bitstringindex); i++){
+			boolarray[i] = get_bit(bitstringindex, i);
+		}
+		return boolarray;
+	}
+	
+	float get_ave_branchlength(int bitstringindex){
+		return BipartitionTable[bitstringindex].get_ave_branchlength();
+	}
+	vector<float> get_branchlengths(int index){
+		return BipartitionTable[index].get_branchlengths();
+	}
+	//I need to return some specific stuff for the compute_tree function
+	vector<bool*> get_compute_tree_bipartitions(){
+		vector<bool*> bipartitions;
+		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
+			bipartitions.push_back(get_boolarray(i));
+		}
+		return bipartitions;
+	}
+	
+	vector<unsigned int> get_compute_tree_bipartitions_bitlens(){
+		vector<unsigned int> bipartitionlens;
+		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
+			bipartitionlens.push_back(bitstring_size(i));
+		}
+		return bipartitionlens;
+	}
+	
+	vector<float> get_compute_tree_bipartitions_branchlens(){
+		vector<float> avebranchlens;
+		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
+			avebranchlens.push_back(get_ave_branchlength(i));
+		}
+		return avebranchlens;
+	}
+	
+
+	unsigned int num_trees(int bitstringindex){
+		return BipartitionTable[bitstringindex].num_trees();
+	}
+	vector< unsigned int> get_trees(int bitstringindex){
+		return BipartitionTable[bitstringindex].get_trees();
+	}
+	
+	boost::dynamic_bitset<> get_bitstring(int bitstringindex){
+		return BipartitionTable[bitstringindex].get_bitstring();
+	}
+	
+	void add_tree(int bitstringindex, int treeindex, float branchlength){
+		BipartitionTable[bitstringindex].add_tree(treeindex, branchlength);
+	}
+	
+	unsigned int biparttable_size(){
+		return BipartitionTable.size();
+	}
+	
+	unsigned int trees_size(int index){
+		return BipartitionTable[index].trees_size();
+	}
+	unsigned int get_tree(int bitstringindex, int treeindex){
+		return BipartitionTable[bitstringindex].get_tree(treeindex);
+	}
+
+	bool in_bitstring(int bitstringindex, int place){
+		return BipartitionTable[bitstringindex].in_bitstring(place);
+	}
+
+	int number_of_ones(int bitstringindex){
+		return BipartitionTable[bitstringindex].number_of_ones();
 	}
 	
 	int number_of_zeros(int bitstringindex){
-		int count = 0;
-		for(unsigned int i = 0; i < length_of_bitstrings[bitstringindex]; i ++ ){
-			if (bipartitions[bitstringindex][i] == 0){
-				count += 1;
-			}
-		}
-		return count;
+		return BipartitionTable[bitstringindex].number_of_zeros();
 	}
 
 	bool is_zero(int bitstringindex, int position){
-		if( (! in_bitstring(bitstringindex, position)) || bipartitions[bitstringindex][position] == false){
-			return true;
-		}
-		else 
-			return false;
+		return BipartitionTable[bitstringindex].is_zero(position);
 	}
 
 	bool same_bitstring_value(int bitstringindex, int position1, int position2){
-		bool value;
-		
-		if(in_bitstring(bitstringindex, position1))
-			value = bipartitions[bitstringindex][position1];
-		else
-			value = false;
-		
-		if(in_bitstring(bitstringindex, position2))
-			return value == bipartitions[bitstringindex][position2];
-		else
-			return value == false;
+		return BipartitionTable[bitstringindex].same_bitstring_value(position1, position2);
 	}
 
 	bool same_bitstring_value(int bitstringindex, vector<int> positions){
-		
 		if (is_zero(bitstringindex,positions[0])){
 			for (unsigned int i = 0; i < positions.size(); i++){
 				//cout << " in is zero i = " << i << endl;
@@ -103,80 +260,31 @@ public:
 		}
 		return true;
 	}
-
 	
 	bool is_one(int bitstringindex, int position){
-		//cout << "bitstringindex = " << bitstringindex << ", position = " << position <<endl;
-		if(in_bitstring(bitstringindex, position) && bipartitions[bitstringindex][position] == true){
-			//cout << "bipartitions[bitstringindex][position] = " << bipartitions[bitstringindex][position] << endl;
-			//cout << "It's a one" << endl;
-			return true;
-		}
-		else 
-			//cout << "It's a Zero" << endl;
-			return false;
+		return BipartitionTable[bitstringindex].is_one(position);
 	}
 
-
-	bool is_one(int bitstringindex, int position, unsigned int &bitcomps){
-		bitcomps += 1;
-		if(in_bitstring(bitstringindex, position) ){
-			bitcomps += 1;
-			if( bipartitions[bitstringindex][position] == true){
-				return true;
-			}
-		}
-		return false;
+	unsigned int get_bipart_table_size(){
+		return BipartitionTable.size();
 	}
-
-	bool is_zero(int bitstringindex, int position, unsigned int &bitcomps){
-		
-		bitcomps += 1;
-		if( (! in_bitstring(bitstringindex, position)) ){
-			return true;
-		}
-		bitcomps += 1;
-		if ( bipartitions[bitstringindex][position] == false){
-			return true;
-		}
-		return false;
-	}
-	
-	bool same_bitstring_value(int bitstringindex, vector<int> positions, unsigned int &bitcomps){
-		
-		if (is_zero(bitstringindex,positions[0], bitcomps)){
-			for (unsigned int i = 0; i < positions.size(); i++){
-				if(is_one(bitstringindex, positions[i], bitcomps)){
-					return false;
-				}
-			}
-			return true;
-		}
-		else{
-			for (unsigned int i = 0; i < positions.size(); i++){
-				if(is_zero(bitstringindex, positions[i], bitcomps)){
-					return false;
-				}
-			}
-			return true;
-		}
-		return true;
-	}
-
-	unsigned int get_size(){
-		return searchtable.size();
-	}
-
 
 	void print_length_of_bitstrings(){
 		cout << "We show the hash table below, with the corresponding bitstring reps of the bipartitions:" << endl << endl;
 		//keep in mind that hashtable and hash_lengths are global variables
-		for (unsigned int i = 0; i < length_of_bitstrings.size(); i++){
-			cout << length_of_bitstrings[i] << " ";
+		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
+			cout << BipartitionTable[i].bitstring_size() << " ";
 		}
 		cout << endl;
 	}
 	
+	void print_biparttable(){
+		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
+			BipartitionTable[i].print_line();
+		}
+	}
+	
+	/*
 	void print_hashtable(){
 		cout << "We show the hash table below, with the corresponding bitstring reps of the bipartitions:" << endl << endl;
 		int nbpt = 0;
@@ -206,32 +314,14 @@ public:
 		}
 		//print_length_of_bitstrings();
 	}
+	*/
 	
 	void print_bitstring(int index){
-		for (unsigned int j = 0; j < length_of_bitstrings[index]; j++){
-			  cout << bipartitions[index][j];
-		}
-		cout << endl;
+		BipartitionTable[index].print_bitstring(true);
 	}
 	
 	void print_bitstring_and_trees(int index){
-		for (unsigned int j = 0; j < length_of_bitstrings[index]; j++){
-			  cout << bipartitions[index][j] ;
-		}
-		cout << " --> [ ";
-			for (unsigned int j = 0; j < searchtable[index].size(); j++){
-			  cout << searchtable[index][j] << " ";
-			}
-			cout << "]" << endl;
-	}
-
-	void print_searchtable(){
-		for (unsigned int i = 0; i < searchtable.size(); i++){
-			for (unsigned int j = 0; j < searchtable[i].size(); j++){
-				cout << searchtable[i][j] << ", ";
-			}
-			cout << endl;
-		}
+		BipartitionTable[index].print_line();
 	}
 
 	void print_treetable() {
@@ -254,47 +344,44 @@ public:
 		unsigned int lengthofbitstring = ::NUM_TAXA;
 		unsigned int numberoftrees = 40;
 		
-		
-		
 		//BipartitionTable.push_back(b);
 
-		
 		for(unsigned int i = 0; i < numbiparts; i++ ){
 			Bipartition b(lengthofbitstring);
-			bool *bs = new bool[lengthofbitstring];
+			//bool *bs = new bool[lengthofbitstring];
 			for (unsigned int j = 0; j < lengthofbitstring; j++){
 				if (rand() % 2 == 0){
-					bs[j] = (bool)1;
+					//bs[j] = (bool)1;
 					b.set(j,1); //
 				}
-				else{
-					bs[j] = (bool)0;
-				}
+				//else{
+				//	bs[j] = (bool)0;
+				//}
 			}
 			
-			bipartitions.push_back(bs);		
+			//bipartitions.push_back(bs);		
 			
 			
-			bool *treebs = new bool[numberoftrees];
-			vector<unsigned int> trees;
-			vector<float> treebranchs;
+			//bool *treebs = new bool[numberoftrees];
+			//vector<unsigned int> trees;
+			//vector<float> treebranchs;
 			for(unsigned int j = 0; j < numberoftrees; j++ ){
 				if (rand() % 4 == 0){
-					treebranchs.push_back(1.0);
-					trees.push_back(j);
-					treebs[j] = 1;
+					//treebranchs.push_back(1.0);
+					//trees.push_back(j);
+					//treebs[j] = 1;
 					b.add_tree(j,1.0); //
 				}
-				else{
-					treebs[j] = 0;
-				}
+				//else{
+				//	treebs[j] = 0;
+				//}
 			}
 			BipartitionTable.push_back(b); //
 			
-			tree_branches.push_back(treebranchs);
-			treetable.push_back(treebs);
-			searchtable.push_back(trees);
-			length_of_bitstrings.push_back(lengthofbitstring);
+			//tree_branches.push_back(treebranchs);
+			//treetable.push_back(treebs);
+			//searchtable.push_back(trees);
+			//length_of_bitstrings.push_back(lengthofbitstring);
 			//branches.push_back(1.0);
 			
 			b.print_line(); //
@@ -310,7 +397,7 @@ public:
 		//vector< float > branches;
 		//vector< vector <float> > tree_branches;
 
-		for (unsigned int i = 0; i < bipartitions.size(); i++){ //for each bipartition
+	/*	for (unsigned int i = 0; i < bipartitions.size(); i++){ //for each bipartition
 			bool *bs = new bool[length_of_bitstrings[i]];
 			for(unsigned int j = 0; j < length_of_bitstrings[i]; j++){ //for each bit
 				unsigned int place_in_bs = 0;
@@ -324,7 +411,7 @@ public:
 			}
 			bipartitions[i] = bs;
 		}
-	}
+	}*/
 	
 	/*bool* apply_taxa_mask(bool* bitstring, unsigned int bitstringSize, vector<unsigned int> taxa_mask){
 	bool *bs = new bool[::NUM_TAXA];
@@ -363,8 +450,9 @@ BipartitionTable make_taxa_masked_bipart_table(vector<unsigned int> taxa_mask){
 	}
 	masked_bt.print_hashtable();
 	return masked_bt;
+	* */
 }
-	*/
+	
 	
 	
 };

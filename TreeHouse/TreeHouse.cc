@@ -47,8 +47,8 @@
 
 //#include "HashTableSearch.h"
 
-#include "compressfunc.h"
-#include "bmerge.h"
+//#include "compressfunc.h"
+//#include "bmerge.h"
 #include "buildtree.h"
 
 #include "UserFunctions.h"
@@ -67,7 +67,6 @@ static char *line_read = (char *)NULL;
 //char* cmd [] ={ "hello", "world", "hell" ,"word", "quit", " " };
 
 
- 
 void * xmalloc (int size)
 {
     void *buf;
@@ -80,6 +79,7 @@ void * xmalloc (int size)
  
     return buf;
 }
+
 char * dupstr (char* s) {
   char *r;
  
@@ -87,27 +87,6 @@ char * dupstr (char* s) {
   strcpy (r, s);
   return (r);
 }
-
-//~ char* my_generator(const char* text, int state){
-    //~ static int list_index, len;
-    //~ char *name;
- //~ 
-    //~ if (!state) {
-        //~ list_index = 0;
-        //~ len = strlen (text);
-    //~ }
- //~ 
-    //~ while (name = cmd[list_index]) {
-        //~ list_index++;
- //~ 
-        //~ if (strncmp (name, text, len) == 0)
-            //~ return (dupstr(name));
-    //~ }
- //~ 
-    //~ /* If no names matched, then return NULL. */
-    //~ return ((char *)NULL);
- //~ 
-//~ }
 
 
 char* my_generator(const char* text, int state){
@@ -175,6 +154,331 @@ void differentLengthsOr(const bool * first, const unsigned int firstsize, bool *
 	}
 }
 
+
+void populate_integrals(unsigned int * hold_integrals, string branches_int, unsigned int encode_size){
+  unsigned int integral_size = branches_int.size();
+  unsigned int intpos = 0;
+  unsigned int treeloc, m;
+  int treeval, n;
+  unsigned char v;
+  treeloc = 0;
+  treeval = 0;
+  m = 0;
+  for (unsigned int i  =0; i < NUM_TREES; i++)
+    hold_integrals[i] = 0;
+  while (intpos < integral_size){
+    while (m < encode_size){ //while we're less than the encoded size
+      v = branches_int[intpos];
+      treeloc+= v;
+      treeloc-=33;
+      m++;
+      if (m < encode_size)
+	treeloc *= 100;
+      intpos++;
+    }
+    treeval = branches_int[intpos]; //next, get the tree value
+    treeval-=48;
+    intpos++;
+    if (treeval < 0){
+      n = 0;
+      treeval = 0;
+      while ( (n <= 9) && (n >= 0)){
+	treeval*=10;
+	n = branches_int[intpos];
+	n-=48;
+	treeval+= n;
+	intpos++;
+	n = branches_int[intpos];
+	n-=48;
+      }
+      intpos++;
+    }
+    hold_integrals[treeloc] = treeval;
+    m = 0;
+    treeloc = 0;
+    treeval = 0;
+  }
+}
+
+void decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_set_of_ids, vector<float> & bitstrings_branches, string branches_frac){
+  unsigned int myplace = 0;
+  unsigned int numer = 0;
+  unsigned int denom = 100;
+  float weight = 0;
+  unsigned char v;
+  unsigned int val;
+  unsigned int count = my_set_of_ids.size();
+  if (count < NUM_TREES){
+    for (unsigned int i = 0; i < count; ++i){
+      unsigned int temp = my_set_of_ids[i];
+      while (numer != 3){
+	    v = branches_frac[myplace];
+	    val = v;
+	    val -= 33;
+	    weight += (float)val/denom;
+	    denom*=100;
+	    myplace++;
+	    numer++;
+      }
+      weight+=hold_integrals[temp];
+      //printf("%f\n", weight);
+      hold_integrals[temp] = 0;
+      bitstrings_branches.push_back(weight);
+      ::biparttable.tree_branches[temp].push_back(weight);
+      numer = 0;
+      denom = 100;
+      weight = 0;
+    }
+  }
+  else{
+    for (unsigned int i = 0; i < NUM_TREES; ++i){
+      while (numer != 3){
+	    v = branches_frac[myplace];
+	    val = v;
+	    val -= 33;
+	    weight += (float)val/denom;
+	    denom*=100;
+	    myplace++;
+	    numer++;
+      }
+      weight+=hold_integrals[i];
+      //printf("%f\n", weight);
+      hold_integrals[i] = 0;
+      bitstrings_branches.push_back(weight);
+      ::biparttable.tree_branches[i].push_back(weight);
+      numer = 0;
+      denom = 100;
+      weight = 0;
+    }
+  }
+}
+
+
+unsigned int get_bitstring_length(string bitstring){ //determines the size of the bitstring 
+  short bitstring_size = bitstring.size();
+  int x = 0;
+  int ypos = 0;
+  int y = 0;
+  unsigned int count = 0;
+  int val;
+  while ( x < bitstring_size ) {
+    char type = bitstring[x];
+    if ((type == 'A') || (type == 'B')) //if it is either A or B, just increment by one
+      count++;
+    else if ((type == 'K') || (type == 'L')){ //
+      ypos = x + 1;
+      val = -1;
+      y = 0;
+      while (val < 0) { 
+        val = bitstring[ypos];
+        val-=65;
+        if (val < 0) { 
+          ++ypos;
+          ++y;
+        }
+        else{
+          ypos--;
+        }
+        if (ypos == bitstring_size)
+          break;
+      }
+      assert(ypos > -1);
+      
+      string amt = bitstring.substr((x+1),y);
+      x = ypos;
+      int iamt = atoi(amt.c_str());
+      count += iamt;
+    }
+    x++;
+  } //end go through bitstring
+  return count;
+} 
+
+//parses the ntrees line of the TRZ file
+unsigned int get_ntrees(string str){
+  unsigned int trees = 0;
+  int pos = str.find_first_of(" ");
+  string line_type = str.substr(0, pos);
+  if (line_type != "NTREES"){
+    cerr << "Error! Number of trees field not found. Exiting..\n";
+    exit(2);
+  }
+  str = str.substr(pos+1);
+  pos = str.find_first_of("\n");
+  str = str.substr(0, pos);
+  pos = str.find_first_of(" ");
+  if (pos != -1){
+    string ntrees = str.substr(0, pos);
+    str = str.substr(pos+1);
+    if ( (str == "H") && (!HETERO) ){
+      cerr << "Warning! Detected Heterogeneous collection of trees!" << endl;
+      HETERO = true;
+    }
+    trees = atoi(ntrees.c_str());
+  }
+  else
+    trees = atoi(str.c_str()); //this is the total number of trees
+  return trees;
+} 
+
+//parses the unique line of the TRZ file
+unsigned int get_unique(string str, unsigned int ntrees){
+  int pos = str.find_first_of(" ");
+  string line_type = str.substr(0, pos);
+  unsigned int num_unique = ntrees;
+  assert(num_unique != 0);
+  if (line_type != "UNIQUE_T"){
+    cerr << "Error! Unique trees line not found! Exiting...\n";
+    exit(2);
+  }
+  str = str.substr(pos+1);
+  pos = str.find_first_of("\n");
+  str = str.substr(0, pos);
+  if (str != "all")
+    num_unique = atoi(str.c_str());
+  return num_unique;
+}
+
+//used for parsing nbipartitions and duplicates lines
+void parse_and_get(string str, string check, unsigned int & var){
+  int pos;
+  pos = str.find_first_of(" ");
+  string type =str.substr(0, pos);
+  if (type != check){
+    cerr << "Error! " << check << " field not found!" << endl;
+    cout << str << endl;
+    exit(1);
+  }
+  str = str.substr(pos+1);
+  pos = str.find_first_of("\n");
+  str = str.substr(0, pos);
+  var = atoi(str.c_str());
+}
+
+
+unsigned int decode(string encoded, unsigned int * found){
+  //transform string into another string that is "intermediary"
+  //cout << "string to decode is: " << encoded << endl;
+  unsigned int ids_length = encoded.size();
+  char *tmp = new char[std::numeric_limits <int>::digits10 + 2];
+  string myids;
+
+  for (unsigned int a = 0; a < encoded.size()-1; ++a) {
+    int trueval = encoded[a];
+    int trueval2 = encoded[a+1];
+    trueval -= 65;
+    trueval2 -= 65;
+    if (trueval >= 0) { //we have a number!
+      if (trueval < 10) { 
+	sprintf(tmp, "%d", trueval);
+	myids+=tmp;         
+      }
+      else{
+	myids+="1:";
+      }
+    }
+    else{
+      myids+=encoded[a];
+    }
+    if (trueval2 >=0){ 
+      myids+=" ";
+    }
+  }
+  int trueval = encoded[ids_length-1];
+  trueval-=65;
+  if (trueval >= 0){
+    sprintf(tmp, "%d", trueval);
+    myids+=tmp;
+  }
+  else{
+    myids+=encoded[ids_length-1];
+  }
+  delete[] tmp;
+
+
+  //decode the string my ids:
+  stringstream splitarray(myids);
+  int pos;
+
+  unsigned place = 0;
+  string myid;
+  unsigned int current = 0;
+  while(splitarray >> myid) { 
+    pos = myid.find_first_of(":");
+    if (pos == -1){ 
+      unsigned int temp = atoi(myid.c_str()); 
+      temp += current;            
+      found[place] = temp;
+      place++;
+      current = temp;
+    }
+    else{
+      string id_str = myid.substr(0,pos);
+      unsigned int id = atoi(id_str.c_str());
+      myid = myid.substr(pos+1);
+      unsigned int times = atoi(myid.c_str());
+      for (unsigned int i = 0; i < times; ++i) {
+	found[place] = current+id;
+	current+=id;
+	place++;
+      }
+    }
+  }
+  return place;
+}
+void decode_bitstring(string bitstring, boost::dynamic_bitset<> &bs, unsigned int maxLength){
+  short bitstring_size = bitstring.size();
+  unsigned int j = 0;
+  int x = 0;
+  bool typeb = false;
+  int ypos = 0;
+  int y = 0;
+  while ( x < bitstring_size ) {
+    int val = bitstring[x];
+    val-= 65;
+    if (val < 2) { 
+      bs[j] = (bool)val;
+      ++j;
+    }
+    else{
+      char type = bitstring[x];
+      if (type == 'K')
+	typeb = true;
+      if (type == 'L')
+	typeb = false;
+      
+      ypos = x + 1;
+      val = -1;
+      y = 0;
+      
+      while (val < 0) { 
+	val = bitstring[ypos];
+	val-=65;
+	if (val < 0) { 
+	  ++ypos;
+	  ++y;
+	}
+	else{
+	  ypos--;
+	}
+	if (ypos == bitstring_size)
+	  break;
+      }
+      assert(ypos > -1);
+      
+      string amt = bitstring.substr((x+1),y);
+      x = ypos;
+      int iamt = atoi(amt.c_str());
+      for (short z = 0; z < iamt; ++z) { 
+	bs[j] = typeb;
+	++j;
+      }
+    }
+    ++x;
+  }
+  assert(j == maxLength);
+} 
+
 void load_data_from_trz_file(string file){  
   
 	string mycount, ids, bipartition, line_type, str, taxa, treeline, bitstring, branches_int, branches_frac;
@@ -205,10 +509,9 @@ void load_data_from_trz_file(string file){
 	stringstream ss(str);
 	ntaxa = 0;
 	while(getline(ss, taxa, ':')){ 
-		::lm.push(taxa);
+		::biparttable.lm.push(taxa);
 		ntaxa++;
 	}
-	//Biparttable.set_num_taxa(ntaxa);
 	::NUM_TAXA = ntaxa;
 	ss.clear();
 
@@ -221,8 +524,6 @@ void load_data_from_trz_file(string file){
 	num_unique = get_unique(str, ::NUM_TREES);
 
 	//resize data structures
-	//::treetable.bipartitions.resize(NUM_TREES);
-	//::treetable.bs_sizes.resize(NUM_TREES);
 	::biparttable.tree_branches.resize(NUM_TREES);
 	
 	::inverted_index.resize(NUM_TREES);
@@ -237,23 +538,24 @@ void load_data_from_trz_file(string file){
 	parse_and_get(str, "NBIPARTITIONS", nbipart);
 	NUMBIPART = nbipart;
   
-	//grb
 	for (unsigned int i = 0; i < NUM_TREES; i++){
 		bool *blankbs = new bool[::NUM_TAXA];
 		for (unsigned int j = 0; j < ::NUM_TAXA; j++){
 			blankbs[j] = (bool)0;
 		}
-		::taxa_in_trees.push_back(blankbs);
+		::biparttable.taxa_in_trees.push_back(blankbs);
 	}
 
   //skip nbipart lines, get the duplicate information
-  for (unsigned int i = 0; i < nbipart; i++)
+  for (unsigned int i = 0; i < nbipart; i++){
     getline(fin, str);
+  }
   getline(fin, str); //now read the duplicates line
   parse_and_get(str, "DUPLICATES", ndup_lines);
   //cout << "ndup_lines is: " << ndup_lines << endl;
-  for (unsigned int i = 0; i < NUM_TREES; i++)
+  for (unsigned int i = 0; i < NUM_TREES; i++){
     is_dup[i] = 0;
+  }
   unsigned int decode_size = 0;
   unsigned int * found, dec_loc, dec_val;
   found = (unsigned int *)malloc(NUM_TREES*sizeof(unsigned int));
@@ -281,50 +583,36 @@ void load_data_from_trz_file(string file){
     true_ids[i] = tempj;
     tempj++;
   }
-
-  //debug: print out the data structures
-  /*cout << "true_ids: " << endl;
-  for (unsigned int i  = 0; i < true_ids.size(); i++)
-    cout << i << "-->" << true_ids[i] << endl;
-  cout << endl;
-
-  cout << "dups: " << endl;
-  for (unsigned int i = 0; i < NUM_TREES; i++){
-    cout << i << ": ";
-    for (unsigned int j = 0; j < dups[i].size(); j++){
-      cout << dups[i][j] << " ";
-    }
-    cout << endl;
-    }*/
+ 
   fin.close(); //now close the file
+  //GRB there should be a function break here.... This is far too big. 
   fin.open(file.c_str(), ios::binary); //reopen
   if (!fin) {
     cerr << "cannot open file!\n";
     exit(2);
   }
-  for (unsigned int i  =0; i < 4; i++) //go back to where we need to be in order to start reading in the bipartitions
+  for (unsigned int i  =0; i < 4; i++) {//go back to where we need to be in order to start reading in the bipartitions
     getline(fin, str); 
-
+  }
+  
   unsigned int counter = 0;
   unsigned int count = 0;
   unsigned int bipart_loc = 0;
   unsigned int numtrees_strsize, my_count;
-  stringstream tmpss;
-  string numtrees_str;
+  string numtrees_str = std::to_string(NUM_TREES);
   unsigned int encode_size = 0;
   vector<unsigned int> my_set_of_ids;
-  tmpss << NUM_TREES;
-  tmpss >> numtrees_str;
   numtrees_strsize = numtrees_str.size();
   encode_size = (numtrees_strsize+1)/2;
   unsigned int maxLength = 0;
 
 
   while ( counter < nbipart) { 
-	vector <unsigned int> v1;
-	::biparttable.searchtable.push_back(v1);
+	//GRB NEW Round
+	//vector <unsigned int> v1;
+	//::biparttable.searchtable.push_back(v1);
 
-        bool * tt1 = new bool[NUM_TREES]; //tt
+    bool * tt1 = new bool[NUM_TREES]; //tt
 	for (unsigned int i = 0; i < NUM_TREES; i++) {
 	  tt1[i] = 0;
 	}
@@ -339,12 +627,15 @@ void load_data_from_trz_file(string file){
 
     //process bitstring first
     maxLength = get_bitstring_length(bitstring);//determine length of bitstring maxLength
-    bool *bs = new bool[maxLength]; //allocate it to be maxLength	
+    //GRB the bitset
+    boost::dynamic_bitset<> bs(maxLength);
+    vector<unsigned int> trees;
+    vector<float> branchlengths;
+    //bool *bs = new bool[maxLength]; //allocate it to be maxLength	
     decode_bitstring(bitstring, bs, maxLength);
-    //grb
-    ::biparttable.length_of_bitstrings.push_back(maxLength);
-    //::length_of_bitstrings.push_back(maxLength);
-
+    //GRB not needed in new system
+    //::biparttable.length_of_bitstrings.push_back(maxLength);
+    
     //next, process tree line
     //first, determine the number of TIDs in the line:
     pos = treeline.find_first_of(":");
@@ -380,37 +671,23 @@ void load_data_from_trz_file(string file){
     }
 
     //process tree ids
-    if (count == 0) //bipartition that every tree has
-	{ 
-	  //grb1
-      //hashtable[counter] = (unsigned int *)malloc(NUM_TREES*sizeof(unsigned int));
-      //hash_lengths[counter] = NUM_TREES;
-      for (unsigned int b = 0; b < ::NUM_TREES; ++b) 
-	  { 
-		//grb1
-		//hashtable[counter][b] = b;
-		//::treetable.bipartitions[b].push_back(bs);
-		//::treetable.bs_sizes[b].push_back(maxLength);
-		
-		
-		//::all_bs[b].push_back(bs); //push bipartition into everything
-		//::bs_sizes[b].push_back(maxLength); //push bipartition length into everything
+    if (count == 0){  //bipartition that every tree has
+     for (unsigned int b = 0; b < ::NUM_TREES; ++b){ 
 		::inverted_index[b].push_back(bipart_loc);
-        //grb
-		::biparttable.searchtable[counter].push_back(b);
-	        ::biparttable.treetable[counter][b] = 1; //tt
+		//GRB
+		trees.push_back(b);
+		//::biparttable.searchtable[counter].push_back(b);
+	    ::biparttable.treetable[counter][b] = 1; //tt
 	    
-		//differentLengthsOr(bs, maxLength, ::taxa_in_trees[b]);
       }
-      //vec_bs.push_back(bs); //this is a strict consensus bipartition       
       if (WEIGHTED)
 	  {
-		if (branches_int != "")
+		if (branches_int != ""){
 	      populate_integrals(hold_integrals, branches_int, encode_size);
+		}
 	    my_set_of_ids.resize(NUM_TREES);
-	    
-	    decompress_branch(hold_integrals, my_set_of_ids, ::biparttable.tree_branches, branches_frac);
-	    //decompress_branch(hold_integrals, my_set_of_ids, ::all_branches, branches_frac);
+	    //GRB
+	    decompress_branch(hold_integrals, my_set_of_ids, branchlengths, branches_frac);
       }
       bipart_count++;
     }      
@@ -429,26 +706,12 @@ void load_data_from_trz_file(string file){
 			if (check[i] == false) {
 				true_id = true_ids[i];
 				my_set_of_ids.push_back(true_id);
-				
-				//::all_bs[true_id].push_back(bs);
-				//::bs_sizes[true_id].push_back(maxLength);
 				::inverted_index[true_id].push_back(bipart_loc);
-				//grb
-				//differentLengthsOr(bs, maxLength, ::taxa_in_trees[true_id]);
-				//::treetable.bipartitions[true_id].push_back(bs);
-				//::treetable.bs_sizes[true_id].push_back(maxLength);
 
 				if (::tree_dups[true_id].size() > 0){
 				  for (unsigned int j = 0; j< ::tree_dups[true_id].size(); j++){
 						sec_id = ::tree_dups[true_id][j];
-
-						//::treetable.bipartitions[sec_id].push_back(bs);
-						//::treetable.bs_sizes[sec_id].push_back(maxLength);
-						
-						//::all_bs[sec_id].push_back(bs);
-						//::bs_sizes[sec_id].push_back(maxLength);
 						::inverted_index[sec_id].push_back(bipart_loc);
-						//differentLengthsOr(bs, maxLength, ::taxa_in_trees[sec_id]);
 						my_set_of_ids.push_back(sec_id);
 					}
 				}
@@ -460,22 +723,18 @@ void load_data_from_trz_file(string file){
 		//now, take care of of the bipartition associated with this
 		sort(my_set_of_ids.begin(), my_set_of_ids.end());
 		unsigned int mytotalsize = my_set_of_ids.size();
-		//grb1
-		//hashtable[counter] = (unsigned int *)malloc(mytotalsize*sizeof(unsigned int));
-		//hash_lengths[counter] = mytotalsize;
 		for (unsigned int j = 0; j < mytotalsize; j++){
-			//grb
-			::biparttable.searchtable[counter].push_back(my_set_of_ids[j]);
-		        ::biparttable.treetable[counter][my_set_of_ids[j]] = 1; //tt
-			//grb1
-			//hashtable[counter][j]  = my_set_of_ids[j];
+			trees.push_back(my_set_of_ids[j]);
+			//GRB
+			//::biparttable.searchtable[counter].push_back(my_set_of_ids[j]);
+	        ::biparttable.treetable[counter][my_set_of_ids[j]] = 1; //tt
 		}
 		if (WEIGHTED){	  
-			if (branches_int != "")
+			if (branches_int != ""){
 				populate_integrals(hold_integrals, branches_int, encode_size);
-			
-			decompress_branch(hold_integrals, my_set_of_ids, ::biparttable.tree_branches, branches_frac);			
-			//decompress_branch(hold_integrals, my_set_of_ids, ::all_branches, branches_frac);
+			}
+			//GRB
+			decompress_branch(hold_integrals, my_set_of_ids, branchlengths, branches_frac);			
 		}
       }
       else { //line is not compressed
@@ -483,54 +742,47 @@ void load_data_from_trz_file(string file){
 		for (unsigned int i = 0; i < count; ++i) { 
 			unsigned int temp = found[i];
 			true_id = true_ids[temp];
-
-			//::treetable.bipartitions[true_id].push_back(bs);
-			//::treetable.bs_sizes[true_id].push_back(maxLength);
-			
-			//::all_bs[true_id].push_back(bs);
-			//::bs_sizes[true_id].push_back(maxLength);
 			::inverted_index[true_id].push_back(bipart_loc);
-			//differentLengthsOr(bs, maxLength, ::taxa_in_trees[true_id]);
 			my_set_of_ids.push_back(true_id);
 			if (::tree_dups[true_id].size() > 0){
 				for (unsigned int j = 0; j < ::tree_dups[true_id].size(); j++){
 					sec_id = ::tree_dups[true_id][j];
-
-					//::treetable.bipartitions[sec_id].push_back(bs);
-					//::treetable.bs_sizes[sec_id].push_back(maxLength);
-
-					//::all_bs[sec_id].push_back(bs);
-					//::bs_sizes[sec_id].push_back(maxLength);
 					::inverted_index[sec_id].push_back(bipart_loc);
-					//differentLengthsOr(bs, maxLength, ::taxa_in_trees[sec_id]);
 					my_set_of_ids.push_back(sec_id);
 				}
 			}
 		}	 
 		sort(my_set_of_ids.begin(), my_set_of_ids.end());	 
 		unsigned int mytotalsize = my_set_of_ids.size();
-		//grb1
-		//hashtable[counter] = (unsigned int *)malloc(mytotalsize*sizeof(unsigned int));
-		//hash_lengths[counter] = mytotalsize;
 		for (unsigned int j = 0; j < mytotalsize; j++){
-			//grb
-			::biparttable.searchtable[counter].push_back(my_set_of_ids[j]);
-		        ::biparttable.treetable[counter][my_set_of_ids[j]] = 1; //tt
-			//grb1
-			//hashtable[counter][j]  = my_set_of_ids[j];
+			//GRB
+			trees.push_back(my_set_of_ids[j]);
+			//::biparttable.searchtable[counter].push_back(my_set_of_ids[j]);
+	        ::biparttable.treetable[counter][my_set_of_ids[j]] = 1; //tt
 		}
 		if (WEIGHTED){
-			if (branches_int != "")
+			if (branches_int != ""){
 				populate_integrals(hold_integrals, branches_int, encode_size);
-			decompress_branch(hold_integrals, my_set_of_ids, ::biparttable.tree_branches, branches_frac);
-			//decompress_branch(hold_integrals, my_set_of_ids, ::all_branches, branches_frac);
+			}
+			//GRB
+			decompress_branch(hold_integrals, my_set_of_ids, branchlengths, branches_frac);
 		}
       }
       bipart_count++;
     } //end if count != 0
-    //grb
-    ::biparttable.bipartitions.push_back(bs);
-    //::list_bs.push_back(bs); //push into the list 
+    
+    //GRB
+    cout << "lets see what we've got" << endl;
+    
+    cout << "trees = ";
+    for(vector<unsigned int>::iterator it = trees.begin(); it != trees.end(); it++){
+		cout << *it << " "; 
+	}
+	cout << endl;
+    
+    Bipartition B(bs, trees, branchlengths);
+    biparttable.BipartitionTable.push_back(B);
+    //::biparttable.bipartitions.push_back(bs);
     
     my_set_of_ids.clear();
     bipart_loc++;
@@ -544,29 +796,22 @@ void load_data_from_trz_file(string file){
     cout << "counter: " << counter << endl;
     exit(1);
   }
-  assert(::lm.size()!=0); 
-  
-	//~ for (int tree = 0; tree < all_bs.size(); tree++){
-		//~ for (int bip = 0; bip < all_bs[tree].size(); bip++){
-			//~ differentLengthsOr(all_bs[tree][bip], bs_sizes[tree][bip], ::taxa_in_trees[tree]);
-		//~ }
-	//~ }
-
+  assert(::biparttable.lm.size()!=0); 
+ 
+	//GRB what is going on here... no really?
 	for (unsigned int tree = 0; tree < ::NUM_TREES; tree++){
 	  vector<bool *> tree_bipartitions;
 	  vector<unsigned int> tree_bs_sizes;
 	  vector<float> tree_branches;
 	  get_tree_data(tree, tree_bipartitions, tree_bs_sizes, tree_branches);
 		for (unsigned int bip = 0; bip < tree_bipartitions.size(); bip++){
-			differentLengthsOr(tree_bipartitions[bip], tree_bs_sizes[bip], ::taxa_in_trees[tree]);
+			differentLengthsOr(tree_bipartitions[bip], tree_bs_sizes[bip], ::biparttable.taxa_in_trees[tree]);
 		}
 	}
 
 
     for (unsigned int i = 0; i < ::NUM_TREES; i++){
-		//cout << i << ": ";
 		for (unsigned int j = 0; j < ::tree_dups[i].size(); j++){
-			//cout << ::dups[i][j] << " ";
 			if (::tree_dups[::tree_dups[i][j]].size() == 0){
 				::tree_dups[::tree_dups[i][j]].push_back(i);
 			}
@@ -598,7 +843,7 @@ void load_classification(string filename) {
       cerr << "Error in XML parse of '" << filename << "'. One of the given taxa has no label attribute." << endl;
       exit(3);
     }
-    int ind = index_in_labelmap(label);
+    int ind = ::biparttable.lm.index_in_labelmap(label);
     if (ind == -1) {
       cerr << "Error in XML parse of '" << filename << "'. Label '" << label << "' does not exist in labelmap." << endl;
       exit(3);
@@ -1026,9 +1271,9 @@ double ANTLR3_CDECL call_parser(string inputstring ){
 }
 
 int free_things(){
-	while(!::taxa_in_trees.empty()){
-		delete[] ::taxa_in_trees.back();
-		::taxa_in_trees.pop_back();
+	while(!::biparttable.taxa_in_trees.empty()){
+		delete[] ::biparttable.taxa_in_trees.back();
+		::biparttable.taxa_in_trees.pop_back();
 	}
 	
 	//~ while(!::list_bs.empty()){
@@ -1060,21 +1305,21 @@ void init_the_constants(){
 	//initialize a Taxon object in taxa_info for each taxon
 	for (unsigned int i = 0; i < ::NUM_TAXA; i++) {
 	  ::taxa_info.push_back(new Taxon);
-	  ::taxa_info[i]->label = ::lm.name(i);
+	  ::taxa_info[i]->label = ::biparttable.lm.name(i);
 	}
 
 	//Make taxa names constants.  
 	vector<string> taxaset;
-	for (unsigned int i = 0; i < lm.size(); i ++ ){
-		if(isalpha(lm.name(i)[0])){
-			symbol_table[lm.name(i)] = new pqlsymbol(lm.name(i));
-			constant_table[lm.name(i)] = true;
-			taxaset.push_back(lm.name(i));
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); i ++ ){
+		if(isalpha(::biparttable.lm.name(i)[0])){
+			symbol_table[::biparttable.lm.name(i)] = new pqlsymbol(::biparttable.lm.name(i));
+			constant_table[::biparttable.lm.name(i)] = true;
+			taxaset.push_back(::biparttable.lm.name(i));
 		}
 		else{
 			string str = "t";
-			str.append(lm.name(i));
-			symbol_table[str] = new pqlsymbol(lm.name(i));
+			str.append(::biparttable.lm.name(i));
+			symbol_table[str] = new pqlsymbol(::biparttable.lm.name(i));
 			constant_table[str] = true;
 			taxaset.push_back(str);
 		}
@@ -1276,10 +1521,10 @@ int main(int argc, char **argv){
 
 
 	if(DEBUGMODE){
-		::lm.printMap();
+		::biparttable.lm.printMap();
 		//print_hashtable();
 		
-		std::cout<< "taxa_in_trees = " << ::taxa_in_trees.size() << endl;
+		std::cout<< "taxa_in_trees = " << ::biparttable.taxa_in_trees.size() << endl;
 		//print_taxa_in_trees();
 		//std::cout<< "all_branches = " << ::all_branches.size() << endl;
 		//std::cout<< "bs_sizes = " << ::bs_sizes.size() << endl;
@@ -1292,7 +1537,7 @@ int main(int argc, char **argv){
 		std::cout<< "inverted_index = " << ::inverted_index.size() << endl;
 
 		//::biparttable.print_searchtable();
-		::biparttable.print_hashtable();
+		::biparttable.print_biparttable();
 		//for (unsigned int x = 0; x < NUM_TREES; x++){
 		//cout << compute_tree(::lm, ::all_bs[x], ::all_branches[x], x, 0, ::bs_sizes[x]) << endl;
 		//}

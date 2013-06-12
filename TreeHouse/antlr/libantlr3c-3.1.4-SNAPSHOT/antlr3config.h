@@ -5,10 +5,10 @@
 /* #undef ANTLR3_NODEBUGGER */
 
 /* Define if 64 bit mode required */
-/* #undef ANTLR3_USE_64BIT */
+#define ANTLR3_USE_64BIT 1
 
 /* Define to 1 if you have the `accept' function. */
-/* #undef HAVE_ACCEPT */
+#define HAVE_ACCEPT 1
 
 /* Define to 1 if you have the <arpa/nameser.h> header file. */
 #define HAVE_ARPA_NAMESER_H 1
@@ -29,13 +29,13 @@
 #define HAVE_MALLOC_H 1
 
 /* Define to 1 if you have the `memmove' function. */
-/* #undef HAVE_MEMMOVE */
+#define HAVE_MEMMOVE 1
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `memset' function. */
-/* #undef HAVE_MEMSET */
+#define HAVE_MEMSET 1
 
 /* Define to 1 if you have the <netdb.h> header file. */
 #define HAVE_NETDB_H 1
@@ -62,7 +62,7 @@
 #define HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the `strdup' function. */
-/* #undef HAVE_STRDUP */
+#define HAVE_STRDUP 1
 
 /* Define to 1 if you have the <strings.h> header file. */
 #define HAVE_STRINGS_H 1
@@ -106,6 +106,9 @@
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "libantlr3c"
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "3.1.4-SNAPSHOT"

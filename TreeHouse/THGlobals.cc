@@ -24,6 +24,8 @@ bool DEBUGMODE;
 //unsigned num_taxa; //  = 0; // number of taxa
 
 BipartitionTable biparttable;
+
+
 //TreeTable treetable;
 
 voidFuncts voidFunctMap;
@@ -31,9 +33,9 @@ argFuncts argFunctMap;
 std::vector<std::string> functionKeys;
 
 vector< vector<unsigned int> > inverted_index;	
-vector< bool* > taxa_in_trees;  					// which taxa are in which trees					NEED
+//vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
 
-LabelMap lm;
+//LabelMap lm;
 
 vector<Taxon *> taxa_info;
 
@@ -96,7 +98,7 @@ bool init_output(){
   else cout << "Unable to open file logs/interactive.txt";
   return false;
 }
-
+/*
 bool is_taxa_homogenious(set<unsigned int> treeset){
 	if(!::HETERO){
 		return true;
@@ -112,7 +114,8 @@ bool is_taxa_homogenious(set<unsigned int> treeset){
 	}
 	return true;
 }
-
+*/
+/*
 bool are_taxa_in_tree(int treeindex, vector<int> setoftaxa){
 	for(unsigned int i = 0; i < setoftaxa.size(); i++){
 		if(taxa_in_trees[treeindex][i] == 0){
@@ -121,7 +124,8 @@ bool are_taxa_in_tree(int treeindex, vector<int> setoftaxa){
 	}
 	return true;
 }
-
+*/
+/*
 int num_taxa_in_tree(int treeindex){
 	int count = 0;
 	for(unsigned int i = 0; i < ::NUM_TAXA; i ++ ){
@@ -131,7 +135,8 @@ int num_taxa_in_tree(int treeindex){
 	}
 	return count;
 }
-
+*/
+/*
 vector<string> get_taxa_in_tree(unsigned int treeindex){
 	set<string> taxaset;
 	for(unsigned int i = 0; i < ::NUM_TAXA; i ++ ){
@@ -142,38 +147,11 @@ vector<string> get_taxa_in_tree(unsigned int treeindex){
 	vector<string> taxavect(taxaset.begin(), taxaset.end());
 	return taxavect;
 }
-
-//test needed
-vector<string> get_common_taxa(){
-	set<string> taxaset = get_all_taxa_set();
-	for(unsigned int i = 0; i < taxa_in_trees.size(); i++ ){
-		for(unsigned int j = 0; j < ::NUM_TAXA; j++ ){
-			if (taxa_in_trees[i][j] == 0){
-				taxaset.erase(lm.name(j));
-			}
-		}
-	}
-	vector<string> taxavect(taxaset.begin(), taxaset.end());
-	return taxavect;
-}
-//test needed
-vector<string> get_mask_for_homog(){
-	set<string> taxaset;
-	for(unsigned int i = 0; i < taxa_in_trees.size(); i++ ){
-		for(unsigned int j = 0; j < ::NUM_TAXA; j++ ){
-			if (taxa_in_trees[i][j] == 0){
-				taxaset.insert(lm.name(j));
-			}
-		}
-	}
-	vector<string> taxavect(taxaset.begin(), taxaset.end());
-	return taxavect;
-}
-
-
+*/
+/*
 vector<string> get_all_taxa_vect(){
 	vector<string> taxavect;
-	for(unsigned int i = 0; i < ::NUM_TAXA; i ++ ){
+	for(unsigned int i = 0; i < :lm.size(); i ++ ){
 			taxavect.push_back(lm.name(i));
 	}
 	return taxavect;
@@ -181,13 +159,13 @@ vector<string> get_all_taxa_vect(){
 
 set<string> get_all_taxa_set(){
 	set<string> taxaset;
-	for(unsigned int i = 0; i < ::NUM_TAXA; i ++ ){
+	for(unsigned int i = 0; i < lm.size(); i ++ ){
 			taxaset.insert(lm.name(i));
 	}
 	return taxaset;
 }
-
-
+*/
+/*
 void print_taxa_in_trees(){
 	cout << "taxa_in_trees" << endl;
 	for(unsigned int i = 0; i < taxa_in_trees.size(); i++) {
@@ -197,7 +175,7 @@ void print_taxa_in_trees(){
 		cout << endl; 
 	} 
 }
-
+*/
 vector<int> get_taxa_with_trait(unsigned int trait_id, int trait_value=1) {
   vector<int> taxa_vect;
   for (unsigned int i=0; i < ::taxa_info.size(); i++) {
@@ -215,7 +193,7 @@ vector<int> get_taxa_without_trait(unsigned int trait_id, int trait_value=1) {
   }
   return taxa_vect;
 }
-
+/*
 int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
   vector< bool *> tree_bipartitions = get_tree_bipartitions(tree);
   vector<unsigned int> tree_bs_sizes = get_tree_bs_sizes(tree);
@@ -226,10 +204,22 @@ int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int
   }
   return distance;
 }
+*/
+//editted needs retesting
+int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
+  vector< Bipartition > tree_bipartitions = get_tree_bipartitions(tree);
+  vector<unsigned int> tree_bs_sizes = get_tree_bs_sizes(tree);
+  int distance = 0;
+  for (unsigned int i=0; i<tree_bipartitions.size(); i++) {
+    if (!tree_bipartitions[i].same_bitstring_value(taxon1, taxon2))
+      distance++;
+  }
+  return distance;
+}
 
 int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
-  string taxon1name = ::lm.name(taxon1);
-  string taxon2name = ::lm.name(taxon2);
+  string taxon1name = ::biparttable.lm.name(taxon1);
+  string taxon2name = ::biparttable.lm.name(taxon2);
   string taxastring = taxon1name + " " + taxon2name;
   system(("echo \""+to_newick(tree)+"\" | ../NwUtils/src/nw_clade - "+taxastring+" > temp/clade.txt").c_str());
   ifstream cladefile ("temp/clade.txt");
@@ -279,7 +269,7 @@ vector<int> get_taxa_in_clade(vector<int> taxa, unsigned int tree) {
   //}
   string taxastring;
   for (unsigned int i = 0; i < taxa.size(); i++) {
-    taxastring += (" " + ::lm.name(taxa[i]));
+    taxastring += (" " + ::biparttable.lm.name(taxa[i]));
   }
   system(("echo \""+to_newick(tree)+"\" | ../NwUtils/src/nw_clade -"+taxastring+" > temp/clade.txt").c_str());
   ifstream cladefile ("temp/clade.txt");
@@ -293,29 +283,31 @@ vector<int> get_taxa_in_clade(vector<int> taxa, unsigned int tree) {
       i--;
     }
   } 
-  vector<int> clade_indices = ::lm.lookUpLabels(clade_labels);
+  vector<int> clade_indices = ::biparttable.lm.lookUpLabels(clade_labels);
   //sort indices lowest-to-highest
   std::sort(clade_indices.begin(), clade_indices.end());
   return clade_indices;
 }
 
+//we ought to be importing this stuff. 
+/*
 string to_lower(string str) {
   for (unsigned int i = 0; i < str.size(); i++)
     str[i] = tolower(str[i]);
   return str;
 }
+*/
 
-int index_in_labelmap(string label) {
-  int ind = -1;
-  for (unsigned int i = 0; i < ::NUM_TAXA; i++) {
-    if (to_lower(::lm.name(i)) == to_lower(label)) {
-      ind = i;
-      break;
-    }
+vector< Bipartition > get_tree_bipartitions(unsigned int id) {
+  vector < Bipartition > tree_bipartitions;
+  for (unsigned int i = 0; i < ::biparttable.BipartitionTable.size(); i++) {
+    if (::biparttable.treetable[i][id])
+      tree_bipartitions.push_back(::biparttable.BipartitionTable[i]);
   }
-  return ind;
+  return tree_bipartitions;
 }
 
+/*
 vector< bool *> get_tree_bipartitions(unsigned int id) {
   vector < bool *> tree_bipartitions;
   for (unsigned int i = 0; i < ::biparttable.bipartitions.size(); i++) {
@@ -324,7 +316,18 @@ vector< bool *> get_tree_bipartitions(unsigned int id) {
   }
   return tree_bipartitions;
 }
+*/
 
+vector<unsigned int> get_tree_bs_sizes(unsigned int id) {
+  vector <unsigned int> tree_bs_sizes;
+  for (unsigned int i = 0; i < ::biparttable.BipartitionTable.size(); i++) {
+    if (::biparttable.treetable[i][id])
+      tree_bs_sizes.push_back(::biparttable.bitstring_size(i));
+  }
+  return tree_bs_sizes;
+}
+
+/*
 vector<unsigned int> get_tree_bs_sizes(unsigned int id) {
   vector <unsigned int> tree_bs_sizes;
   for (unsigned int i = 0; i < ::biparttable.bipartitions.size(); i++) {
@@ -333,12 +336,27 @@ vector<unsigned int> get_tree_bs_sizes(unsigned int id) {
   }
   return tree_bs_sizes;
 }
+*/
 
 vector<float> get_tree_branches(unsigned int id) {
   return ::biparttable.tree_branches[id];
 }
 
-vector<unsigned int> get_tree_data(unsigned int id, vector < bool *>& tree_bipartitions, vector <unsigned int>& tree_bs_sizes, vector<float>& tree_branches) {
+//This needs to be remaned. Way to general. 
+vector<unsigned int> get_tree_data(unsigned int tree_id, vector<bool *>& tree_bipartitions, vector <unsigned int>& tree_bs_sizes, vector<float>& tree_branches) {
+	cout<< "welcome to get_tree_data" <<endl;
+	vector <unsigned int> bipart_indices; //which bipartitions we're returning
+	for (unsigned int i = 0; i < ::biparttable.BipartitionTable.size(); i++) {
+		if (::biparttable.treetable[i][tree_id]) { //if the bipartitin is in the tree_id
+			tree_bipartitions.push_back(::biparttable.get_boolarray(i));
+			tree_bs_sizes.push_back(::biparttable.bitstring_size(i));
+		}
+	}
+	tree_branches = ::biparttable.tree_branches[tree_id];
+	cout << "returning tree data" <<endl;
+	return bipart_indices;
+}
+/*vector<unsigned int> get_tree_data(unsigned int id, vector < bool *>& tree_bipartitions, vector <unsigned int>& tree_bs_sizes, vector<float>& tree_branches) {
   vector <unsigned int> bipart_indices;
   for (unsigned int i = 0; i < ::biparttable.bipartitions.size(); i++) {
     if (::biparttable.treetable[i][id]) {
@@ -349,14 +367,30 @@ vector<unsigned int> get_tree_data(unsigned int id, vector < bool *>& tree_bipar
   }
   tree_branches = ::biparttable.tree_branches[id];
   return bipart_indices;
-}
+}*/
 
 string th_compute_tree(BipartitionTable& bpt, unsigned id, bool branch) {
-  vector< bool * > my_bs;
-  vector< float > my_branches;
-  vector< unsigned int> bs_sizes;
-  get_tree_data(id, my_bs, bs_sizes, my_branches);
-  return compute_tree(::lm, my_bs, my_branches, id, branch, bs_sizes);
+	cout << "welcome to th_compute_tree in THGLOBALS" <<endl;
+	vector< bool * > my_bs;
+	vector< float > my_branches;
+	vector< unsigned int> bs_sizes;
+	get_tree_data(id, my_bs, bs_sizes, my_branches);
+	cout << "got the tree data from get_tree_data" <<endl;
+	
+	cout << "my_branches.size() = "<< my_branches.size() << endl;
+	
+	for (unsigned int i = 0; i < bs_sizes.size(); i++){
+		cout << bs_sizes[i] << " : ";
+		for (unsigned int j = 0; j < bs_sizes[i]; j++){
+			cout << my_bs[i][j];
+		}
+		
+		cout << " : " << my_branches[i];
+		
+		cout << endl;
+	}
+	return compute_tree(::biparttable.lm, my_bs, my_branches, id, branch, bs_sizes);
+	
 }
 
 //delete
@@ -367,7 +401,7 @@ void copy_labelmap(LabelMap& lm1, LabelMap& lm2) {
 }
 
 //not used
-void recompute_tree_dups() {
+/*void recompute_tree_dups() {
   for (unsigned int i = 0; i < ::NUM_TREES; i++) {
     tree_dups[i].clear();
     for (unsigned int j = 0; j < ::NUM_TREES; j++) {
@@ -384,7 +418,10 @@ void recompute_tree_dups() {
     }
   }
 }
+*/
 
+
+/*
 vector<unsigned int> which_trees_double_strict(int bitstringindex, int numTaxaSearched){
 	vector<unsigned int> v;
 	for(unsigned int i = 0; i < biparttable.searchtable[bitstringindex].size(); i++){ //for each tree in with the biparitition we need to look at which taxa it has... and check that the input taxa are the only taxa marked as 0's in the bipartition. 
@@ -394,13 +431,27 @@ vector<unsigned int> which_trees_double_strict(int bitstringindex, int numTaxaSe
 	}
 	return v;
 }
+*/
 
+//new and needs testing
+vector<unsigned int> which_trees_double_strict(int bitstringindex, int numTaxaSearched){
+	vector<unsigned int> v;
+	for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+		if (biparttable.num_taxa_in_tree(*it) == numTaxaSearched){
+			v.push_back(*it);
+		}
+ 	}
+	return v;
+}
+
+
+/*
 vector<unsigned int> which_trees_single_strict(int bitstringindex, vector<int> positions){
 	unsigned int mycount = biparttable.number_of_ones(bitstringindex);
 	vector<unsigned int> v;
 	if (biparttable.is_one(bitstringindex,positions[0])){
 		if(positions.size() == mycount){
-			return biparttable.searchtable[bitstringindex]; //all
+			return biparttable.get_trees(bitstringindex); //all
 		}
 		else{
 			return v; // or nothing
@@ -415,9 +466,30 @@ vector<unsigned int> which_trees_single_strict(int bitstringindex, vector<int> p
 	}
 	return v;
 }
-
+*/
+vector<unsigned int> which_trees_single_strict(int bitstringindex, vector<int> positions){
+	unsigned int mycount = biparttable.number_of_ones(bitstringindex);
+	vector<unsigned int> v;
+	if (biparttable.is_one(bitstringindex,positions[0])){
+		if(positions.size() == mycount){
+			return biparttable.get_trees(bitstringindex); //all
+		}
+		else{
+			return v; // or nothing
+		}
+	}
+	else{
+		for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+			if (biparttable.num_taxa_in_tree(*it)- mycount == positions.size()){
+				v.push_back(*it); 
+			}
+		}
+	}
+	return v;
+}
 
 //not sure if it works in all cases. not accounting for the zeros needing to be in the tree. 
+/*
 vector<unsigned int> which_strict_hetero(int bitstringindex, vector<int> positions1, vector<int> positions2){
 	//this function returns the subset of trees found at searchtable[bitstringindex] 
 	//where taxa in vector<int> positions1 and vector<int> positions2
@@ -430,7 +502,20 @@ vector<unsigned int> which_strict_hetero(int bitstringindex, vector<int> positio
 	}
 	return v;
 }
-
+*/
+vector<unsigned int> which_strict_hetero(int bitstringindex, vector<int> positions1, vector<int> positions2){
+	//this function returns the subset of trees found at searchtable[bitstringindex] 
+	//where taxa in vector<int> positions1 and vector<int> positions2
+	//are the only taxa in the trees 
+	vector<unsigned int> v;	
+	for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+		if (biparttable.num_taxa_in_tree(*it) == (positions1.size() + positions2.size()) ){
+			v.push_back(*it);
+		}
+	}
+	return v;
+}
+/*
 vector<unsigned int> which_strict_hetero(int bitstringindex, vector<int> positions){
 	unsigned int mycount = biparttable.number_of_ones(bitstringindex);
 	vector<unsigned int> v;
@@ -451,9 +536,32 @@ vector<unsigned int> which_strict_hetero(int bitstringindex, vector<int> positio
 	}
 	return v;
 }
+*/
+vector<unsigned int> which_strict_hetero(int bitstringindex, vector<int> positions){
+	unsigned int mycount = biparttable.number_of_ones(bitstringindex);
+	vector<unsigned int> v;
+	if (biparttable.is_one(bitstringindex,positions[0])){
+		if(positions.size() == mycount){
+			return biparttable.get_trees(bitstringindex);
+		}
+		else{
+			return v;
+		}
+	}
+	else{
+		for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+			if (biparttable.num_taxa_in_tree(*it)-mycount == positions.size()){
+				v.push_back(*it);
+			}
+		}
+	}
+	return v;
+}
+
 
 // This tells me which trees linked to the bitstringindex have all the passed in taxa. 
 // PHASE OUT
+/*
 vector<unsigned int> which_hetero(int bitstringindex, vector<int> positions){
 	vector<unsigned int> v;
 	if (biparttable.is_one(bitstringindex,positions[0])){
@@ -468,7 +576,21 @@ vector<unsigned int> which_hetero(int bitstringindex, vector<int> positions){
 	}
 	return v;
 }
-
+*/
+vector<unsigned int> which_hetero(int bitstringindex, vector<int> positions){
+	vector<unsigned int> v;
+	if (biparttable.is_one(bitstringindex,positions[0])){
+		return biparttable.get_trees(bitstringindex);
+	}
+	else{
+		for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+			if ( biparttable.are_taxa_in_tree(*it, positions) ){
+				v.push_back(*it);
+			}
+		}
+	}
+	return v;
+}
 
 bool is_strict_homog(int bitstringindex, vector<int> positions){
 	unsigned int mycount = biparttable.number_of_ones(bitstringindex);
@@ -518,7 +640,7 @@ bool is_strict_homog(int bitstringindex, vector<int> positions){
 //}
 //return (x1ny1 || x1ny2 || x2ny1 || x2ny2);
 //}
-
+/*
 bool is_compat(bool *bitstring1, int length1, bool *bitstring2, int length2) {
   bool x1ny1 = true;
   bool x1ny2 = true;
@@ -550,13 +672,48 @@ bool is_compat(bool *bitstring1, int length1, bool *bitstring2, int length2) {
   }
   return (x1ny1 || x1ny2 || x2ny1 || x2ny2);
 }
+*/
+//for bipartitions to be compatible one has to be a subset of the other. 
+bool is_compat(boost::dynamic_bitset<>  bitstring1, boost::dynamic_bitset<>  bitstring2) {
+  bool x1ny1 = true;
+  bool x1ny2 = true;
+  bool x2ny1 = true;
+  bool x2ny2 = true;
+  bool fullbitstring1 [NUM_TAXA];
+  bool fullbitstring2 [NUM_TAXA];
+  //GRB need a get non-truncated_bitstring function? 
+  for (unsigned int i = 0; i < NUM_TAXA; i++) {
+    if (i >= bitstring1.size() || bitstring1[i] == 0)
+      fullbitstring1[i] = 0;
+    else
+      fullbitstring1[i] = 1;
+    if (i >= bitstring2.size() || bitstring2[i] == 0)
+      fullbitstring2[i] = 0;
+    else
+      fullbitstring2[i] = 1;
+  }
+  //checking if one is the subset of the other. 
+  for (unsigned int i = 0; i < NUM_TAXA; i++) {
+    if (!x1ny1 && !x1ny2 && !x2ny1 && !x2ny2)
+      break;
+    else if (fullbitstring1[i] == 1 && fullbitstring2[i] == 1)
+      x1ny1 = false;
+    else if (fullbitstring1[i] == 1 && fullbitstring2[i] == 0)
+      x1ny2 = false;
+    else if (fullbitstring1[i] == 0 && fullbitstring2[i] == 1)
+      x2ny1 = false;
+    else if (fullbitstring1[i] == 0 && fullbitstring2[i] == 0)
+      x2ny2 = false;
+  }
+  return (x1ny1 || x1ny2 || x2ny1 || x2ny2);
+}
 
 bool is_compat(int bitstringindex1, int bitstringindex2) {
-  return is_compat(biparttable.bipartitions[bitstringindex1], biparttable.length_of_bitstrings[bitstringindex1], biparttable.bipartitions[bitstringindex2], biparttable.length_of_bitstrings[bitstringindex2]);
+  return is_compat(biparttable.get_bitstring(bitstringindex1), biparttable.get_bitstring(bitstringindex2));
     }
 
-bool is_compat(bool *bitstring1, int length1, int bitstringindex2) {
-  return is_compat(bitstring1, length1, biparttable.bipartitions[bitstringindex2], biparttable.length_of_bitstrings[bitstringindex2]); 
+bool is_compat(boost::dynamic_bitset<>  bitstring1, int bitstringindex2) {
+  return is_compat(bitstring1, biparttable.get_bitstring(bitstringindex2)); 
     }
 /*
 vector<unsigned int> find_incompat_old(bool *bitstring, int length, set<unsigned int> inputtrees) {
@@ -580,13 +737,27 @@ vector<unsigned int> find_incompat_old(bool *bitstring, int length, set<unsigned
   return incompat_indices;
 }*/
 
+/*
 vector<unsigned int> find_incompat(bool *bitstring, int length, set<unsigned int> inputtrees) {
   vector<unsigned int> incompat_indices;
-  for (unsigned int i = 0; i < biparttable.bipartitions.size(); i++) {
-    set<unsigned int> trees_with_bipart(biparttable.searchtable[i].begin(), biparttable.searchtable[i].end());
+  for (unsigned int i = 0; i < biparttable.biparttable_size(); i++) {
+    set<unsigned int> trees_with_bipart(biparttable.BipartitionTable[i].trees_begin(), biparttable.BipartitionTable[i].trees_end());
     set<unsigned int> isect;
     std::set_intersection(inputtrees.begin(), inputtrees.end(), trees_with_bipart.begin(), trees_with_bipart.end(), std::inserter(isect, isect.begin()));
     if (!isect.empty() && !is_compat(bitstring, length, i)) {
+      incompat_indices.push_back(i);
+    }
+  }
+  return incompat_indices;
+}
+* */
+vector<unsigned int> find_incompat(boost::dynamic_bitset<> bitstring, set<unsigned int> inputtrees) {
+  vector<unsigned int> incompat_indices;
+  for (unsigned int i = 0; i < biparttable.biparttable_size(); i++) {
+    set<unsigned int> trees_with_bipart(biparttable.BipartitionTable[i].trees_begin(), biparttable.BipartitionTable[i].trees_end());
+    set<unsigned int> isect;
+    std::set_intersection(inputtrees.begin(), inputtrees.end(), trees_with_bipart.begin(), trees_with_bipart.end(), std::inserter(isect, isect.begin()));
+    if (!isect.empty() && !is_compat(bitstring, i)) {
       incompat_indices.push_back(i);
     }
   }

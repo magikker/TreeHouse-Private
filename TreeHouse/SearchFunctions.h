@@ -32,7 +32,7 @@ set<unsigned int> search_hashtable_strict(vector<int> leftside, vector<int> righ
 
 set<unsigned int> search_hashtable_strict_and_timed(vector<int> leftside, vector<int> rightside, int side);
 
-set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> rightside, int side);
+//set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> rightside, int side);
 
 bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector< vector < int > > &solution );
 

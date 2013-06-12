@@ -198,7 +198,7 @@ void classification(vector<string> taxa) {
 }
 
 void classification(string taxon) {
-  int ind = index_in_labelmap(taxon);
+  int ind = ::biparttable.lm.index_in_labelmap(taxon);
   if (ind == -1) {
     cerr << "Error: taxon name '" << taxon << "' does not exist in labelmap." << endl;
   } 
@@ -244,9 +244,10 @@ void write_classifications(string filename) {
 }
 
 void edit_classification(vector<string> taxa, string rank, string info) {
+  std::transform(rank.begin(), rank.end(), rank.begin(), ::tolower);
   string ranks[] = {"d","k","p","c","o","f","g","domain","kingdom","phylum","class","order","family","genus"};
   set<string> rankset(ranks, ranks+14);
-  if (rankset.find(to_lower(rank)) == rankset.end()) {
+  if (rankset.find(rank) == rankset.end()) {
     cerr << "Error: '" << rank << "' does not denote a valid rank." << endl;
   } 
   else {
@@ -257,8 +258,9 @@ void edit_classification(vector<string> taxa, string rank, string info) {
 }
 
 void edit_classification(string taxon, string rank, string info) {
-  rank = to_lower(rank);
-  int ind = index_in_labelmap(taxon);
+  std::transform(rank.begin(), rank.end(), rank.begin(), ::tolower);
+  //rank = to_lower(rank);
+  int ind = ::biparttable.lm.index_in_labelmap(taxon);
   if (ind == -1) {
     cerr << "Error: taxon name '" << taxon << "' does not exist in labelmap." << endl;
     return;
@@ -333,7 +335,8 @@ vector<string> taxa_in_group(string group) {
 }
 
 vector<string> groups_at_level(string rank) {
-  rank = to_lower(rank);
+  std::transform(rank.begin(), rank.end(), rank.begin(), ::tolower);
+  //rank = to_lower(rank);
   vector<string> groupvect;
   set<string> groupset;
   for (unsigned int i = 0; i < ::taxa_info.size(); i++) {
@@ -538,12 +541,12 @@ int show_level(string rank, vector<int> treevect, string mode) {
 
 int show_only_taxa(string group, vector<string> taxa, int tree, string mode) {
   set<int> all_positions;
-  for (unsigned int i = 0; i < ::NUM_TAXA; i++) {
+  for (unsigned int i = 0; i < ::biparttable.lm.size(); i++) {
     all_positions.insert(i);
   }
   set<int> in_positions;
   for (unsigned int i = 0; i < taxa.size(); i++) {
-    in_positions.insert(::lm.position(taxa[i]));
+    in_positions.insert(::biparttable.lm.position(taxa[i]));
   }
   vector<int> out_positions;
   std::set_difference(all_positions.begin(), all_positions.end(), in_positions.begin(), in_positions.end(), std::back_inserter(out_positions));
@@ -593,7 +596,7 @@ int show_only_taxa(string group, vector<string> taxa, int tree, string mode) {
 	branches.erase(branch.base() - 1);
     }
   }
-  string nwstr = compute_tree(::lm, bipartitions, branches, tree, 0, bs_sizes);
+  string nwstr = compute_tree(::biparttable.lm, bipartitions, branches, tree, 0, bs_sizes);
   cout << nwstr << endl;
   show_newick(nwstr, (group+" in Tree "+to_string(tree)), "", mode);
   return 0;
@@ -644,7 +647,8 @@ int show_only(vector<string> groupvect, vector<int> treevect, string mode) {
   set<unsigned int> treeset(treevect.begin(), treevect.end());
   return show_only(groupvect, treeset, mode);
 }
-
+//This is being replaced to a great degree... 
+/*
 void taxa_filter (vector<string> taxa, unsigned int tree) {
   unsigned int new_tree_id = ::NUM_TREES;
   set<int> all_positions;
@@ -709,22 +713,22 @@ void taxa_filter (vector<string> taxa, unsigned int tree) {
   for (unsigned int i = 0; i < bipartitions.size(); i++) {
     bool new_bitstring = false;
     unsigned int insert_ind = bipart_indices[i];
-    if (bs_sizes[i] != ::biparttable.length_of_bitstrings[bipart_indices[i]])
+    if (bs_sizes[i] != ::biparttable.bitstring_size(bipart_indices[i]) )
       new_bitstring = true;
-    if (bs_sizes[i] == ::biparttable.length_of_bitstrings[bipart_indices[i]]) {
+    if (bs_sizes[i] == ::biparttable.bitstring_size(bipart_indices[i])) {
       for (unsigned int j = 0; j < bs_sizes[i]; j++) {
-	if (bipartitions[i][j] != ::biparttable.bipartitions[bipart_indices[i]][j]) {
+	if (bipartitions[i][j] != ::biparttable.get_bit(bipart_indices[i], j) ) {
 	  new_bitstring = true;
 	  break;
 	}
       }
     }
-    if (new_bitstring && bipart_indices[i] > 0 && bs_sizes[i] == ::biparttable.length_of_bitstrings[bipart_indices[i]-1]) {
+    if (new_bitstring && bipart_indices[i] > 0 && bs_sizes[i] == ::biparttable.bitstring_size(bipart_indices[i]-1)) {
       //created bipartitions go directly above their original counterparts; we have to check those too
       new_bitstring = false;
       insert_ind--;
       for (unsigned int j = 0; j < bs_sizes[i]; j++) {
-	if (bipartitions[i][j] != ::biparttable.bipartitions[bipart_indices[i]-1][j]) {
+	if (bipartitions[i][j] != ::biparttable.get_bit(bipart_indices[i]-1, j)) {
 	  new_bitstring = true;
 	  insert_ind++;
 	  break;
@@ -890,7 +894,7 @@ void delete_tree(vector<int> treevect) {
   set<unsigned int> treeset(treevect.begin(), treevect.end());
     delete_tree(treeset);
 }
-
+*/
 void write_trz(vector<string> nwvect, string filename) {
   filename += ".tre";
   ifstream isfile(filename);
@@ -1119,7 +1123,7 @@ vector<int> pANTLR3_COMMON_TOKEN_to_intvect(pANTLR3_COMMON_TOKEN tok){
 }
 
 void printBipartTier(int tier){
-	for (unsigned int j = 0; j < ::biparttable.get_size(); j++) { // for each bipartition in the hashtable
+	for (unsigned int j = 0; j < ::biparttable.biparttable_size(); j++) { // for each bipartition in the hashtable
 		if ( tier == ::biparttable.number_of_ones(j)){
 			//cout << "Number of ones = "<< ::biparttable.number_of_ones(j) << endl;
 			::biparttable.print_bitstring(j);
@@ -1131,7 +1135,7 @@ void printBipartTier(int tier){
 }
 
 void printTaxaTierTuples(int tier, int taxa){
-	for (unsigned int j = 0; j < ::biparttable.get_size(); j++) { // for each bipartition in the hashtable
+	for (unsigned int j = 0; j < ::biparttable.biparttable_size(); j++) { // for each bipartition in the hashtable
 		if ( tier == ::biparttable.number_of_ones(j) && ::biparttable.is_one(j, taxa)){
 			//cout << "Number of ones = "<< ::biparttable.number_of_ones(j) << endl;
 			::biparttable.print_bitstring(j);
@@ -1145,7 +1149,7 @@ void printTaxaTierTuples(int tier, int taxa){
 
 int TaxaTierTuplesCount(int tier, int taxa){
 	int count = 0;
-	for (unsigned int j = 0; j < ::biparttable.get_size(); j++) { // for each bipartition in the hashtable
+	for (unsigned int j = 0; j < ::biparttable.biparttable_size(); j++) { // for each bipartition in the hashtable
 		if ( tier == ::biparttable.number_of_ones(j) && ::biparttable.is_one(j, taxa)){
 			//cout << "Number of ones = "<< ::biparttable.number_of_ones(j) << endl;
 			//::biparttable.print_bitstring(j);
@@ -1232,7 +1236,7 @@ void printBipartition(int bipartID){
 	cout << "[";
 	for (unsigned int i = 0; i < ::NUM_TAXA; i++){
 		if (::biparttable.is_one(bipartID, i)){
-			cout << ::lm.name(i) << " ";
+			cout << ::biparttable.lm.name(i) << " ";
 		}
 	}
 	cout << "]" << endl;
