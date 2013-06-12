@@ -76,5 +76,6 @@ treehouse_SOURCES += UtilityFunctions.h UtilityFunctions.cc
 treehouse_SOURCES += SearchFunctions.h SearchFunctions.cc
 treehouse_SOURCES += InterfaceFunctions.h InterfaceFunctions.cc
 treehouse_SOURCES += UserFunctions.h UserFunctions.cc
+treehouse_SOURCES += quartet.h quartet.cc
 treehouse_SOURCES += TreeHouse.cc
 treehouse_LDADD = ${antlrdir}/libantlr3c.la -lreadline -lncurses

@@ -56,6 +56,7 @@
 
 // The lexer/parser
 #include    "pql.h"
+#include "quartet.h"
 
 using namespace std;
 
@@ -1185,6 +1186,7 @@ int main(int argc, char **argv){
 
 	//start_clock();
 	if (strcmp(argv[cmdind],"-i") == 0) {
+		//TESTSTUFF();
 		interactive = true;
 		interactive_log.open("logs/interactive_log.txt");
 		if(interactive_log){

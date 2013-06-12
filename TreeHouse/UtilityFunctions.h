@@ -163,6 +163,40 @@ void print_bitstring(bool * bitstring, unsigned int length);
 
 void print_vector_of_bs(vector< bool * > bitstrings, unsigned int length_of_bitstrings);
 
+template <class T> //this might not work- needs to be tested
+void printVector(vector<T> in){
+  cout << endl;
+  for(int i = 0; i < in.size(); i++){
+	cout << i+1 << ". " << in.at(i) << endl;
+	}
+}
+
+template <class T>
+vector<T> copyToVector(T* in, unsigned int size){
+  vector<T> returnVec;
+  for(int i = 0; i < size; i++){
+	returnVec.push_back(in[i]);
+	} 
+}
+
+vector<char> copyToCharVector(bool* in, unsigned int size);
+
+vector<char> fullBitstring(bool* in, unsigned int size);
+
+vector<char> chAND(vector<char> v1, vector<char> v2);
+
+vector<char> chOR(vector<char> v1, vector<char> v2);
+
+vector<char> chXOR(vector<char> v1, vector<char> v2);
+
+int chNumberOfZeros(vector<char> v);
+
+int chNumberOfOnes(vector<char> v);
+
+vector<int> chSharedOnes(vector<char> v1, vector<char> v2);
+
+vector<int> chSharedZeros(vector<char> v1, vector<char> v2);
+
 void print_list_bs(vector< bool * > list_bs);
 
 void print_hashtable();
@@ -174,4 +208,6 @@ void print_vector_of_strings(vector< string > bitstrings);
 bool isInVector(vector<int> toSearch, int x);
 
 bool areBitsSame(bool* BS, int length); //checks if all of the bits in a bitstring are the same
+
+unsigned int factorial(int);
 #endif

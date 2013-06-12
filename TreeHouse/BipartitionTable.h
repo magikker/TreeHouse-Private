@@ -178,10 +178,13 @@ public:
 	}
 	
 	void print_hashtable(){
+		//TODO: Make columns line up 
 		cout << "We show the hash table below, with the corresponding bitstring reps of the bipartitions:" << endl << endl;
-		int nbpt = 0;
+		//int nbpt = 0;
+		int index = 0;
 		//keep in mind that hashtable and hash_lengths are global variables
 		for (unsigned int i = 0; i < searchtable.size(); i++){ //biparittions
+			cout << index << ". ";			
 			for (unsigned int j = 0; j < length_of_bitstrings[i]; j++){ //each bit
 			  cout << bipartitions[i][j];
 			}
@@ -196,13 +199,15 @@ public:
 			    cout << treetable[i][j];
 			  }
 			  if (treetable[i][0])
-			    nbpt++;
+			    {//nbpt++;
+				}
 			  cout << "]" << endl;
+			  index++;
 			}
 			else {
 			  cout << endl;
 			}
-			cout << nbpt << endl;
+			//cout << nbpt << endl;
 		}
 		//print_length_of_bitstrings();
 	}
@@ -213,6 +218,17 @@ public:
 		}
 		cout << endl;
 	}
+
+	bool* full_bitstring(int index){ //gives the full bitstring (i.e. with 0s at the end)
+		bool returnVal[::NUM_TAXA];		
+		for(int i = 0; i < length_of_bitstrings[index]; i++){
+			returnVal[i] = bipartitions[index][i];
+			}
+		for(int j = length_of_bitstrings[index]; j < ::NUM_TAXA; j++){
+			returnVal[j] = 0;
+			}
+		return returnVal;
+		}
 	
 	void print_bitstring_and_trees(int index){
 		for (unsigned int j = 0; j < length_of_bitstrings[index]; j++){
@@ -325,6 +341,8 @@ public:
 			bipartitions[i] = bs;
 		}
 	}
+
+  
 	
 	/*bool* apply_taxa_mask(bool* bitstring, unsigned int bitstringSize, vector<unsigned int> taxa_mask){
 	bool *bs = new bool[::NUM_TAXA];
