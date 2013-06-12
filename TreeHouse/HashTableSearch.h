@@ -14,6 +14,8 @@ void handle_newick_error(int err);
 set<unsigned int> subtree_to_ktets(string subtree, vector< bool * > list_bs);
 bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector< string > &solution );
 
+vector< vector <int > > compute_bitstrings_h(string inputstring);
+
 void print_vector_of_strings(vector< string > bitstrings);
 void print_bitstring(bool * bitstring, unsigned int length);
 void print_vector_of_bs(vector< bool * > bitstrings, unsigned int length_of_bitstrings);

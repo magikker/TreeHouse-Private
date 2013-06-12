@@ -205,6 +205,19 @@ pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
 	return result;
 }
 
+pqlsymbol * u_similarity_search(vector< pqlsymbol * > arglist) {
+
+	string stree;
+
+	if (arglist.size() == 1 && arglist[0]->is_string()){
+		stree = arglist[0]->get_string();
+	}
+	else{
+		cout << "similarity_search expects a single string representing a tree " << "Found " << get_arg_types(move(arglist)) << endl;
+	}
+	return new pqlsymbol(similarity_search(stree), ::NUM_TREES);
+}
+
 pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {  
 	pqlsymbol * result;
 
@@ -1646,6 +1659,7 @@ void init_the_functs()
 	add_function("smallest_clade", &u_smallest_clade, "Returns trees with the smallest clade of given taxa");
 	add_function("get_trees_with_taxa", &u_get_trees_with_taxa, "Returns the trees that have the input taxa");
 	add_function("gtwt", &u_get_trees_with_taxa, "Returns the trees that have the input taxa");
+	add_function("similarity_search", &u_similarity_search, "Returns the trees that are the most similar to the given tree in that they have the most shared bipartitions.");
 
 	//add_function("get_trees_by_taxa", &u_get_trees_by_taxa, " ");
 	add_function("get_trees_by_subtree", &u_get_trees_by_subtree, "Returns the trees that contain the input subtree");

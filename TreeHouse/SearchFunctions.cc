@@ -272,6 +272,44 @@ set<unsigned int> get_trees_with_taxa(vector<int> required){
     return trees;
 }
 
+//Takes an input tree and returns the trees(s) that are the most similar to the input tree based on number of shared bipartitions
+set<unsigned int> similarity_search(string inputtree){
+	set<unsigned int> simTrees; // Return set
+	unsigned int highest_sim = 0;// Holds the largest number of shared bipartitions found
+	vector < vector < int > > bipartitions;
+	::map<unsigned int, unsigned int> temp;
+
+	bipartitions = compute_bitstrings_h(inputtree); // Converts the input tree from a string to bitstring representation
+
+	for (unsigned int i = 0; i < bipartitions.size(); i++){//For each bipartition
+		for (unsigned int j = 0; j <bipartitions[i].size(); j++) {//For each tree
+			unsigned int ctree = bipartitions[i][j];//The tree at this current bipartition
+			//cout << "The trees are: " << ctree << endl;
+			temp[ctree]++; //Increments the value of the map corresponding to the tree in question
+			if(temp[ctree] > highest_sim){
+				highest_sim = temp[ctree];
+			}
+		}
+	}
+	//Finds the keys from the map which have values equal to the highest similarity value
+	for (map<unsigned int,unsigned int>::iterator j = temp.begin(); j != temp.end(); j++){
+		if(j->second == highest_sim){
+		simTrees.insert(j->first);	
+		}
+	}
+	float num_bipartitions = bipartitions.size();
+	float match_percent = highest_sim /  num_bipartitions; //The percentage of similarity
+
+	cout << "The maximum similarity is " << match_percent << "%" << endl;
+	cout << "The trees with this similarity are : ";
+	
+	//Prints the trees
+	//for(set<unsigned int>::iterator it = simTrees.begin(); it != simTrees.end(); it++){
+	//		cout << *it << " " ;
+	//	}
+	return simTrees;
+}
+
 set<unsigned int> get_trees_without_taxa(vector<int> excluded){
     set<unsigned int> trees;
     //set< int>::iterator it;
@@ -573,9 +611,45 @@ set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> 
   return trees;
 }
 
+//A helper function to clean up redundant code in calling dfs_compute_bitstrings
+//simply takes as input the string to be converted to bitstring representation
+vector< vector <int > > compute_bitstrings_h(string inputstring) {
+	NEWICKTREE *newickTree;
+	int err;
+	char * cs = strdup(inputstring.c_str());
+	newickTree = stringloadnewicktree(cs, &err);
+	vector< vector < int > > treeout; //Return variable
 
+	//Error handling for stringloadnewicktree
+	if (!newickTree) {
+		switch (err) {
+			case -1:
+				cout << "Out of memory" << endl;
+				break;
+			case -2:
+				cout << "Parse error" << endl;
+				break;
+			case -3:
+				cout << "Can't load file" << endl;
+				break;
+			default:
+				cout << "Error " << err << endl;
+			exit(0);
+			}
+	}
+	else {
+		//Compute the bitstring representation and save it to treeout
+		bool * bs = dfs_compute_bitstrings(newickTree->root, NULL, treeout);
+		delete[] bs;
+	}
 
+	free(cs); 
 
+	return treeout;
+}
+
+//A very similar version of this function is found in HashTableSearch.cc (differences are some additional code is commented out here
+//and &solution is a vector< vector <unsigned int> > in HashTableSearch.cc
 bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector< vector < int > > &solution ){
   //~ if (HETERO && !HCHECK){
       //~ cout << "if (HETERO && !HCHECK)" << endl;

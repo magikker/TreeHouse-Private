@@ -233,38 +233,13 @@ float reso_rate(string inputtree){
 
 	float result; // Float to be returned
 	
-	//Block Necessary to use dfs_compute_bitstrings()
-	NEWICKTREE *newickTree;
-	int err;
-	char * cs = strdup(inputtree.c_str());
-	newickTree = stringloadnewicktree(cs, &err);
-	vector< vector < int > > treei; 
-	
-	//Testing for stringloadnewicktree errors
-	if (!newickTree) {
-		switch (err) {
-			case -1:
-			cout << "Out of memory" << endl;
-			break;
-		case -2:
-			cout << "parse error" << endl;
-			break;
-		case -3:
-			cout << "Can't load file" << endl;
-			break;
-		default:
-			cout << "Error " << err << endl;
-		exit(0);
-		}
-   	 }
+	//vector< vector < int > > treei;
 
-    	else {
-		//Computes a bitstring from the string input (more useful for computation)
-    	    	bool * bs = dfs_compute_bitstrings(newickTree->root, NULL, treei);
-		delete[] bs;
+	//The bitstring representation of the input tree
+	vector< vector <int> > treei = compute_bitstrings_h(inputtree); 	
 		//Only valid because homogeneous treesets, same number of taxa in all trees
-		vector<string> temp = get_taxa_in_tree(0);
-		float taxa = temp.size();
+		//vector<string> temp = get_taxa_in_tree(0);
+		float taxa = ::NUM_TAXA;
 		//Computes the number of possible bipartitions
 		float total_biparts = taxa - 3;
 		//Computes the number of non-trivial bipartitions
@@ -273,10 +248,6 @@ float reso_rate(string inputtree){
 		//Computes the resolution value
 		result = num_tree_biparts / total_biparts;
 			cout << "Result is : " << result << endl;	
-		}
-
-	free(cs); //Part of running dfs_compute_bitstrings(), frees the char string;
-
 	return result;
 
 
