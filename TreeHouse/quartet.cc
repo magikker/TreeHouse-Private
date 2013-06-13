@@ -63,6 +63,139 @@ void printQuartets(vector<quartet> input){
 	}
 }
 
+bPair::bPair(vector<char> a, vector<char> b){
+ if(a.size()!=b.size()){
+	cerr << "bPair constructor error! You gave vectors of different size! Unpredictable behavior may ensue!";
+	//TODO- pad smaller vector with 0s
+	return;
+	}
+A = a;
+B = b;
+calculate();
+}
+
+void bPair::invertB(){
+  cout << "bPair: B inverted\n";
+  for(vector<char>::iterator it = B.begin(); it != B.end(); it++)
+  {
+	if(*it==1){
+		*it = 0;
+		}
+	else{
+		*it = 1;
+		}
+	}
+}
+
+vector<char> bPair::getA(){
+return A;
+}
+
+vector<char> bPair::getB(){
+return B;
+}
+
+void bPair::calculate(){
+//this finds out if we need to invert the second bipartition. Also, it fills all of the meta data
+//first, call getNumQuartets on sameOnes and sameZeros. 
+
+//Then, see if inverting one of the vectors leads to a greater number of similar quartets
+//if it is the case, we will invert the vector and recalculate all of the meta vectors
+  for(unsigned int i = 0; i < A.size(); i++){
+	if(A.at(i)==1){
+		OnesA.push_back(i);
+		if(B.at(i)==1) {sameOnes.push_back(i); OnesB.push_back(i);}
+		else{uniqueOnesA.push_back(i); uniqueZerosB.push_back(i); ZerosB.push_back(i);}
+		}
+	else{//A[i]==0
+		ZerosA.push_back(i);
+		if(B.at(i)==0){sameZeros.push_back(i); ZerosB.push_back(i);}
+		else{uniqueZerosA.push_back(i); uniqueOnesB.push_back(i); OnesB.push_back(i);}
+		}
+	}
+  unsigned int similarQuartetsWithoutInverting = getNumQuartets(sameOnes.size(), sameZeros.size());
+  unsigned int similarQuartetsInverting = getNumQuartets(OnesA.size()-sameOnes.size(), ZerosA.size()- sameZeros.size());
+  cout << "bPair calculate: without inverting, number of similar quartets is " << similarQuartetsWithoutInverting << endl;
+  cout << "IF we invert, number of similar quartets is " << similarQuartetsInverting << endl;
+
+  if(similarQuartetsInverting > similarQuartetsWithoutInverting){
+   //if we get more similar vectors, invertB and recalculate everything
+   //TODO- possible optimization- don't iterate through loops again, just calculate using existing metadata
+	  invertB();
+	  vector<int> temp, temp2;  
+	//onesA and zerosA unchanged
+          //unique and same switch around
+
+	/* Table showing vectors before and after
+	BEFORE		AFTER	
+	sameOnes  	uniqueOnesA		
+	sameZeros	uniqueZerosA
+	uniqueOnesA	sameOnes
+	uniqueZerosA	sameZeros
+	onesB		ZerosB	
+	zerosB		OnesB
+	uniqueOnesB	sameZeros
+	uniqueZerosB	sameOnes
+	OnesA, ZerosA	unchanged
+*/
+	  temp = uniqueOnesA;
+	  temp2 = uniqueZerosA;
+ 	  uniqueOnesA = sameOnes;
+	  uniqueZerosB = sameOnes;
+	  uniqueOnesB = sameZeros;
+	  uniqueZerosA = sameZeros;
+	  sameOnes = temp;
+	  sameZeros = temp2;
+	  temp = OnesB;
+	  OnesB = ZerosB;
+	  ZerosB = temp;
+	 
+
+/*
+		//NEED TO CLEAR VECTORS BEFORE THIS LOOP
+	  for(unsigned int i = 0; i < A.size(); i++){
+		if(A.at(i)==1){
+			OnesA.push_back(i);
+			if(B.at(i)==1) {sameOnes.push_back(i); OnesB.push_back(i);}
+			else{uniqueOnesA.push_back(i); uniqueZerosB.push_back(i); ZerosB.push_back(i);}
+			}
+		else{//A[i]==0
+			ZerosA.push_back(i);
+			if(B.at(i)==0){sameZeros.push_back(i); ZerosB.push_back(i);}
+			else{uniqueZerosA.push_back(i); uniqueOnesB.push_back(i); OnesB.push_back(i);}
+			}
+		}
+*/
+	}	
+
+}
+
+void bPair::printMetaData(){
+	cout << "printing vectors: Same ones ";
+	printVectorCompact(sameOnes);
+	cout << endl << "printing vectors: unique ones A";
+	printVectorCompact(uniqueOnesA);
+	cout << endl << "printing vectors: unique ones B ";
+	printVectorCompact(uniqueOnesB);
+	cout << endl << "printing vectors: Same zeros ";
+	printVectorCompact(sameZeros);
+	cout << endl << "printing vectors: uniqueZerosA ";
+	printVectorCompact(uniqueZerosA);
+	cout << endl << "printing vectors: uniqueZerosB ";
+	printVectorCompact(uniqueZerosB);
+	cout << endl << "printing vectors: OnesA ";
+	printVectorCompact(OnesA);
+	cout << endl << "printing vectors: OnesB ";
+	printVectorCompact(OnesB);
+	cout << endl << "printing vectors: ZerosA ";
+	printVectorCompact(ZerosA);
+	cout << endl << "printing vectors: ZerosB ";
+	printVectorCompact(ZerosB);
+}
+
+
+
+
 vector<quartet> generateQuartetsFromBipart(vector<bool> b){
   vector<int> ones, zeros; 
   for(int i = 0; i < b.size(); i++){
@@ -76,6 +209,8 @@ vector<quartet> generateQuartetsFromBipart(vector<bool> b){
   return generateQuartetsFromOnesZeros(ones, zeros);
 }
 
+//fillDifferenceVectors was used for generateDifferentQuartets, but has been
+//	replaced by the bPair class
 void fillDifferenceVectors(vector<char> v1, vector<char> v2, vector<int> &sameOnes, vector<int> &sameZeros, vector<int> &uniqueOnesA, vector<int> &uniqueOnesB, vector<int> &uniqueZerosA, vector<int> &uniqueZerosB, vector<int> &OnesA, vector<int> &OnesB, vector<int> &ZerosA, vector<int> &ZerosB){
  
   //iterate through vectors, fill appropriate vectors
@@ -106,99 +241,48 @@ void addMatchedPairs(vector<iPair> p1, vector<iPair> p2, vector<quartet> &retVec
 }
 
 vector<quartet> generateDifferentQuartets(int bipartA, int bipartB){
-
 vector<quartet> retVec;
-/*first, we need to know a few vectors:
-	Same1- the taxa which are one across both biparts
-	Same0- the taxa which are zero across both biparts	
-	unique1A- taxa which are 1 only in bipart A
-	unique1B- taxa which are 1 only in bipart B
-	unique0A and unique0B
 
-Algorithm description:
-
-we want to generate all quartets from one bipartition but not the other
-
-This means we can match any pair except if the both ones are generated by same1 and the 0s are generated by same0
-
-Step 1- match all 0s with 1s not generated by same1s
-first, take all permutations of taxa in unique1A, and also match each taxa in unique1A with a single taxon in same1. 
-	This ensures that all of these pairs of 1s are those that can be generated by bipart1 but NOT bipart2
-	Now, match all those pairs with the pairs that can be generated by 0s in bipart 1
-
-For instance, suppose bipart A has 1s for taxa {0, 2, 3, 5, and 7} and both biparts had 1 at {5 7}. This means the
-	unique pairs of 1s are {0/2, 0/3, 2/3,   |||  0/5, 2/5, 3/5, 0/7, 2/7, 3/7}. The ||| represents
-	where the algorithm goes from making pairs from uniqueA to matching 1 taxon from uniqueA with each taxon 	 in shared1. 
-
-Step 2- match all 1s generated with same1s with 0s unique to bipartition (i.e. not in same 0)
-	Take same1s and create pairs out of it. Then generate pairs of 0s not possible by same 0 by 
-	taking all permutations of unique0, and also matching each taxon in same0 with each taxon in unique0 
-Step 3- repeat steps 1 and 2 with second bipartition
+//for algorithm description, see comment at the bottom of the file
 
 
-*/
  vector<char> A = copyToCharVector(biparttable.full_bitstring(bipartA), ::NUM_TAXA);
  vector<char> B = copyToCharVector(biparttable.full_bitstring(bipartB), ::NUM_TAXA);
  //optimization note- instead of calling sharedOnes then sharedZeros, we could make a function
 	//that passes once through the vectors and puts elements in sharedOnes or sharedZero (or neither)
- vector<int> sameOnes, sameZeros, uniqueOnesA, uniqueOnesB, uniqueZerosA, uniqueZerosB, OnesA, OnesB, ZerosA, ZerosB;
- fillDifferenceVectors(A, B, sameOnes, sameZeros, uniqueOnesA, uniqueOnesB, uniqueZerosA, uniqueZerosB, OnesA, OnesB, ZerosA, ZerosB);
-  
-/*
-cout << "printing vectors: Same ones " << endl;
-printVector(sameOnes);
-cout << "printing vectors: unique ones A" << endl;
-printVector(uniqueOnesA);
-cout << "printing vectors: unique ones B " << endl;
-printVector(uniqueOnesB);
-cout << "printing vectors: Same zeros " << endl;
-printVector(sameZeros);
-cout << "printing vectors: uniqueZerosA " << endl;
-printVector(uniqueZerosA);
-cout << "printing vectors: uniqueZerosB " << endl;
-printVector(uniqueZerosB);
-cout << "printing vectors: OnesA " << endl;
-printVector(OnesA);
-cout << "printing vectors: OnesB " << endl;
-printVector(OnesB);
-cout << "printing vectors: ZerosA " << endl;
-printVector(ZerosA);
-cout << "printing vectors: ZerosB " << endl;
-printVector(ZerosB);
-*/
-
-
+ 
+ bPair b = bPair(A, B);
 
 
 //ALL QUARTETS IN VECTOR A BUT NOT IN VECTOR B
   //generate all iPairs of nChoose2 from uniqueOnesA, then match each uniqueOnesA with each sameOnes 
   //pairsA is all of the iPairs that can be generated from 1s in A that AREN'T shared
  
- vector<iPair> uniquePairs1A = nChooseTwo(uniqueOnesA);
-  vector<iPair> matchedOnesA = matchTaxa(uniqueOnesA, sameOnes);
+ vector<iPair> uniquePairs1A = nChooseTwo(b.uniqueOnesA);
+  vector<iPair> matchedOnesA = matchTaxa(b.uniqueOnesA, b.sameOnes);
   uniquePairs1A.insert(uniquePairs1A.end(), matchedOnesA.begin(), matchedOnesA.end());
   //now, combine pairsOneA with all pairs of zeros from A
-  vector<iPair> pairs0A = nChooseTwo(ZerosA);
+  vector<iPair> pairs0A = nChooseTwo(b.ZerosA);
   addMatchedPairs(uniquePairs1A, pairs0A, retVec);
 //now we need to match all permutations of shared 1s with (unique 0s + matched(unique0s, shared0s)
-  vector<iPair> uniquePairs0A = nChooseTwo(uniqueZerosA);
-  vector<iPair> matchedZerosA = matchTaxa(uniqueZerosA, sameZeros); 
+  vector<iPair> uniquePairs0A = nChooseTwo(b.uniqueZerosA);
+  vector<iPair> matchedZerosA = matchTaxa(b.uniqueZerosA, b.sameZeros); 
   uniquePairs0A.insert(uniquePairs0A.end(), matchedZerosA.begin(), matchedZerosA.end());
-  addMatchedPairs(nChooseTwo(sameOnes), uniquePairs0A, retVec);
+  addMatchedPairs(nChooseTwo(b.sameOnes), uniquePairs0A, retVec);
 
 //ALL QUARTETS IN VECTOR B BUT NOT IN VECTOR A
 
- vector<iPair> uniquePairs1B = nChooseTwo(uniqueOnesB);
-  vector<iPair> matchedOnesB = matchTaxa(uniqueOnesB, sameOnes);
+ vector<iPair> uniquePairs1B = nChooseTwo(b.uniqueOnesB);
+  vector<iPair> matchedOnesB = matchTaxa(b.uniqueOnesB, b.sameOnes);
   uniquePairs1B.insert(uniquePairs1B.end(), matchedOnesB.begin(), matchedOnesB.end());
   //now, combine pairsOneB with all pairs of zeros from B
-  vector<iPair> pairs0B = nChooseTwo(ZerosB);
+  vector<iPair> pairs0B = nChooseTwo(b.ZerosB);
   addMatchedPairs(uniquePairs1B, pairs0B, retVec);
 //now we need to match all permutations of shared 1s with (unique 0s + matched(unique0s, shared0s)
-  vector<iPair> uniquePairs0B = nChooseTwo(uniqueZerosB);
-  vector<iPair> matchedZerosB = matchTaxa(uniqueZerosB, sameZeros); 
+  vector<iPair> uniquePairs0B = nChooseTwo(b.uniqueZerosB);
+  vector<iPair> matchedZerosB = matchTaxa(b.uniqueZerosB, b.sameZeros); 
   uniquePairs0B.insert(uniquePairs0B.end(), matchedZerosB.begin(), matchedZerosB.end());
-  addMatchedPairs(nChooseTwo(sameOnes), uniquePairs0B, retVec);
+  addMatchedPairs(nChooseTwo(b.sameOnes), uniquePairs0B, retVec);
 
 
 
@@ -238,6 +322,7 @@ return ret;
 vector<quartet> generateSameQuartets(int bipartA, int bipartB){
   vector<char> A = copyToCharVector(biparttable.full_bitstring(bipartA), ::NUM_TAXA);
   vector<char> B = copyToCharVector(biparttable.full_bitstring(bipartB), ::NUM_TAXA);
+ 
   return (generateQuartetsFromOnesZeros(chSharedOnes(A,B), chSharedZeros(A,B)));
 }
 
@@ -300,15 +385,35 @@ vector<quartet> generateQuartetsFromOnesZeros(vector<int> ones, vector<int> zero
 
 unsigned int getNumDifferentQuartets(int a, int b){
 //quick optimization- if both ints are the same, we're comparing the same vector
- //if(a==b){
- //return 0;
-//	}
+ if(a==b){
+  return 0;
+	}
+  vector<char> A = copyToCharVector(biparttable.full_bitstring(a), ::NUM_TAXA);
+  vector<char> B = copyToCharVector(biparttable.full_bitstring(b), ::NUM_TAXA);
+  return(getNumDifferentQuartets(A, B));
+}
 
+unsigned int getNumSameQuartets(int a, int b){
 //takes two bipartitions as input, returns the number of quartets that they do NOT share
   vector<char> A = copyToCharVector(biparttable.full_bitstring(a), ::NUM_TAXA);
   vector<char> B = copyToCharVector(biparttable.full_bitstring(b), ::NUM_TAXA);
+  return(getNumSameQuartets(A, B));
+}
 
-  return(getNumDifferentQuartets(A, B));
+
+unsigned int getNumSameQuartets(vector<char> a, vector<char> b){
+//takes two bipartitions as input, returns the number of quartets that they share
+  //first, take the AND and the OR of the vectors. AND tells us which taxa are 1s in both
+  //OR tells us which taxa are 0s in both
+
+  //then, count the number of quartets that as if the bipartition was only the common 1s and 0s
+  //this is the number of quartets both biparts have in common
+
+  bPair biparts = bPair(a, b); 
+  return getNumQuartets(biparts.sameOnes.size(), biparts.sameZeros.size());
+
+
+//TODO- check if inverting the 1s and 0s produces a different result
 }
 
 unsigned int getNumDifferentQuartets(vector<char> a, vector<char> b){
@@ -318,8 +423,10 @@ unsigned int getNumDifferentQuartets(vector<char> a, vector<char> b){
 
   //then, count the number of quartets that as if the bipartition was only the common 1s and 0s
   //this is the number of quartets both biparts have in common
-  int commonOnes = chNumberOfOnes(chAND(a, b));
-  int commonZeros = chNumberOfZeros(chOR(a, b));  
+  bPair biparts = bPair(a, b);
+  int commonOnes = biparts.sameOnes.size();
+//  int commonZeros = chNumberOfZeros(chOR(a, b));  
+  int commonZeros = biparts.sameZeros.size(); 
   unsigned int commonQuartets = getNumQuartets(commonOnes, commonZeros);
   unsigned int quartetsA = getNumQuartets(a);
   unsigned int quartetsB = getNumQuartets(b);
@@ -332,8 +439,7 @@ unsigned int getNumDifferentQuartets(vector<char> a, vector<char> b){
 unsigned int getNumQuartets(int b){
   //takes the index of a bipartition and counts the number of quartets implied by it
   int nOnes = biparttable.number_of_ones(b);
-  int nZeros = biparttable.number_of_zeros(b);
-  cout << "get num quartets: num 0s is " << nZeros << " num 1s is: " << nOnes << endl;
+  int nZeros = biparttable.number_of_zeros(b) + ::NUM_TAXA - biparttable.length_of_bitstrings[b];
   //quartets = (nOnes choose 2) * (nZeros choose 2) 
   return(getNumQuartets(nOnes,nZeros));
 
@@ -364,7 +470,7 @@ unsigned int getNumQuartets(vector<char> bipart){
 		nZeros++;
 		}
 	}
-  cout << "get num quartets: num 0s is " << nZeros << " num 1s is: " << nOnes << endl;
+ // cout << "get num quartets: num 0s is " << nZeros << " num 1s is: " << nOnes << endl;
   return(getNumQuartets(nOnes,nZeros));
 }
 
@@ -376,7 +482,21 @@ unsigned int getNumQuartets(int nOnes, int nZeros){
 
 
 
+
 void TESTSTUFF(){
+  /*
+  char a[] = {0,0,1,1};
+  char b[] = {1,1,0,0};
+
+  vector<char> A,B;
+  A.assign(a, a+4); 
+  B.assign(b, b+4);
+
+  bPair tester = bPair(A,B);
+  tester.printMetaData();
+  */
+
+
 cout << "QUARTETS FROM BIPARTITION 7\n";
 printQuartets(generateQuartetsFromBipart(7));
 cout << "QUARTETS FROM BIPARTITION 12\n";
@@ -396,12 +516,48 @@ diffQuartets = getNumDifferentQuartets(12,12);
 cout << "different quartets between bipart 12 and 12 is: " << diffQuartets << endl;
 
 diffQuartets = getNumDifferentQuartets(7,12);
-cout << "different quartets between bipart 12 and 12 is: " << diffQuartets << endl;
+cout << "different quartets between bipart 7 and 12 is: " << diffQuartets << endl;
 
 cout << "about to get same quartets between 7 and 12" << endl;
 printQuartets(generateSameQuartets(7, 12));
 cout << "about to get different quartets between 7 and 12" << endl;
 printQuartets(generateDifferentQuartets(7, 12));
+
+
 }
 
+
+
+
+
+/* ALGORITHM DESCRIPTION FOR generateDifferentQuartets
+  first, we need to know a few vectors:
+	Same1- the taxa which are one across both biparts
+	Same0- the taxa which are zero across both biparts	
+	unique1A- taxa which are 1 only in bipart A
+	unique1B- taxa which are 1 only in bipart B
+	unique0A and unique0B
+
+Algorithm description:
+
+we want to generate all quartets from one bipartition but not the other
+
+This means we can match any pair except if the both ones are generated by same1 and the 0s are generated by same0
+
+Step 1- match all 0s with 1s not generated by same1s
+first, take all permutations of taxa in unique1A, and also match each taxa in unique1A with a single taxon in same1. 
+	This ensures that all of these pairs of 1s are those that can be generated by bipart1 but NOT bipart2
+	Now, match all those pairs with the pairs that can be generated by 0s in bipart 1
+
+For instance, suppose bipart A has 1s for taxa {0, 2, 3, 5, and 7} and both biparts had 1 at {5 7}. This means the
+	unique pairs of 1s are {0/2, 0/3, 2/3,   |||  0/5, 2/5, 3/5, 0/7, 2/7, 3/7}. The ||| represents
+	where the algorithm goes from making pairs from uniqueA to matching 1 taxon from uniqueA with each taxon 	 in shared1. 
+
+Step 2- match all 1s generated with same1s with 0s unique to bipartition (i.e. not in same 0)
+	Take same1s and create pairs out of it. Then generate pairs of 0s not possible by same 0 by 
+	taking all permutations of unique0, and also matching each taxon in same0 with each taxon in unique0 
+Step 3- repeat steps 1 and 2 with second bipartition
+
+
+*/
 

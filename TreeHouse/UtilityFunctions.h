@@ -171,6 +171,14 @@ void printVector(vector<T> in){
 	}
 }
 
+template <class T> 
+void printVectorCompact(vector<T> in){
+  cout << endl;
+  for(int i = 0; i < in.size(); i++){
+	cout << in.at(i) << ", ";}
+
+}
+
 template <class T>
 vector<T> copyToVector(T* in, unsigned int size){
   vector<T> returnVec;
