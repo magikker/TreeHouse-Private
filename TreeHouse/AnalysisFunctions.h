@@ -22,6 +22,8 @@ std::vector<string> distinguishing_taxa(set<unsigned int> inputtrees1, set<unsig
 
 std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2);
 
+vector<float> silhouette(vector < int > input1, vector <int> input2);
+
 void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< bool * > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes);
 
 unsigned int compute_threshold(unsigned int numberofTrees, float threshold);

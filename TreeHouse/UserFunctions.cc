@@ -937,6 +937,24 @@ pqlsymbol * u_unique_biparts(vector<pqlsymbol *> arglist)
 	return result;
 }
 
+pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
+	pqlsymbol * result = new pqlsymbol();
+
+	if(arglist.size() !=2){
+		cout << "Error: silhouette expects two arguements of type tree set" << endl;
+	}
+	else if(!arglist[0]->is_vect()){
+		cout << "Error: unique_biparts takes an int vect as first input, Found " << get_arg_types(arglist) << endl;
+	}
+	else if(!arglist[1]->is_vect()){
+		cout << "Error: unique biparts takes an int vect as second input, Found " << get_arg_types(arglist) << endl;
+	}
+	else{
+	result = new pqlsymbol(silhouette(arglist[0]->get_int_vect(), arglist[1]->get_int_vect()));
+	}
+	return result;
+}
+
 // takes an int. Returns the ints which share the same topology. 
 pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist) 
 {  
@@ -1626,6 +1644,8 @@ pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
 	return result;
 }
 
+
+
 pqlsymbol * u_distinguishing_taxa(vector<pqlsymbol * > arglist){
 	pqlsymbol * result;
 	if (arglist[0]->is_treeset() && arglist[1]->is_treeset() ){
@@ -1692,7 +1712,7 @@ void init_the_functs()
 	add_function("count", &u_count, "Returns the number of objects in the treeset or list");
 	add_function("unique", &u_unique, "Returns the a subset of trees from a given treeset each with a unique topology.");
 	add_function("unique_biparts", &u_unique_biparts, "Returns the number of all unique bipartitions given a treeset");
-
+	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees");
 	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
 		//consensus
 		add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.");
