@@ -11,6 +11,9 @@
 //The label map class. 
 #include "label-map.hh"
 
+#include "newick.h"
+#include "SearchFunctions.h"
+
 using namespace std;
 
 void generate_random_bt();
@@ -19,11 +22,17 @@ std::vector<string> distinguishing_taxa(set<unsigned int> inputtrees1, set<unsig
 
 std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2);
 
+vector<float> silhouette(vector < int > input1, vector <int> input2);
+
 void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< bool * > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes);
 
 unsigned int compute_threshold(unsigned int numberofTrees, float threshold);
 
 string consen(set<unsigned int> inputtrees, float percent);
+
+float consensus_reso_rate(set<unsigned int> inputtrees, float percent);
+
+float reso_rate(string inputtree);
   
 BipartitionTable least_conflict_bt(set<unsigned int> inputtrees);
 

@@ -131,6 +131,8 @@ vector <unsigned int> unique(vector<unsigned int> treesin);
 
 vector <int> unique(vector<int> treesin);
 
+int unique_biparts(set< unsigned int > treesin);
+
 vector<string> split(const char *str, char c );
 
 int pANTLR3_COMMON_TOKEN_to_int(pANTLR3_COMMON_TOKEN tok);
@@ -161,6 +163,30 @@ void print_bitstring(bool * bitstring, unsigned int length);
 
 void print_vector_of_bs(vector< bool * > bitstrings, unsigned int length_of_bitstrings);
 
+template <class T> //this might not work- needs to be tested
+void printVector(vector<T> in){
+  cout << endl;
+  for(int i = 0; i < in.size(); i++){
+	cout << i+1 << ". " << in.at(i) << endl;
+	}
+}
+
+template <class T> 
+void printVectorCompact(vector<T> in){
+  cout << endl;
+  for(int i = 0; i < in.size(); i++){
+	cout << in.at(i) << ", ";}
+
+}
+
+template <class T>
+vector<T> copyToVector(T* in, unsigned int size){
+  vector<T> returnVec;
+  for(int i = 0; i < size; i++){
+	returnVec.push_back(in[i]);
+	} 
+}
+
 void print_list_bs(vector< bool * > list_bs);
 
 void print_hashtable();
@@ -168,4 +194,10 @@ void print_hashtable();
 void print_set(set<unsigned int> t);
 
 void print_vector_of_strings(vector< string > bitstrings);
+
+bool isInVector(vector<int> toSearch, int x);
+
+bool areBitsSame(bool* BS, int length); //checks if all of the bits in a bitstring are the same
+
+unsigned int factorial(int);
 #endif

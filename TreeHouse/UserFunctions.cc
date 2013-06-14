@@ -128,6 +128,95 @@ string missedTaxaErrorMessage(vector<string> missedtaxanames1, vector<string> mi
 	}
 	return errorstring;
 }
+//set<unsigned int> clade_size_search(vector<int> required, int size)
+pqlsymbol * u_clade_size_search(vector< pqlsymbol * > arglist) {
+	pqlsymbol * result;
+	//make sure we have two arguments: first is a vector of ints, second is an int
+	if(arglist.size() != 2) {
+		cout << "clade_size_search expects 2 arguments: a StringVec/IntVec and an integer. " << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR,"Type Error");
+	}
+	else if (arglist[0]->is_atom() && arglist[0]->is_string() && arglist[1]->is_int()) {
+		vector<string> temp;
+		temp.push_back(arglist[0]->get_string());
+		vector<string> missednames = ::biparttable.lm.catchDeclaredTaxa(temp);
+		if(missednames.size() > 0){
+			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
+		}
+		else{
+			result = new pqlsymbol(clade_size_search(temp, arglist[1]->get_int() ), ::NUM_TREES );
+		}
+	}
+	else if (arglist[0]->is_vect() && arglist[0]->is_string() && arglist[1]->is_int()) {
+		vector<string> missednames = ::biparttable.lm.catchDeclaredTaxa(arglist[0]->get_string_vect());
+		if(missednames.size() > 0){
+			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
+		}
+		else{
+			result = new pqlsymbol(clade_size_search(arglist[0]->get_string_vect(), arglist[1]->get_int() ), ::NUM_TREES );
+		}
+		
+	}
+	else if (arglist[0]->is_vect() && arglist[0]->is_int() && arglist[1]->is_int()) {
+		result = new pqlsymbol(clade_size_search(arglist[0]->get_int_vect(), arglist[1]->get_int() ), ::NUM_TREES );
+	}
+	else {
+		cout << "clade_size_search expects a StringVec/Intvec and an Integer" << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
+
+pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
+	pqlsymbol * result;
+
+	//make sure we have two arguments: first is a vector of ints, second is an int
+	if(arglist.size() != 1) {
+		result = new pqlsymbol(ERROR,"Type Error");
+	}
+	else if (arglist[0]->is_atom() && arglist[0]->is_string()) {
+		vector<string> temp;
+		temp.push_back(arglist[0]->get_string());
+		vector<string> missednames = ::biparttable.lm.catchDeclaredTaxa(temp);
+		if(missednames.size() > 0){
+			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
+		}
+		else{
+			result = new pqlsymbol(smallest_clade(temp), ::NUM_TREES );
+		}
+	}
+	else if (arglist[0]->is_vect() && arglist[0]->is_string()) {
+		vector<string> missednames = ::biparttable.lm.catchDeclaredTaxa(arglist[0]->get_string_vect());
+		if(missednames.size() > 0){
+			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
+		}
+		else{
+			result = new pqlsymbol(smallest_clade(arglist[0]->get_string_vect()), ::NUM_TREES );
+		}
+		
+	}
+	else if (arglist[0]->is_vect() && arglist[0]->is_int()) {
+		result = new pqlsymbol(smallest_clade(arglist[0]->get_int_vect()), ::NUM_TREES );
+	}
+	else {
+		cout << "smallest_clade expects a StringVec/Intvec. " << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
+
+pqlsymbol * u_similarity_search(vector< pqlsymbol * > arglist) {
+
+	string stree;
+
+	if (arglist.size() == 1 && arglist[0]->is_string()){
+		stree = arglist[0]->get_string();
+	}
+	else{
+		cout << "similarity_search expects a single string representing a tree " << "Found " << get_arg_types(move(arglist)) << endl;
+	}
+	return new pqlsymbol(similarity_search(stree), ::NUM_TREES);
+}
 
 pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {  
 	pqlsymbol * result;
@@ -335,7 +424,56 @@ pqlsymbol * u_consen(vector<pqlsymbol * > arglist)
 	return new pqlsymbol(consen(tset, threshold) );
 	
 }
- 
+
+pqlsymbol * u_consensus_reso_rate(vector<pqlsymbol *> arglist)
+{
+	set<unsigned int> tset;
+	float threshold = 50.0;
+
+	if (arglist.size() > 0 && arglist[0]->is_treeset()){
+		tset = arglist[0]->get_treeset();
+	}
+	else{
+
+		cout << "u_consensus_reso_rate expects either 1 set of tree or a set of trees and a percentage " << "Found " << get_arg_types(move(arglist)) << endl;
+		return new pqlsymbol(ERROR, "Type Error, 1st value");
+	}
+	
+	if (arglist.size() > 1 && arglist[1]->is_int()){
+			threshold = (float)arglist[1]->get_int();
+	}
+	else if (arglist.size() > 1 && arglist[1]->is_double()){
+			threshold = (float)arglist[1]->get_double();
+	}
+	else if (arglist.size() > 1 && arglist[1]->is_float()){
+			threshold = (float)arglist[1]->get_float();
+	}
+	else if (arglist.size() > 1){
+		cout << "u_consensus_reso_rate expects either 1 set of tree or a set of trees and a percentage " << "Found " << get_arg_types(move(arglist)) << endl;
+		return new pqlsymbol(ERROR, "Type Error, 2nd value");
+	}
+
+	if(!::biparttable.is_taxa_homogenious(tset) ){
+		return new pqlsymbol(ERROR, "Can only handle taxa homogenious treesets. Taxa heterogenious trees were found");
+	}
+
+	return new pqlsymbol(consensus_reso_rate(tset, threshold));
+}
+
+pqlsymbol * u_reso_rate(vector<pqlsymbol *> arglist)
+{
+	string stree;
+
+	if (arglist.size() == 1 && arglist[0]->is_string()){
+		stree = arglist[0]->get_string();
+	}
+	else{
+		cout << "reso_rate expects a single string representing a tree " << "Found " << get_arg_types(move(arglist)) << endl;
+	}
+	return new pqlsymbol(reso_rate(stree));
+
+}
+
  pqlsymbol * u_HashCS(vector<pqlsymbol * > arglist) {  
 	 pqlsymbol * result;
  
@@ -778,6 +916,44 @@ pqlsymbol * u_unique(vector<pqlsymbol * > arglist)
 	return result;
 }
 
+//unique_biparts(set< unsigned int > treesin)
+pqlsymbol * u_unique_biparts(vector<pqlsymbol *> arglist)
+{
+	pqlsymbol * result;
+
+	if(arglist.size() != 1){	
+		cout << "Error: unique_biparts expects one argument of type tree set";
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	else if(!arglist[0]->is_treeset() ){
+		cout << "Error: unique_biparts takes a tree set, Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	else{
+		result = new pqlsymbol(unique_biparts(arglist[0]->get_treeset()));
+		//result = new pqlsymbol(ERROR, "Type Error");
+	}
+
+	return result;
+}
+
+pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
+	pqlsymbol * result = new pqlsymbol();
+
+	if(arglist.size() !=2){
+		cout << "Error: silhouette expects two arguements of type tree set" << endl;
+	}
+	else if(!arglist[0]->is_vect()){
+		cout << "Error: unique_biparts takes an int vect as first input, Found " << get_arg_types(arglist) << endl;
+	}
+	else if(!arglist[1]->is_vect()){
+		cout << "Error: unique biparts takes an int vect as second input, Found " << get_arg_types(arglist) << endl;
+	}
+	else{
+	result = new pqlsymbol(silhouette(arglist[0]->get_int_vect(), arglist[1]->get_int_vect()));
+	}
+	return result;
+}
 
 // takes an int. Returns the ints which share the same topology. 
 pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist) 
@@ -1477,6 +1653,8 @@ pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
 	return result;
 }
 
+
+
 pqlsymbol * u_distinguishing_taxa(vector<pqlsymbol * > arglist){
 	pqlsymbol * result;
 	if (arglist[0]->is_treeset() && arglist[1]->is_treeset() ){
@@ -1506,8 +1684,11 @@ void init_the_functs()
 	add_function("get_trees_without_taxa", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa");
 	add_function("gtwot", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa");
 
+	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa");
+	add_function("smallest_clade", &u_smallest_clade, "Returns trees with the smallest clade of given taxa");
 	add_function("get_trees_with_taxa", &u_get_trees_with_taxa, "Returns the trees that have the input taxa");
 	add_function("gtwt", &u_get_trees_with_taxa, "Returns the trees that have the input taxa");
+	add_function("similarity_search", &u_similarity_search, "Returns the trees that are the most similar to the given tree in that they have the most shared bipartitions.");
 
 	//add_function("get_trees_by_taxa", &u_get_trees_by_taxa, " ");
 	add_function("get_trees_by_subtree", &u_get_trees_by_subtree, "Returns the trees that contain the input subtree");
@@ -1541,11 +1722,16 @@ void init_the_functs()
 	//analysis
 	add_function("count", &u_count, "Returns the number of objects in the treeset or list");
 	add_function("unique", &u_unique, "Returns the a subset of trees from a given treeset each with a unique topology.");
+	add_function("unique_biparts", &u_unique_biparts, "Returns the number of all unique bipartitions given a treeset");
+	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees");
 	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
 		//consensus
 		add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.");
 		add_function("strict_consensus", &u_strict_consen, "Returns the newick string for the strict consensus tree for the input treeset.");
 		add_function("majority_consensus", &u_majority_consen, "Returns the newick string for the majority consensus tree for the input treeset.");
+		add_function("consensus_reso_rate", &u_consensus_reso_rate, "Returns the consensus resolution rate for a set of trees and a given consensus strictness.");
+		add_function("crr", &u_consensus_reso_rate, "Returns the consensus resolution rate fora  set of trees and a given consensus strictness.");
+		add_function("reso_rate", &u_reso_rate, "Returns the resolution rate for a given tree.");
 
 		add_function("greedy_consen", &u_greedy_consen, " ");	
 		add_function("least_conflict", &u_least_conflict, " ");
@@ -1556,7 +1742,7 @@ void init_the_functs()
 
 	//visualization
 	add_function("show", &u_show, "Displays images of the specified tree or trees (Int, IntVect, or Treeset). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
-	add_function("show_newick", &u_show_newick, "Displays images of the specified Newick strings (String or StringVect). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text."); 
+	add_function("show_newick", &u_show_newick, "Displays images of the specified Newick strings (String or StringVect). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
 	add_function("export", &u_export, "Exports images of the specified tree or trees (Int, IntVect, or Treeset) to the specified folder path (String). Takes an optional String mode argument ('ortho' or 'radial') to export an SVG image. Default mode is text.");
 	add_function("export_newick", &u_export_newick, "Exports images of the specified Newick strings (String or StringVect) to the specified folder path (String). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
 

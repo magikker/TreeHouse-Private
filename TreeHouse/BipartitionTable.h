@@ -239,6 +239,7 @@ int num_taxa_in_tree(int treeindex){
 	}
 
 	bool same_bitstring_value(int bitstringindex, vector<int> positions){
+		
 		if (is_zero(bitstringindex,positions[0])){
 			for (unsigned int i = 0; i < positions.size(); i++){
 				//cout << " in is zero i = " << i << endl;
@@ -260,6 +261,7 @@ int num_taxa_in_tree(int treeindex){
 		}
 		return true;
 	}
+
 	
 	bool is_one(int bitstringindex, int position){
 		return BipartitionTable[bitstringindex].is_one(position);
@@ -268,6 +270,9 @@ int num_taxa_in_tree(int treeindex){
 	unsigned int get_bipart_table_size(){
 		return BipartitionTable.size();
 	}
+
+	
+
 
 	void print_length_of_bitstrings(){
 		cout << "We show the hash table below, with the corresponding bitstring reps of the bipartitions:" << endl << endl;
@@ -286,10 +291,13 @@ int num_taxa_in_tree(int treeindex){
 	
 	/*
 	void print_hashtable(){
+		//TODO: Make columns line up 
 		cout << "We show the hash table below, with the corresponding bitstring reps of the bipartitions:" << endl << endl;
-		int nbpt = 0;
+		//int nbpt = 0;
+		int index = 0;
 		//keep in mind that hashtable and hash_lengths are global variables
 		for (unsigned int i = 0; i < searchtable.size(); i++){ //biparittions
+			cout << index << ". ";			
 			for (unsigned int j = 0; j < length_of_bitstrings[i]; j++){ //each bit
 			  cout << bipartitions[i][j];
 			}
@@ -304,13 +312,15 @@ int num_taxa_in_tree(int treeindex){
 			    cout << treetable[i][j];
 			  }
 			  if (treetable[i][0])
-			    nbpt++;
+			    {//nbpt++;
+				}
 			  cout << "]" << endl;
+			  index++;
 			}
 			else {
 			  cout << endl;
 			}
-			cout << nbpt << endl;
+			//cout << nbpt << endl;
 		}
 		//print_length_of_bitstrings();
 	}
@@ -319,7 +329,26 @@ int num_taxa_in_tree(int treeindex){
 	void print_bitstring(int index){
 		BipartitionTable[index].print_bitstring(true);
 	}
-	
+
+	boost::dynamic_bitset<> non_trunc_bitstring(int bitstringindex){ //gives the full bitstring (i.e. with 0s at the end)
+		boost::dynamic_bitset<> returnVal(lm.size());
+		for(unsigned int i = 0; i < BipartitionTable[bitstringindex].bitstring_size(); i++){
+			returnVal[i] = BipartitionTable[bitstringindex].get_bit(i);
+		}
+		return returnVal;
+	}
+	/*
+	bool* full_bitstring(int index){ //gives the full bitstring (i.e. with 0s at the end)
+		bool returnVal[::NUM_TAXA];		
+		for(int i = 0; i < length_of_bitstrings[index]; i++){
+			returnVal[i] = bipartitions[index][i];
+			}
+		for(int j = length_of_bitstrings[index]; j < ::NUM_TAXA; j++){
+			returnVal[j] = 0;
+			}
+		return returnVal;
+		}
+	*/
 	void print_bitstring_and_trees(int index){
 		BipartitionTable[index].print_line();
 	}
@@ -344,8 +373,11 @@ int num_taxa_in_tree(int treeindex){
 		unsigned int lengthofbitstring = ::NUM_TAXA;
 		unsigned int numberoftrees = 40;
 		
+		
+		
 		//BipartitionTable.push_back(b);
 
+		
 		for(unsigned int i = 0; i < numbiparts; i++ ){
 			Bipartition b(lengthofbitstring);
 			//bool *bs = new bool[lengthofbitstring];

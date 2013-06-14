@@ -56,6 +56,7 @@
 
 // The lexer/parser
 #include    "pql.h"
+#include "quartet.h"
 
 using namespace std;
 
@@ -822,7 +823,7 @@ void load_data_from_trz_file(string file){
 	//cout << endl;
     
     biparttable.BipartitionTable.push_back(B);
-    cout << "This many times through" << counter << endl;
+    //cout << "This many times through" << counter << endl;
     //::biparttable.bipartitions.push_back(bs);
     //cout << sizeof(biparttable) << " " << sizeof(biparttable.BipartitionTable) << endl;
     my_set_of_ids.clear();
@@ -1476,6 +1477,7 @@ int main(int argc, char **argv){
 
 	//start_clock();
 	if (strcmp(argv[cmdind],"-i") == 0) {
+		//TESTSTUFF();
 		interactive = true;
 		interactive_log.open("logs/interactive_log.txt");
 		if(interactive_log){
