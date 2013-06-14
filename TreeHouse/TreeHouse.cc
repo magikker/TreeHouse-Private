@@ -145,7 +145,7 @@ char * do_gets ()
 
   return (line_read);
 }
-
+/*
 void differentLengthsOr(const bool * first, const unsigned int firstsize, bool * second){
 	for(unsigned int i = 0; i < firstsize; i++){
 		if (first[i] == 1){
@@ -153,7 +153,14 @@ void differentLengthsOr(const bool * first, const unsigned int firstsize, bool *
 		}
 	}
 }
-
+*/
+void differentLengthsOr(const bool * first, const unsigned int firstsize, bool * second){
+	for(unsigned int i = 0; i < firstsize; i++){
+		if (first[i] == 1){
+			second[i] = 1;
+		}
+	}
+}
 
 void populate_integrals(unsigned int * hold_integrals, string branches_int, unsigned int encode_size){
   unsigned int integral_size = branches_int.size();
@@ -200,7 +207,7 @@ void populate_integrals(unsigned int * hold_integrals, string branches_int, unsi
   }
 }
 
-void decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_set_of_ids, vector<float> & bitstrings_branches, string branches_frac){
+void decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_set_of_ids, Bipartition &B, string branches_frac){
   unsigned int myplace = 0;
   unsigned int numer = 0;
   unsigned int denom = 100;
@@ -223,7 +230,8 @@ void decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_se
       weight+=hold_integrals[temp];
       //printf("%f\n", weight);
       hold_integrals[temp] = 0;
-      bitstrings_branches.push_back(weight);
+      //bitstrings_branches.push_back(weight);
+      B.add_tree(temp, weight);
       ::biparttable.tree_branches[temp].push_back(weight);
       numer = 0;
       denom = 100;
@@ -244,7 +252,8 @@ void decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_se
       weight+=hold_integrals[i];
       //printf("%f\n", weight);
       hold_integrals[i] = 0;
-      bitstrings_branches.push_back(weight);
+      //bitstrings_branches.push_back(weight);
+      B.add_tree(i, weight);
       ::biparttable.tree_branches[i].push_back(weight);
       numer = 0;
       denom = 100;
@@ -518,7 +527,13 @@ void load_data_from_trz_file(string file){
 	//read in number of trees
 	getline(fin, str);
 	::NUM_TREES = get_ntrees(str);
-
+	//GRB
+	for (unsigned int i = 0; i < ::NUM_TREES; i++){
+		boost::dynamic_bitset<> TNT(::NUM_TAXA);
+		biparttable.taxa_in_trees.push_back(TNT);
+	}
+	cout << "table created but not filled. " << endl;
+	
 	//read in number of unique trees
 	getline(fin, str);
 	num_unique = get_unique(str, ::NUM_TREES);
@@ -537,14 +552,14 @@ void load_data_from_trz_file(string file){
 	getline(fin, str);
 	parse_and_get(str, "NBIPARTITIONS", nbipart);
 	NUMBIPART = nbipart;
-  
-	for (unsigned int i = 0; i < NUM_TREES; i++){
-		bool *blankbs = new bool[::NUM_TAXA];
-		for (unsigned int j = 0; j < ::NUM_TAXA; j++){
-			blankbs[j] = (bool)0;
-		}
-		::biparttable.taxa_in_trees.push_back(blankbs);
-	}
+	cout << "NUMBIPART = " << NUMBIPART << endl;
+	//for (unsigned int i = 0; i < NUM_TREES; i++){
+	//	bool *blankbs = new bool[::NUM_TAXA];
+	//	for (unsigned int j = 0; j < ::NUM_TAXA; j++){
+	//		blankbs[j] = (bool)0;
+	//	}
+	//	::biparttable.taxa_in_trees.push_back(blankbs);
+	//}
 
   //skip nbipart lines, get the duplicate information
   for (unsigned int i = 0; i < nbipart; i++){
@@ -609,8 +624,6 @@ void load_data_from_trz_file(string file){
 
   while ( counter < nbipart) { 
 	//GRB NEW Round
-	//vector <unsigned int> v1;
-	//::biparttable.searchtable.push_back(v1);
 
     bool * tt1 = new bool[NUM_TREES]; //tt
 	for (unsigned int i = 0; i < NUM_TREES; i++) {
@@ -629,10 +642,12 @@ void load_data_from_trz_file(string file){
     maxLength = get_bitstring_length(bitstring);//determine length of bitstring maxLength
     //GRB the bitset
     boost::dynamic_bitset<> bs(maxLength);
-    vector<unsigned int> trees;
-    vector<float> branchlengths;
+    
     //bool *bs = new bool[maxLength]; //allocate it to be maxLength	
     decode_bitstring(bitstring, bs, maxLength);
+    Bipartition B(bs);
+
+    
     //GRB not needed in new system
     //::biparttable.length_of_bitstrings.push_back(maxLength);
     
@@ -674,8 +689,17 @@ void load_data_from_trz_file(string file){
     if (count == 0){  //bipartition that every tree has
      for (unsigned int b = 0; b < ::NUM_TREES; ++b){ 
 		::inverted_index[b].push_back(bipart_loc);
+		for(unsigned int eachbit = 0; eachbit < bs.size(); eachbit++){
+			if (bs[eachbit]){
+				biparttable.taxa_in_trees[b].set(eachbit);
+			}
+		}
+		
 		//GRB
-		trees.push_back(b);
+		if(!WEIGHTED){
+		   B.add_tree(b,1.0);
+	    }
+		//B.add_tree(b,1.0);
 		//::biparttable.searchtable[counter].push_back(b);
 	    ::biparttable.treetable[counter][b] = 1; //tt
 	    
@@ -687,9 +711,9 @@ void load_data_from_trz_file(string file){
 		}
 	    my_set_of_ids.resize(NUM_TREES);
 	    //GRB
-	    decompress_branch(hold_integrals, my_set_of_ids, branchlengths, branches_frac);
+	    decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);
       }
-      bipart_count++;
+      bipart_count++;      
     }      
     else { //count != 0 (so we have tree ids to process)
       my_count = decode(ids, found);
@@ -724,8 +748,17 @@ void load_data_from_trz_file(string file){
 		sort(my_set_of_ids.begin(), my_set_of_ids.end());
 		unsigned int mytotalsize = my_set_of_ids.size();
 		for (unsigned int j = 0; j < mytotalsize; j++){
-			trees.push_back(my_set_of_ids[j]);
 			//GRB
+			if(!WEIGHTED){
+				B.add_tree(my_set_of_ids[j],1.0);
+			}
+			for(unsigned int eachbit = 0; eachbit < bs.size(); eachbit++){
+				if (bs[eachbit]){
+					biparttable.taxa_in_trees[my_set_of_ids[j]].set(eachbit);
+				}
+			}
+			//B.add_tree(my_set_of_ids[j],1.0);
+			//trees.push_back(my_set_of_ids[j]);
 			//::biparttable.searchtable[counter].push_back(my_set_of_ids[j]);
 	        ::biparttable.treetable[counter][my_set_of_ids[j]] = 1; //tt
 		}
@@ -734,7 +767,7 @@ void load_data_from_trz_file(string file){
 				populate_integrals(hold_integrals, branches_int, encode_size);
 			}
 			//GRB
-			decompress_branch(hold_integrals, my_set_of_ids, branchlengths, branches_frac);			
+			decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);			
 		}
       }
       else { //line is not compressed
@@ -756,7 +789,16 @@ void load_data_from_trz_file(string file){
 		unsigned int mytotalsize = my_set_of_ids.size();
 		for (unsigned int j = 0; j < mytotalsize; j++){
 			//GRB
-			trees.push_back(my_set_of_ids[j]);
+			if(!WEIGHTED){
+				B.add_tree(my_set_of_ids[j],1.0);
+			}
+			for(unsigned int eachbit = 0; eachbit < bs.size(); eachbit++){
+				if (bs[eachbit]){
+					biparttable.taxa_in_trees[my_set_of_ids[j]].set(eachbit);
+				}
+			}
+			//B.add_tree(my_set_of_ids[j], 1.0);
+			//trees.push_back(my_set_of_ids[j]);
 			//::biparttable.searchtable[counter].push_back(my_set_of_ids[j]);
 	        ::biparttable.treetable[counter][my_set_of_ids[j]] = 1; //tt
 		}
@@ -765,29 +807,29 @@ void load_data_from_trz_file(string file){
 				populate_integrals(hold_integrals, branches_int, encode_size);
 			}
 			//GRB
-			decompress_branch(hold_integrals, my_set_of_ids, branchlengths, branches_frac);
+			decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);
 		}
       }
       bipart_count++;
     } //end if count != 0
     
     //GRB
-    cout << "lets see what we've got" << endl;
+    //cout << "lets see what we've got" << endl;
+    //cout << "trees = ";
+    //for(vector<unsigned int>::iterator it = trees.begin(); it != trees.end(); it++){
+	//	cout << *it << " "; 
+	//}
+	//cout << endl;
     
-    cout << "trees = ";
-    for(vector<unsigned int>::iterator it = trees.begin(); it != trees.end(); it++){
-		cout << *it << " "; 
-	}
-	cout << endl;
-    
-    Bipartition B(bs, trees, branchlengths);
     biparttable.BipartitionTable.push_back(B);
+    cout << "This many times through" << counter << endl;
     //::biparttable.bipartitions.push_back(bs);
-    
+    //cout << sizeof(biparttable) << " " << sizeof(biparttable.BipartitionTable) << endl;
     my_set_of_ids.clear();
     bipart_loc++;
     counter++;
   }
+  cout << "loaded all the trees" << endl;
   free(hold_integrals);
   free(found);
   if (bipart_count != counter) { 
@@ -799,6 +841,8 @@ void load_data_from_trz_file(string file){
   assert(::biparttable.lm.size()!=0); 
  
 	//GRB what is going on here... no really?
+	// this whole thing is just to initialize taxa_in_trees
+	/*
 	for (unsigned int tree = 0; tree < ::NUM_TREES; tree++){
 	  vector<bool *> tree_bipartitions;
 	  vector<unsigned int> tree_bs_sizes;
@@ -807,9 +851,9 @@ void load_data_from_trz_file(string file){
 		for (unsigned int bip = 0; bip < tree_bipartitions.size(); bip++){
 			differentLengthsOr(tree_bipartitions[bip], tree_bs_sizes[bip], ::biparttable.taxa_in_trees[tree]);
 		}
+	  cout << "is this where the memory is going?" << tree << endl;
 	}
-
-
+	*/
     for (unsigned int i = 0; i < ::NUM_TREES; i++){
 		for (unsigned int j = 0; j < ::tree_dups[i].size(); j++){
 			if (::tree_dups[::tree_dups[i][j]].size() == 0){
@@ -1271,10 +1315,12 @@ double ANTLR3_CDECL call_parser(string inputstring ){
 }
 
 int free_things(){
+	/*
 	while(!::biparttable.taxa_in_trees.empty()){
 		delete[] ::biparttable.taxa_in_trees.back();
 		::biparttable.taxa_in_trees.pop_back();
-	}
+	} 
+	*/
 	
 	//~ while(!::list_bs.empty()){
 		//~ delete[] ::list_bs.back();

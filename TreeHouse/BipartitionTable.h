@@ -17,8 +17,8 @@ public:
 	vector<Bipartition> BipartitionTable;
 	LabelMap lm;
 	
-	vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
-
+	//vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
+	vector< boost::dynamic_bitset<> > taxa_in_trees; // which taxa are in which trees					NEED
 	
 	//by bipartitions
 	/**///vector < vector < unsigned int > > searchtable; //number of biparts long by which trees with the bipart wide

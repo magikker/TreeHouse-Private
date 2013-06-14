@@ -8,7 +8,8 @@ antlrdir = ${top_srcdir}/TreeHouse/antlr/libantlr3c-3.1.4-SNAPSHOT
 #ncl  = ${top_srcdir}/ncl
 
 #AM_LDFLAGS = ${ncl}/libncl.la
-AM_CXXFLAGS = -std=c++0x -Wall -O2 -funroll-loops -fexpensive-optimizations -g -I.
+#AM_CXXFLAGS = -std=c++0x -Wall -O0 -funroll-loops -fexpensive-optimizations -g -I.
+AM_CXXFLAGS = -std=c++0x -Wall -O3 -funroll-loops -fexpensive-optimizations -I.
 AM_CXXFLAGS += -I${top_srcdir}
 AM_CXXFLAGS += -I${comdir}
 AM_CXXFLAGS += -I${treezipdir}

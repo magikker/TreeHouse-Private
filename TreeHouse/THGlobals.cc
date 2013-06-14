@@ -25,7 +25,6 @@ bool DEBUGMODE;
 
 BipartitionTable biparttable;
 
-
 //TreeTable treetable;
 
 voidFuncts voidFunctMap;
@@ -344,7 +343,7 @@ vector<float> get_tree_branches(unsigned int id) {
 
 //This needs to be remaned. Way to general. 
 vector<unsigned int> get_tree_data(unsigned int tree_id, vector<bool *>& tree_bipartitions, vector <unsigned int>& tree_bs_sizes, vector<float>& tree_branches) {
-	cout<< "welcome to get_tree_data" <<endl;
+	//cout<< "welcome to get_tree_data" <<endl;
 	vector <unsigned int> bipart_indices; //which bipartitions we're returning
 	for (unsigned int i = 0; i < ::biparttable.BipartitionTable.size(); i++) {
 		if (::biparttable.treetable[i][tree_id]) { //if the bipartitin is in the tree_id
@@ -353,7 +352,7 @@ vector<unsigned int> get_tree_data(unsigned int tree_id, vector<bool *>& tree_bi
 		}
 	}
 	tree_branches = ::biparttable.tree_branches[tree_id];
-	cout << "returning tree data" <<endl;
+	//cout << "returning tree data" <<endl;
 	return bipart_indices;
 }
 /*vector<unsigned int> get_tree_data(unsigned int id, vector < bool *>& tree_bipartitions, vector <unsigned int>& tree_bs_sizes, vector<float>& tree_branches) {
@@ -370,25 +369,25 @@ vector<unsigned int> get_tree_data(unsigned int tree_id, vector<bool *>& tree_bi
 }*/
 
 string th_compute_tree(BipartitionTable& bpt, unsigned id, bool branch) {
-	cout << "welcome to th_compute_tree in THGLOBALS" <<endl;
+	//cout << "welcome to th_compute_tree in THGLOBALS" <<endl;
 	vector< bool * > my_bs;
 	vector< float > my_branches;
 	vector< unsigned int> bs_sizes;
 	get_tree_data(id, my_bs, bs_sizes, my_branches);
-	cout << "got the tree data from get_tree_data" <<endl;
+	//cout << "got the tree data from get_tree_data" <<endl;
 	
-	cout << "my_branches.size() = "<< my_branches.size() << endl;
+	//cout << "my_branches.size() = "<< my_branches.size() << endl;
 	
-	for (unsigned int i = 0; i < bs_sizes.size(); i++){
-		cout << bs_sizes[i] << " : ";
-		for (unsigned int j = 0; j < bs_sizes[i]; j++){
-			cout << my_bs[i][j];
-		}
-		
-		cout << " : " << my_branches[i];
-		
-		cout << endl;
-	}
+	//for (unsigned int i = 0; i < bs_sizes.size(); i++){
+	//	cout << bs_sizes[i] << " : ";
+	//	for (unsigned int j = 0; j < bs_sizes[i]; j++){
+	//		cout << my_bs[i][j];
+	//	}
+	//	
+	//	cout << " : " << my_branches[i];
+	//	
+	//	cout << endl;
+	//}
 	return compute_tree(::biparttable.lm, my_bs, my_branches, id, branch, bs_sizes);
 	
 }

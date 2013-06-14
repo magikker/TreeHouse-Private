@@ -16,9 +16,10 @@ class Bipartition {
 public:
 	//constructor
 	Bipartition(int len);
+	Bipartition(boost::dynamic_bitset<> bs );
 	Bipartition(boost::dynamic_bitset<> bs, vector<unsigned int> t, vector<float> branchl );
 	Bipartition(boost::dynamic_bitset<> bs, vector<unsigned int> t, float branchl );
-
+	
 	//iterators
 	std::vector<unsigned int>::iterator trees_begin();
 	std::vector<unsigned int>::iterator trees_end();

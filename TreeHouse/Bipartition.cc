@@ -5,11 +5,14 @@ Bipartition::Bipartition(int len){
 	bitstring = boost::dynamic_bitset<>(len);
 }
 
+Bipartition::Bipartition(boost::dynamic_bitset<> bs ){
+	bitstring = bs;	
+}
+
 Bipartition::Bipartition(boost::dynamic_bitset<> bs, vector<unsigned int> t, vector<float> branchl ){
 	bitstring = bs;
 	trees = t;
 	branchlengths = branchl;
-	
 }
 
 Bipartition::Bipartition(boost::dynamic_bitset<> bs, vector<unsigned int> t, float branchl ){
@@ -45,7 +48,6 @@ std::vector<unsigned int>::const_reverse_iterator Bipartition::trees_crend() con
 	return trees.crend();
 }
 
-
 bool Bipartition::get_bit(int bitindex){
 	return bitstring[bitindex];
 }
@@ -62,7 +64,6 @@ float Bipartition::get_ave_branchlength(){
 vector<float> Bipartition::get_branchlengths(){
 	return branchlengths;
 }
-
 
 unsigned int Bipartition::num_trees(){
 	return trees.size();
