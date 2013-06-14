@@ -15,8 +15,8 @@
 
 using namespace std;
 
-typedef enum {ATOM, LIST, TREESET, FUNCT, ERROR, SYMBOL} object_type;
-typedef enum {THE_EMPTY_LIST, BOOLEAN, CHAR, INT, FLOAT, DOUBLE, STRING, VECTOR} data_type;
+typedef enum {ATOM, LIST, FUNCT, ERROR, SYMBOL} object_type;
+typedef enum {THE_EMPTY_LIST, BOOLEAN, CHAR, INT, FLOAT, DOUBLE, STRING, VECTOR, TREESET} data_type;
 
 class pqlsymbol
 {
@@ -46,8 +46,8 @@ class pqlsymbol
 	}
 
 	pqlsymbol(std::set<unsigned int> inval, unsigned int num_trees){
-		dtype = INT;
-		otype = TREESET;
+		dtype = TREESET;
+		otype = ATOM;
 		ntrees = num_trees;
 		
 		for(set<unsigned int>::const_iterator pos = inval.begin(); pos != inval.end(); ++pos){
@@ -135,6 +135,14 @@ class pqlsymbol
 		} 
 	}
 
+	pqlsymbol(vector< set <unsigned int>> inval){
+		dtype = TREESET;
+		otype = LIST;
+			for(std::vector<int>::size_type i = 0; i != inval.size(); i++){
+				list.push_back(new pqlsymbol(inval[i], inval[i].size()));
+			}
+	}
+
 	pqlsymbol(const std::string& instring){
 		dtype = STRING;
 		otype = ATOM;
@@ -194,9 +202,9 @@ class pqlsymbol
 			return new pqlsymbol(ERROR, get_string() );
 		}
 		
-		if (otype == TREESET){
-			return new pqlsymbol(get_treeset(), ntrees);
-		}
+		//if (otype == TREESET){
+		//	return new pqlsymbol(get_treeset(), ntrees);
+		//}
 		
 		if (otype == ATOM){
 			switch (dtype){
@@ -217,6 +225,9 @@ class pqlsymbol
 
 		  		case STRING:
 		    		return new pqlsymbol(get_string() );
+
+				case TREESET:
+				return new pqlsymbol(get_treeset(), ntrees );
 
 		    	case THE_EMPTY_LIST:
 		    		return new pqlsymbol();
@@ -247,6 +258,9 @@ class pqlsymbol
 
 		  		case STRING:
 		    		return new pqlsymbol(get_string_vect() );
+
+				case TREESET:
+				return new pqlsymbol(get_treeset_vect() );
 		    		
 		    	case THE_EMPTY_LIST:
 		    		return new pqlsymbol();
@@ -262,7 +276,7 @@ class pqlsymbol
 	}
 	
 	int get_size(){
-		if (otype == TREESET){
+		if (dtype == TREESET){
 			return (int)treeset.size();
 		}
 		
@@ -328,6 +342,15 @@ class pqlsymbol
 		} 
 		return rval;
 	}
+
+	vector <set <unsigned int > > get_treeset_vect(){
+		vector<set < unsigned int > > rval;
+		for(std::vector<pqlsymbol>::size_type i = 0; i != list.size(); i++){
+			rval.push_back(list[i]->get_treeset());
+		}
+		return rval;
+	}
+
 
 	float get_float(){
 		return floatvalue;
@@ -417,6 +440,9 @@ class pqlsymbol
 
 		  		case STRING:
 		    		return new pqlsymbol(list[i]->get_string() );
+
+				case TREESET:
+				return new pqlsymbol(list[i]->get_treeset(), ntrees );
 	
 	//			I need to implement a deep copy of the vector. 			
 	//			case VECTOR:
@@ -434,7 +460,7 @@ class pqlsymbol
 
 
 	bool is_treeset(){
-		return otype == TREESET;
+		return dtype == TREESET;
 	}
 
 	bool is_bool(){
@@ -500,33 +526,7 @@ class pqlsymbol
 			out << get_string();
 	    	return out.str();
 		}
-		
-		if (otype == TREESET){
-			//~ cout << "what's here? = ";
-			//~ std::copy(treeset.begin(), treeset.end(), std::ostream_iterator<int>(std::cout, ", ") );
-			//~ cout << endl;
-			
-			out << "{";
-			std::copy(treeset.begin(), treeset.end(), std::ostream_iterator<int>(out, ", "));
-			
-			//~ // pre-increment and pre-decrement are faster than post-increment and post-decrement...
-			//~ for(set<int>::const_iterator pos = treeset.begin(); pos != treeset.end(); ++pos){
-					//~ int temp = *pos;
-					//~ out << (int)*pos << ', ';
-					//~ cout << *pos << endl;
-			//~ }
-			string temp = out.str();
-			if (temp.size () > 1)  temp.resize (temp.size () - 2);
-			
-			temp.append("}");
-			
-			//~ out << "}";		
-			//~ string temp = out.str();
-			//~ if (temp.size () > 0)  temp.resize (temp.size () - 2);
-			return temp;
-			//~ return out.str();
-		}
-		
+				
 		if (otype ==  ATOM){
 
 			switch (dtype){
@@ -535,37 +535,69 @@ class pqlsymbol
 	    			return out.str();
 
 				case CHAR:
+				{
 					out << "\'"	;
 					out << get_char();
 					out << "\'"	;
 	 		   		return out.str();
-	
+				}
 				case INT:
+				{
 					out << get_int();
 	 		   		return out.str();
-	
+				}
 				case FLOAT:
+				{	
 					out << get_float();
 	 		   		return out.str();
-
+				}
 				case DOUBLE:
+				{
 					out << get_double();
 		    		return out.str();
-
+				}
 		  		case STRING:
+				{
 					out << "\"";
 					out << get_string();
 					out << "\"";
 					return out.str();
+				}
+				case TREESET:
+				{
+					//~ cout << "what's here? = ";
+					//~ std::copy(treeset.begin(), treeset.end(), std::ostream_iterator<int>(std::cout, ", ") );
+					//~ cout << endl;
+			
+					out << "{";
+					std::copy(treeset.begin(), treeset.end(), std::ostream_iterator<int>(out, ", "));
 				
+					//~ // pre-increment and pre-decrement are faster than post-increment and post-decrement...
+					//~ for(set<int>::const_iterator pos = treeset.begin(); pos != treeset.end(); ++pos){
+					//~ int temp = *pos;
+					//~ out << (int)*pos << ', ';
+					//~ cout << *pos << endl;
+					//~ }
+					string temp = out.str();
+					if (temp.size () > 1)  temp.resize (temp.size () - 2);
+			
+						temp.append("}");
+			
+						//~ out << "}";		
+						//~ string temp = out.str();
+						//~ if (temp.size () > 0)  temp.resize (temp.size () - 2);
+						return temp;
+					//	return out.str();
+
+				}
 				case THE_EMPTY_LIST:
 					return "";
 
 				default:
 	    			return "****shouldn't hit this thing ever!!! ****** ATOM";	
+					
 			}
-		}		
-
+		}
 		if (otype == LIST){
 			out << "[";
 			for(std::vector<pqlsymbol * >::size_type i = 0; i != list.size(); i++){								
@@ -618,6 +650,10 @@ class pqlsymbol
 					
 				case VECTOR:
 					cout << "VECTOR" << endl;
+					break;
+
+				case TREESET:
+					cout << "TREESET" << endl;
 					break;
 		}
 	}

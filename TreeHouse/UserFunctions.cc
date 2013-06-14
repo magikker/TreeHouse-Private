@@ -940,18 +940,17 @@ pqlsymbol * u_unique_biparts(vector<pqlsymbol *> arglist)
 pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
 	pqlsymbol * result = new pqlsymbol();
 
-	if(arglist.size() !=2){
-		cout << "Error: silhouette expects two arguements of type tree set" << endl;
-	}
-	else if(!arglist[0]->is_vect()){
-		cout << "Error: unique_biparts takes an int vect as first input, Found " << get_arg_types(arglist) << endl;
-	}
-	else if(!arglist[1]->is_vect()){
-		cout << "Error: unique biparts takes an int vect as second input, Found " << get_arg_types(arglist) << endl;
-	}
-	else{
-	result = new pqlsymbol(silhouette(arglist[0]->get_int_vect(), arglist[1]->get_int_vect()));
-	}
+//	if(arglist.size() !=2){
+//		cout << "Error: silhouette expects one arguement of type vector < vector < ints > >" << endl;
+//	}
+//	else if(!arglist[0]->is_vect()){
+//		cout << "Error: unique_biparts takes an int vect as first input, Found " << get_arg_types(arglist) << endl;
+//	}
+	//else if(!arglist[1]->is_vect()){
+	//	cout << "Error: unique biparts takes an int vect as second input, Found " << get_arg_types(arglist) << endl;
+	//}
+//	else{
+	result = new pqlsymbol(silhouette(arglist[0]->get_treeset_vect()));	//}
 	return result;
 }
 
@@ -1719,7 +1718,7 @@ void init_the_functs()
 		add_function("strict_consensus", &u_strict_consen, "Returns the newick string for the strict consensus tree for the input treeset.");
 		add_function("majority_consensus", &u_majority_consen, "Returns the newick string for the majority consensus tree for the input treeset.");
 		add_function("consensus_reso_rate", &u_consensus_reso_rate, "Returns the consensus resolution rate for a set of trees and a given consensus strictness.");
-		add_function("crr", &u_consensus_reso_rate, "Returns the consensus resolution rate fora  set of trees and a given consensus strictness.");
+		add_function("crr", &u_consensus_reso_rate, "Returns the consensus resolution rate for a  set of trees and a given consensus strictness.");
 		add_function("reso_rate", &u_reso_rate, "Returns the resolution rate for a given tree.");
 
 		add_function("greedy_consen", &u_greedy_consen, " ");	
