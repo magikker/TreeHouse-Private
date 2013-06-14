@@ -2,6 +2,7 @@
 #define _ANALYSIS_FUNCTIONS_HH_
 
 #include <vector>
+#include <stack>
 
 //Global Vars like the hashtable.
 #include "THGlobals.h"
@@ -22,7 +23,7 @@ std::vector<string> distinguishing_taxa(set<unsigned int> inputtrees1, set<unsig
 
 std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2);
 
-vector<float> silhouette(vector < int > input1, vector <int> input2);
+vector<float> silhouette(vector < set < unsigned int >> inputclusts);
 
 void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< bool * > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes);
 
@@ -45,5 +46,7 @@ BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent);
 string greedy_consen(set<unsigned int> inputtrees, float percent);
 
 void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned int tree, int iterations, string folder);
+
+void TestClust();
 
 #endif
