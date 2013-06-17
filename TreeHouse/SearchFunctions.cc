@@ -258,7 +258,7 @@ set<unsigned int> get_trees_with_taxa(vector<int> required){
 	//	cout << required[j] << endl;
 	//}
 	
-    for (unsigned int i = 0; i < ::NUM_TREES; i++) { //for each tree
+    for (unsigned int i = 0; i < ::biparttable.taxa_in_trees.size(); i++) { //for each tree
 		int flag = 0;
 
         for (unsigned int j = 0; j < required.size(); j++) { //for each search taxa
