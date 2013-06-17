@@ -4,8 +4,19 @@
 #include <vector>
 #include "THGlobals.h"
 #include "pql.h"
+#include "AnalysisFunctions.h"
 #include <unordered_set>
+#include <set>
+#include <algorithm>
+#include <iterator>
+#include <iomanip>
+#include <string>
+#include <sstream>
 using namespace std;
+
+extern set<int> trivial_bipartitions;
+
+void calculateTrivialBipartitions();
 
 typedef pair<int, int> iPair;
 
@@ -17,13 +28,23 @@ class quartet{ //a class to store quartets. I'm open to ideas about how to make 
 		quartet(int, int, int, int);
 		quartet(iPair, iPair);
 		quartet();
-		iPair getA();
-		iPair getB();
+		iPair getA() const;
+		iPair getB() const;
 		void setA(int, int);
 		void setB(int, int);
-		void print();
+		void print() const;
+		//bool operator<(const quartet& other) const;
+		//bool operator==(const quartet& other);
 
 };
+
+  bool operator<(const quartet& one, const quartet& two);
+  bool operator<=(const quartet& one, const quartet& two);
+  bool operator>(const quartet& one, const quartet& two);
+  bool operator>=(const quartet& one, const quartet& two);
+  bool operator==(const quartet& one, const quartet& two);
+  //void operator=(quartet& one, const quartet& two);
+
 
 class bPair{ //holds all relevant info about quartets on a pair of bipartitions
   private:
@@ -41,7 +62,6 @@ class bPair{ //holds all relevant info about quartets on a pair of bipartitions
 	vector<int> ZerosA;
 	vector<int> OnesB;
 	vector<int> ZerosB;
-	void printVectors();
 	void printMetaData();
 	
 	void invertB(); //inverts vector B, in case we need to do that in calculate
@@ -55,14 +75,20 @@ class bPair{ //holds all relevant info about quartets on a pair of bipartitions
 
 void printQuartets(vector<quartet>);
 vector<quartet> generateQuartetsFromBipart(int);
+set<quartet> generateQuartetsFromBipartSet(int);
 vector<quartet> generateQuartetsFromBipart(vector<bool>);
+void insertQuartetsFromBipart(int b, set<quartet> &setty);
 
 vector<quartet> generateQuartetsFromOnesZeros(vector<int> ones, vector<int> zeros);
+set<quartet> generateQuartetsFromOnesZerosSet(vector<int> ones, vector<int> zeros);
+
 
 vector<iPair> nChooseTwo(vector<int> in);
 vector<iPair> matchTaxa(vector<int> a, vector<int> b);
 
+
 void fillDifferenceVectors(boost::dynamic_bitset<> v1, boost::dynamic_bitset<> v2, vector<int> &sameOnes, vector<int> &sameZeros, vector<int> &uniqueOnesA, vector<int> &uniqueOnesB, vector<int> &uniqueZerosA, vector<int> &uniqueZerosB, vector<int> &OnesA, vector<int> &OnesB, vector<int> &ZerosA, vector<int> &ZerosB);
+
 void addMatchedPairs(vector<iPair> p1, vector<iPair> p2, vector<quartet> &retVec);
 vector<quartet> generateDifferentQuartets(int bipartA, int bipartB);
 vector<quartet> generateSameQuartets(int bipartA, int bipartB);
@@ -77,8 +103,14 @@ unsigned int getNumSameQuartets(int a, int b);
 unsigned int getNumSameQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b);
 unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b);
 
+set<quartet> generateDifferentQuartetsFromTrees(int a, int b);
+set<quartet> generateSameQuartetsFromTrees(int a, int b);
+set<quartet> generateQuartetsFromTree(int t);
 
-
+void bipartAnalysis();
+void quartetAnalysis(int, int);
+void printSet(set<quartet> s);
 void TESTSTUFF();
+void testOperatorsForQuartets();
 
 #endif

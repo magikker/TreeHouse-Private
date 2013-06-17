@@ -19,6 +19,8 @@ using namespace std;
 
 void generate_random_bt();
 
+std::vector<unsigned int> biparts_in_tree(unsigned int);
+
 std::vector<string> distinguishing_taxa(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2);
 
 std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2);

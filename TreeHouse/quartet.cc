@@ -2,6 +2,7 @@
 
 using namespace std;
 
+set<int> trivial_bipartitions;
 
 quartet::quartet(int a0, int a1, int b0, int b1){
 
@@ -19,15 +20,88 @@ quartet::quartet(){
 }
 
 quartet::quartet(iPair a, iPair b){
-	A = a;
-	B = b;
+	//sort both quartets so they can be more easily compared
+	int temp;
+	if(a.second < a.first){
+		temp = a.first;
+		a.first = a.second;
+		a.second = a.first;
+	}
+	if(b.second < b.first){
+		temp = b.first;
+		b.first = b.second;
+		b.second = b.first;
+	}
+	if(b.first < a.first || (b.first==a.first && b.second<a.second)){
+		A = b;
+		B = a;
+	}
+	else{
+		A = a;
+		B = b;
 	}
 
-iPair quartet::getA(){
+}
+
+bool operator<(const quartet& one, const quartet& two){
+  if(one.getA() < two.getA()){
+	return true;
+	}
+  else{
+	return(one.getA()==two.getA() && one.getB()<two.getB());
+	}
+
+}
+
+bool operator<=(const quartet& one, const quartet& two){
+  if(one.getA() < two.getA()){
+	return true;
+	}
+  else{
+	return(one.getA()==two.getA() && one.getB()<=two.getB());
+	}
+
+}
+
+bool operator>(const quartet& one, const quartet& two){
+  return !(one<=two);
+}
+
+bool operator>=(const quartet& one, const quartet& two){
+  return !(one<two);
+}
+
+bool operator==(const quartet& one, const quartet& two){
+  return(one.getA()==two.getA() && one.getB()==two.getB());
+}
+
+/*
+void operator=(quartet& one, const quartet& two) const{
+ one.setA(two.getA());
+ one.setB(two.getB());
+}*/
+
+/*
+bool quartet::operator<(const quartet& other) const{
+  if(A < other.getA()){
+	return true;
+	}
+  else{
+	return(A==other.getA() && B<other.getB());
+	}
+}
+
+bool quartet::operator==(const quartet& other){
+  return(A==other.getA() && B==other.getB());
+}
+*/
+
+
+iPair quartet::getA() const{
  return A;
 }
 
-iPair quartet::getB(){
+iPair quartet::getB() const{
  return B;
 }
 
@@ -39,7 +113,7 @@ void quartet::setB(int x, int y){
   B = make_pair(x, y);
 }
 
-void quartet::print(){
+void quartet::print() const{
  int vals[4];
  vals[0] = A.first; vals[1] = A.second;
  vals[2] = B.first; vals[3] = B.second;
@@ -77,6 +151,8 @@ calculate();
 void bPair::invertB(){
   B.flip();
   cout << "bPair: B inverted\n";
+
+
 }
 
 boost::dynamic_bitset<> bPair::getA(){
@@ -107,8 +183,8 @@ void bPair::calculate(){
 	}
   unsigned int similarQuartetsWithoutInverting = getNumQuartets(sameOnes.size(), sameZeros.size());
   unsigned int similarQuartetsInverting = getNumQuartets(OnesA.size()-sameOnes.size(), ZerosA.size()- sameZeros.size());
-  cout << "bPair calculate: without inverting, number of similar quartets is " << similarQuartetsWithoutInverting << endl;
-  cout << "IF we invert, number of similar quartets is " << similarQuartetsInverting << endl;
+  //cout << "bPair calculate: without inverting, number of similar quartets is " << similarQuartetsWithoutInverting << endl;
+ // cout << "IF we invert, number of similar quartets is " << similarQuartetsInverting << endl;
 
   if(similarQuartetsInverting > similarQuartetsWithoutInverting){
    //if we get more similar vectors, invertB and recalculate everything
@@ -141,25 +217,7 @@ void bPair::calculate(){
 	  temp = OnesB;
 	  OnesB = ZerosB;
 	  ZerosB = temp;
-	 
-
-/*
-		//NEED TO CLEAR VECTORS BEFORE THIS LOOP
-	  for(unsigned int i = 0; i < A.size(); i++){
-		if(A.at(i)==1){
-			OnesA.push_back(i);
-			if(B.at(i)==1) {sameOnes.push_back(i); OnesB.push_back(i);}
-			else{uniqueOnesA.push_back(i); uniqueZerosB.push_back(i); ZerosB.push_back(i);}
-			}
-		else{//A[i]==0
-			ZerosA.push_back(i);
-			if(B.at(i)==0){sameZeros.push_back(i); ZerosB.push_back(i);}
-			else{uniqueZerosA.push_back(i); uniqueOnesB.push_back(i); OnesB.push_back(i);}
-			}
-		}
-*/
 	}	
-
 }
 
 void bPair::printMetaData(){
@@ -185,9 +243,6 @@ void bPair::printMetaData(){
 	printVectorCompact(ZerosB);
 }
 
-
-
-
 vector<quartet> generateQuartetsFromBipart(vector<bool> b){
   vector<int> ones, zeros; 
   for(unsigned int i = 0; i < b.size(); i++){
@@ -200,6 +255,7 @@ vector<quartet> generateQuartetsFromBipart(vector<bool> b){
 	}
   return generateQuartetsFromOnesZeros(ones, zeros);
 }
+
 
 //fillDifferenceVectors was used for generateDifferentQuartets, but has been
 //	replaced by the bPair class
@@ -233,9 +289,9 @@ void addMatchedPairs(vector<iPair> p1, vector<iPair> p2, vector<quartet> &retVec
 }
 
 vector<quartet> generateDifferentQuartets(int bipartA, int bipartB){
-vector<quartet> retVec;
+  vector<quartet> retVec;
 
-//for algorithm description, see comment at the bottom of the file
+  //for algorithm description, see comment at the bottom of the file
 
 
  boost::dynamic_bitset<> A = biparttable.non_trunc_bitstring(bipartA);
@@ -246,7 +302,7 @@ vector<quartet> retVec;
  bPair b = bPair(A, B);
 
 
-//ALL QUARTETS IN VECTOR A BUT NOT IN VECTOR B
+  //ALL QUARTETS IN VECTOR A BUT NOT IN VECTOR B
   //generate all iPairs of nChoose2 from uniqueOnesA, then match each uniqueOnesA with each sameOnes 
   //pairsA is all of the iPairs that can be generated from 1s in A that AREN'T shared
  
@@ -256,13 +312,13 @@ vector<quartet> retVec;
   //now, combine pairsOneA with all pairs of zeros from A
   vector<iPair> pairs0A = nChooseTwo(b.ZerosA);
   addMatchedPairs(uniquePairs1A, pairs0A, retVec);
-//now we need to match all permutations of shared 1s with (unique 0s + matched(unique0s, shared0s)
+  //now we need to match all permutations of shared 1s with (unique 0s + matched(unique0s, shared0s)
   vector<iPair> uniquePairs0A = nChooseTwo(b.uniqueZerosA);
   vector<iPair> matchedZerosA = matchTaxa(b.uniqueZerosA, b.sameZeros); 
   uniquePairs0A.insert(uniquePairs0A.end(), matchedZerosA.begin(), matchedZerosA.end());
   addMatchedPairs(nChooseTwo(b.sameOnes), uniquePairs0A, retVec);
 
-//ALL QUARTETS IN VECTOR B BUT NOT IN VECTOR A
+  //ALL QUARTETS IN VECTOR B BUT NOT IN VECTOR A
 
  vector<iPair> uniquePairs1B = nChooseTwo(b.uniqueOnesB);
   vector<iPair> matchedOnesB = matchTaxa(b.uniqueOnesB, b.sameOnes);
@@ -270,7 +326,7 @@ vector<quartet> retVec;
   //now, combine pairsOneB with all pairs of zeros from B
   vector<iPair> pairs0B = nChooseTwo(b.ZerosB);
   addMatchedPairs(uniquePairs1B, pairs0B, retVec);
-//now we need to match all permutations of shared 1s with (unique 0s + matched(unique0s, shared0s)
+  //now we need to match all permutations of shared 1s with (unique 0s + matched(unique0s, shared0s)
   vector<iPair> uniquePairs0B = nChooseTwo(b.uniqueZerosB);
   vector<iPair> matchedZerosB = matchTaxa(b.uniqueZerosB, b.sameZeros); 
   uniquePairs0B.insert(uniquePairs0B.end(), matchedZerosB.begin(), matchedZerosB.end());
@@ -294,6 +350,7 @@ vector<iPair> nChooseTwo(vector<int> in){
 		ret.push_back(make_pair(*i, *j));	
 		}
 	}
+  return ret;
 }
 
 vector<iPair> matchTaxa(vector<int> A, vector<int> B){
@@ -305,7 +362,7 @@ vector<iPair> matchTaxa(vector<int> A, vector<int> B){
 		ret.push_back(make_pair(*i, *j));	
 		}
 	}
-return ret;
+  return ret;
 }
 
 vector<quartet> generateSameQuartets(int bipartA, int bipartB){
@@ -330,6 +387,30 @@ vector<quartet> generateSameQuartets(int bipartA, int bipartB){
  }
  
  return generateQuartetsFromOnesZeros(ones, zeros);
+}
+
+
+set<quartet> generateQuartetsFromBipartSet(int b){
+  vector<int> ones;
+  vector<int> zeros;
+  for(int i = 0; i < biparttable.BipartitionTable.at(b).bitstring_size(); i++){
+	if(biparttable.BipartitionTable.at(b).get_bit(i)==false){
+		zeros.push_back(i);
+		}
+	else{
+		ones.push_back(i);
+		}
+	}
+  if(biparttable.BipartitionTable.at(b).bitstring_size() > ::NUM_TAXA){ //make sure the next for loop terminates
+	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
+   	}
+  else{
+  	for(int i = biparttable.BipartitionTable.at(b).bitstring_size(); i < ::NUM_TAXA; i++){
+		zeros.push_back(i);
+		}
+	}
+//now we have ones and zeros, pass it to generateQuartetsFromOnesZeros
+  return generateQuartetsFromOnesZerosSet(ones, zeros);
 }
 
 vector<quartet> generateQuartetsFromBipart(int b){
@@ -358,6 +439,83 @@ vector<quartet> generateQuartetsFromBipart(int b){
 //now we have ones and zeros, pass it to generateQuartetsFromOnesZeros
   return generateQuartetsFromOnesZeros(ones, zeros);
 }
+
+
+set<quartet> generateQuartetsFromOnesZerosSet(vector<int> ones, vector<int> zeros){
+        set<quartet> ret;
+	if(ones.size() < 2 || zeros.size() < 2)
+	{
+	return ret;
+	}
+	//first, store all of the pairs from zeros in a vector so we don't have too many
+	//	nested loops
+	  vector<iPair> zerosPairs;
+	  for(int i = 0; i < zeros.size()-1; i++){
+		for(int j = i+1; j < zeros.size(); j++){	
+			zerosPairs.push_back(make_pair(zeros.at(i), zeros.at(j)));
+			}
+	 	}
+
+	//now we have to choose 2 from each of these vectors. We know both are of at least size 2
+	  for(int i = 0; i < ones.size()-1; i++){
+		for(int j = i+1; j < ones.size(); j++){
+			iPair p = make_pair(ones.at(i), ones.at(j));
+			for(vector<iPair>::iterator k = zerosPairs.begin(); k!= zerosPairs.end(); k++){
+				//add a quartet of both pairs
+				ret.insert(quartet(p, *k));
+				}
+			}
+		}
+	return ret;
+}
+
+void insertQuartetsFromBipart(int b, set<quartet> &setty){
+  vector<int> ones;
+  vector<int> zeros;
+  for(int i = 0; i < biparttable.BipartitionTable.at(b).bitstring_size(); i++){
+	if(biparttable.BipartitionTable.at(b).get_bit(i)==false){
+		zeros.push_back(i);
+		}
+	else{
+		ones.push_back(i);
+		}
+	}
+  if(biparttable.BipartitionTable.at(b).bitstring_size() > ::NUM_TAXA){ //make sure the next for loop terminates
+	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
+   	}
+  else{
+  	for(int i = biparttable.BipartitionTable.at(b).bitstring_size(); i < ::NUM_TAXA; i++){
+		zeros.push_back(i);
+		}
+	}
+	if(ones.size() < 2 || zeros.size() < 2)
+	{
+	return;
+	}
+
+	//first, store all of the pairs from zeros in a vector so we don't have too many
+	//	nested loops
+	  vector<iPair> zerosPairs;
+	  for(int i = 0; i < zeros.size()-1; i++){
+		for(int j = i+1; j < zeros.size(); j++){	
+			zerosPairs.push_back(make_pair(zeros.at(i), zeros.at(j)));
+			}
+	 	}
+
+	//now we have to choose 2 from each of these vectors. We know both are of at least size 2
+	  for(int i = 0; i < ones.size()-1; i++){
+		for(int j = i+1; j < ones.size(); j++){
+			iPair p = make_pair(ones.at(i), ones.at(j));
+			for(vector<iPair>::iterator k = zerosPairs.begin(); k!= zerosPairs.end(); k++){
+				setty.insert(quartet(p, *k));
+				}
+			}
+		}
+}
+
+
+
+
 
 
 vector<quartet> generateQuartetsFromOnesZeros(vector<int> ones, vector<int> zeros){
@@ -447,6 +605,7 @@ unsigned int getNumQuartets(int b){
   int nOnes = biparttable.number_of_ones(b);
   int nZeros = biparttable.number_of_zeros(b) + ::NUM_TAXA - biparttable.bitstring_size(b);
   //quartets = (nOnes choose 2) * (nZeros choose 2) 
+//cout << "num ones is: " << nOnes << ", number of 0s is " << nZeros << endl;
   return(getNumQuartets(nOnes,nZeros));
 
 }
@@ -484,24 +643,156 @@ unsigned int getNumQuartets(boost::dynamic_bitset<> bipart){
 
 
 unsigned int getNumQuartets(int nOnes, int nZeros){
-  return (  (factorial(nOnes) / (2 * factorial(nOnes-2))) * (factorial(nZeros) / (2 * factorial(nZeros-2))) );
+  //NOTE- nOnes choose 2 simplifies to (nOnes * nOnes-1) / 2
+  return (((nOnes * (nOnes-1)) / 2) * ((nZeros * (nZeros-1)) / 2));
+  //return (  (factorial(nOnes) / (2 * factorial(nOnes-2))) * (factorial(nZeros) / (2 * factorial(nZeros-2))) );
+}
+
+set<quartet> generateQuartetsFromTree(int t){ //takes an int index of the tree from biparttable
+  vector<unsigned int> bipartsInTree = biparts_in_tree(t); 
+  set<quartet> retSet;
+  for(vector<unsigned int>::iterator it = bipartsInTree.begin(); it!=bipartsInTree.end(); it++){
+   	insertQuartetsFromBipart(*it, retSet);
+	}
+return retSet;
+}
+
+//NOTE- for one directional set different, use set_difference
+set<quartet> generateDifferentQuartetsFromTrees(int a, int b){
+ set<quartet> qa = generateQuartetsFromTree(a);
+ set<quartet> qb = generateQuartetsFromTree(b);
+ set<quartet> result;
+ set_symmetric_difference(qa.begin(), qa.end(), qb.begin(), qb.end(), inserter(result, result.end()));
+ return result;
 }
 
 
+set<quartet> generateSameQuartetsFromTrees(int a, int b){
+ set<quartet> qa = generateQuartetsFromTree(a);
+ set<quartet> qb = generateQuartetsFromTree(b);
+ set<quartet> result;
+ set_intersection(qa.begin(), qa.end(), qb.begin(), qb.end(), inserter(result, result.end()));
+ return result;
+}
 
+
+void printSet(set<quartet> s){
+	for(set<quartet>::iterator it = s.begin(); it!=s.end(); it++){
+		cout << distance(s.begin(), it)+1 << ". ";		
+		(*it).print();
+		}
+	}
+
+void testOperatorsForQuartets(){
+/*
+  iPair a(4,8);
+  iPair b(4,7);
+  iPair d(3,20);
+  iPair e(4,9);
+
+  quartet C(b, a);
+  quartet D(b, e);
+ 
+  quartet A(a,b);
+  quartet B(a,d);
+  cout << "is A less than B? " << (A < B) << endl;
+  cout << "is C less than D? " << (C < D) << endl;
+*/
+ /* set<quartet> Qset;
+  set<quartet> result;
+  Qset.insert(A);
+  Qset.insert(B);
+  set<quartet> Qset2; 
+  Qset2.insert(C);
+  Qset2.insert(D);
+  Qset.insert(Qset2.begin(), Qset2.end());
+ // merge(Qset.begin(), Qset.end(), Qset2.begin(), Qset2.end(), result.begin());
+*/ 
+// set<quartet> Qset = generateQuartetsFromTree(0);
+ //printSet(Qset);
+
+}
+
+void bipartAnalysis(){ //dumps info about quartets in a bipartition
+//the goal is to generate the number of quartets implied by each bipartition, and the similarity/difference matrix with each other
+cout << "DIFFERENT/SIMILAR\n";
+cout << "# qts:";
+for(int i = 0; i < biparttable.BipartitionTable.size(); i++)
+{
+if(trivial_bipartitions.find(i)==trivial_bipartitions.end()) {cout << setw(8) << i;}
+
+}
+
+cout << endl;
+
+for(int i = -1; ++i < biparttable.BipartitionTable.size() && trivial_bipartitions.find(i)==trivial_bipartitions.end();){
+	cout << setw(6) << getNumQuartets(i);
+	for(int j = 0; j < biparttable.BipartitionTable.size(); j++){	  
+		string outty = "";
+		stringstream s;
+		s << getNumDifferentQuartets(i, j) << "/" << getNumSameQuartets(i,j);
+		outty = s.str();
+		cout << setw(8) << outty;
+
+		}
+cout << endl;
+	}
+
+
+}
+
+
+void quartetAnalysis(int tree1, int tree2){ //info dump of quartet stuff from both trees
+ set<quartet> q;
+ q = generateQuartetsFromTree(tree1);
+ cout << "Quartets from Tree : " << tree1 << endl;
+ printSet(q);
+
+ q = generateQuartetsFromTree(tree2);
+ cout << "Quartets from Tree : " << tree2 << endl;
+ printSet(q);
+ q = generateSameQuartetsFromTrees(tree1, tree2);
+ cout << "Same quartets across trees 0 and 1: \n";
+ printSet(q);
+  q = generateDifferentQuartetsFromTrees(tree1, tree2);
+ cout << "different quartets across trees 0 and 1: \n";
+ printSet(q);
+ 
+ cout << "biparts in tree " << tree1 << ":\n";
+ printVector(biparts_in_tree(tree1));
+
+ cout << "biparts in tree " << tree2 << ":\n";
+ printVector(biparts_in_tree(tree2));
+
+}
+
+//calculate trivial bipartitions
+
+void calculateTrivialBipartitions(){
+	for(int i = 0; i < biparttable.BipartitionTable.size(); i++){
+	  if(biparttable.number_of_ones(i)<2 || ((biparttable.number_of_zeros(i)+::NUM_TAXA-biparttable.BipartitionTable.at(i).bitstring_size()) < 2)){
+		trivial_bipartitions.insert(i);
+		}
+	}
+}
 
 void TESTSTUFF(){
-  /*
-  char a[] = {0,0,1,1};
-  char b[] = {1,1,0,0};
 
-  vector<char> A,B;
-  A.assign(a, a+4); 
-  B.assign(b, b+4);
+/*
+ calculateTrivialBipartitions();
+// bipartAnalysis();
+  quartetAnalysis(2, 4);
 
-  bPair tester = bPair(A,B);
+  testOperatorsForQuartets();  
+
+  boost::dynamic_bitset<> a(4);
+  boost::dynamic_bitset<> b(4);
+  a.push_back(0);   a.push_back(0);   a.push_back(1);   a.push_back(1); 
+  b.push_back(1);   b.push_back(1);   b.push_back(0);   b.push_back(0); 
+
+  bPair tester = bPair(a,b);
   tester.printMetaData();
-  */
+  
 
 
 cout << "QUARTETS FROM BIPARTITION 7\n";
@@ -532,7 +823,7 @@ cout << "about to get same quartets between 7 and 12" << endl;
 printQuartets(generateSameQuartets(7, 12));
 cout << "about to get different quartets between 7 and 12" << endl;
 printQuartets(generateDifferentQuartets(7, 12));
-
+*/
 
 }
 

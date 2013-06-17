@@ -8,6 +8,7 @@
 #include <iostream>
 #include "global.h"
 #include "Bipartition.h"
+
 using namespace std;
 
 class BipartitionTable {
