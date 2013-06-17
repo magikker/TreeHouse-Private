@@ -143,6 +143,33 @@ int num_taxa_in_tree(int treeindex){
 	std::vector<unsigned int>::const_reverse_iterator trees_crend(int bitstringindex) const{
 		return BipartitionTable[bitstringindex].trees_crend();
 	}
+	
+	std::vector<float>::iterator branchlengths_begin(int bitstringindex) { 
+		return BipartitionTable[bitstringindex].branchlengths_begin(); 
+	}
+	std::vector<float>::iterator branchlengths_end(int bitstringindex) { 
+		return BipartitionTable[bitstringindex].branchlengths_end(); 
+	}
+	std::vector<float>::reverse_iterator branchlengths_rbegin(int bitstringindex) { 
+		return BipartitionTable[bitstringindex].branchlengths_rbegin(); 
+	}
+	std::vector<float>::reverse_iterator branchlengths_rend(int bitstringindex) { 
+		return BipartitionTable[bitstringindex].branchlengths_rend(); 
+	}
+	std::vector<float>::const_iterator branchlengths_cbegin(int bitstringindex) const{
+		return BipartitionTable[bitstringindex].branchlengths_cbegin();
+	}
+	std::vector<float>::const_iterator branchlengths_cend(int bitstringindex) const{
+		return BipartitionTable[bitstringindex].branchlengths_cend();
+	}
+	std::vector<float>::const_reverse_iterator branchlengths_crbegin(int bitstringindex) const{
+		return BipartitionTable[bitstringindex].branchlengths_crbegin();
+	}
+	std::vector<float>::const_reverse_iterator branchlengths_crend(int bitstringindex) const{
+		return BipartitionTable[bitstringindex].branchlengths_crend();
+	}	
+	
+	
 
 	unsigned int bitstring_size(int bitstringindex){
 		return BipartitionTable[bitstringindex].bitstring_size();
@@ -151,6 +178,7 @@ int num_taxa_in_tree(int treeindex){
 	bool get_bit(int bitstringindex, int bitindex){
 		return BipartitionTable[bitstringindex].get_bit(bitindex);
 	}
+	
 	
 	bool* get_boolarray (int bitstringindex){
 		bool *boolarray = new bool[bitstring_size(bitstringindex)];
@@ -163,9 +191,15 @@ int num_taxa_in_tree(int treeindex){
 	float get_ave_branchlength(int bitstringindex){
 		return BipartitionTable[bitstringindex].get_ave_branchlength();
 	}
+	
 	vector<float> get_branchlengths(int index){
 		return BipartitionTable[index].get_branchlengths();
 	}
+
+	vector<unsigned int> get_ones_indices(int index){
+		return BipartitionTable[index].get_ones_indices();
+	}
+	
 	//I need to return some specific stuff for the compute_tree function
 	vector<bool*> get_compute_tree_bipartitions(){
 		vector<bool*> bipartitions;
