@@ -27,6 +27,8 @@ std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsign
 
 vector<float> silhouette(vector < set < unsigned int >> inputclusts);
 
+vector< set < unsigned int > > agglo_clust(set <unsigned int > inputtrees);
+
 void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< bool * > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes);
 
 unsigned int compute_threshold(unsigned int numberofTrees, float threshold);

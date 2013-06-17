@@ -940,19 +940,30 @@ pqlsymbol * u_unique_biparts(vector<pqlsymbol *> arglist)
 pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
 	pqlsymbol * result = new pqlsymbol();
 
-//	if(arglist.size() !=2){
-//		cout << "Error: silhouette expects one arguement of type vector < vector < ints > >" << endl;
-//	}
-//	else if(!arglist[0]->is_vect()){
-//		cout << "Error: unique_biparts takes an int vect as first input, Found " << get_arg_types(arglist) << endl;
-//	}
-	//else if(!arglist[1]->is_vect()){
-	//	cout << "Error: unique biparts takes an int vect as second input, Found " << get_arg_types(arglist) << endl;
-	//}
-//	else{
-	result = new pqlsymbol(silhouette(arglist[0]->get_treeset_vect()));	//}
+	if(arglist.size() == 1 && arglist[0]->is_vect()){
+		result = new pqlsymbol(silhouette(arglist[0]->get_treeset_vect()));
+	}
+	else{
+		cout << "silhouette expect a single treeset vector as input " << "Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}	
 	return result;
+
 }
+
+pqlsymbol * u_agglo_clust(vector<pqlsymbol * > arglist){
+	pqlsymbol * result = new pqlsymbol();
+	if (arglist.size() == 1 && arglist[0]->is_treeset()){
+		result = new pqlsymbol(agglo_clust(arglist[0]->get_treeset()));
+	}
+	else{
+		cout << "agglo_clust expects a single treeset as input " << " Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+
+	return result;
+
+	}		
 
 // takes an int. Returns the ints which share the same topology. 
 pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist) 
@@ -1723,6 +1734,7 @@ void init_the_functs()
 	add_function("unique", &u_unique, "Returns the a subset of trees from a given treeset each with a unique topology.");
 	add_function("unique_biparts", &u_unique_biparts, "Returns the number of all unique bipartitions given a treeset");
 	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees");
+	add_function("agglo_clust", &u_agglo_clust, "Returns the agglomerative clustering of the given input set of trees.");
 	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
 		//consensus
 		add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.");
