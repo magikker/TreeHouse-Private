@@ -830,6 +830,8 @@ void load_data_from_trz_file(string file){
     bipart_loc++;
     counter++;
   }
+  //now that all the trees are loaded, calculate  all trivial bipartitions
+  biparttable.calculate_trivial_bipartitions();
   cout << "loaded all the trees" << endl;
   free(hold_integrals);
   free(found);
