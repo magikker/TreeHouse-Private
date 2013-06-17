@@ -2,7 +2,7 @@
 
 using namespace std;
 
-set<int> trivial_bipartitions;
+
 
 quartet::quartet(int a0, int a1, int b0, int b1){
 
@@ -675,6 +675,27 @@ set<quartet> generateSameQuartetsFromTrees(int a, int b){
  return result;
 }
 
+unsigned int quartet_distance(int tree1, int tree2){
+//first, get set of non-trivial bipartitions which are shared by the trees
+
+  vector<unsigned int> biparts1 = ::inverted_index.at(tree1);
+  vector<unsigned int> biparts2 = ::inverted_index.at(tree2);
+  
+ 
+ set<unsigned int> b1(biparts1.begin(), biparts1.end());
+ set<unsigned int> b2(biparts2.begin(), biparts2.end()); 
+ //copy(biparts1.begin(), biparts1.end(), inserter(b1, b1.end()));
+  //copy(biparts2.begin(), biparts2.end(), inserter(b2, b2.end()));
+
+  cout << "printing biparts 1";
+  for(set<unsigned int>::iterator it = b1.begin(); it!=b1.end(); it++){
+	cout << *it << "   ";
+	}cout << endl;
+
+
+  return 0;
+}
+
 
 void printSet(set<quartet> s){
 	for(set<quartet>::iterator it = s.begin(); it!=s.end(); it++){
@@ -719,13 +740,13 @@ cout << "DIFFERENT/SIMILAR\n";
 cout << "# qts:";
 for(int i = 0; i < biparttable.BipartitionTable.size(); i++)
 {
-if(trivial_bipartitions.find(i)==trivial_bipartitions.end()) {cout << setw(8) << i;}
+if(biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.end()) {cout << setw(8) << i;}
 
 }
 
 cout << endl;
 
-for(int i = -1; ++i < biparttable.BipartitionTable.size() && trivial_bipartitions.find(i)==trivial_bipartitions.end();){
+for(int i = -1; ++i < biparttable.BipartitionTable.size() && biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.end();){
 	cout << setw(6) << getNumQuartets(i);
 	for(int j = 0; j < biparttable.BipartitionTable.size(); j++){	  
 		string outty = "";
@@ -766,18 +787,10 @@ void quartetAnalysis(int tree1, int tree2){ //info dump of quartet stuff from bo
 
 }
 
-//calculate trivial bipartitions
 
-void calculateTrivialBipartitions(){
-	for(int i = 0; i < biparttable.BipartitionTable.size(); i++){
-	  if(biparttable.number_of_ones(i)<2 || ((biparttable.number_of_zeros(i)+::NUM_TAXA-biparttable.BipartitionTable.at(i).bitstring_size()) < 2)){
-		trivial_bipartitions.insert(i);
-		}
-	}
-}
 
 void TESTSTUFF(){
-
+quartet_distance(0,1);
 /*
  calculateTrivialBipartitions();
 // bipartAnalysis();

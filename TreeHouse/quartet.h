@@ -14,7 +14,6 @@
 #include <sstream>
 using namespace std;
 
-extern set<int> trivial_bipartitions;
 
 void calculateTrivialBipartitions();
 
@@ -106,6 +105,9 @@ unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_b
 set<quartet> generateDifferentQuartetsFromTrees(int a, int b);
 set<quartet> generateSameQuartetsFromTrees(int a, int b);
 set<quartet> generateQuartetsFromTree(int t);
+
+unsigned int quartet_distance(int tree1, int tree2);
+
 
 void bipartAnalysis();
 void quartetAnalysis(int, int);
