@@ -104,23 +104,11 @@ bool Bipartition::in_bitstring(int len){
 }
 
 int Bipartition::number_of_ones(){
-	int count = 0;
-	for(unsigned int i = 0; i < bitstring.size(); i ++ ){
-		if (bitstring[i] == true){
-			count += 1;
-		}
-	}
-	return count;
+	return bitstring.count();
 }
 
 int Bipartition::number_of_zeros(){
-	int count = 0;
-	for(unsigned int i = 0; i < bitstring.size(); i ++ ){
-		if (bitstring[i] == false){
-			count += 1;
-		}
-	}
-	return count;
+	return bitstring.size() - bitstring.count();
 }
 
 bool Bipartition::is_zero(int position){
@@ -134,17 +122,21 @@ bool Bipartition::is_zero(int position){
 
 bool Bipartition::same_bitstring_value(int position1, int position2){
 	bool value;
-	if(in_bitstring(position1))
-		value = bitstring[position1];
-	else
-		value = false;
 	
-	if(in_bitstring(position2))
-		return value == bitstring[position2];
-	else
-		return value == false;
-	cout << "shouldn't get here in function::same_bitstring_value" << endl;
-	return false;
+	if(is_one(position1)){
+		if(is_one(position2)){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	else{
+		if(is_one(position2)){
+			return false;
+		}
+	}
+	return true;
 }
 
 bool Bipartition::same_bitstring_value(vector<int> positions){

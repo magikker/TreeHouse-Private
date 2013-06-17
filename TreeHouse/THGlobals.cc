@@ -645,7 +645,6 @@ bool is_compat(int bitstringindex1, int bitstringindex2) {
   return (x1ny1 || x1ny2 || x2ny1 || x2ny2);
 }
 
-
 bool is_compat(boost::dynamic_bitset<>  bitstring1, int bitstringindex2) {
   return is_compat(bitstring1, biparttable.non_trunc_bitstring(bitstringindex2)); 
 }
