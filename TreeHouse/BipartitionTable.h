@@ -8,6 +8,7 @@
 #include <iostream>
 #include "global.h"
 #include "Bipartition.h"
+
 using namespace std;
 
 class BipartitionTable {
@@ -16,7 +17,8 @@ public:
 
 	vector<Bipartition> BipartitionTable;
 	LabelMap lm;
-	
+
+	set<unsigned int> trivial_bipartitions; //keep track of which bipartitions are trivial
 	//vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
 	vector< boost::dynamic_bitset<> > taxa_in_trees; // which taxa are in which trees					NEED
 	
@@ -392,7 +394,14 @@ int num_taxa_in_tree(int treeindex){
 	    cout << "]";
 	  }
 	}
-	
+
+	void calculate_trivial_bipartitions(){
+	for(int i = 0; i < BipartitionTable.size(); i++){
+	  if(BipartitionTable.at(i).number_of_ones()<2 || ((BipartitionTable.at(i).number_of_zeros()+::NUM_TAXA-BipartitionTable.at(i).bitstring_size()) < 2)){
+		trivial_bipartitions.insert(i);
+		}
+	}
+}
 	
 //	void homogenize(){	
 //	}
