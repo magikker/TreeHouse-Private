@@ -281,7 +281,7 @@ vector<float> silhouette (vector< set <unsigned int>  > inputclusts){
 
 	//prints the clusters and their silhouette widths (by cluster)
 	for(unsigned int i = 0; i < cwidth.size(); i++){//for each cluster width
-		cout <<"Cluster: " << i << "has a silhouette of " << cwidth[i] << endl;
+		cout <<"Cluster: " << i << " has a silhouette of " << cwidth[i] << endl;
 	}
 	
 	//prints the tree and their silhouette widths (by tree)
@@ -385,16 +385,6 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees){
 	//Computes the distances
 	distances = compute_distances(tree_biparts);
 
-	//Prints out the clusters map
-	typedef std::map< unsigned int, set < unsigned int >>::iterator it_map;
-	for(it_map iterator = clusters.begin(); iterator != clusters.end(); iterator++){
-		cout << "Cluster : " << iterator->first << " Trees : " ;
-		for(std::set<unsigned int>::iterator  pos = iterator->second.begin(); pos != iterator->second.end(); ++pos){
-			cout << *pos << " " ;
-		}
-		cout << endl;
-	}
-
 	//Initialize neighbor_stack with an arbitrary element of remaining (the first one here) ((100 is arbitrary, 
 	//it's meant to represent a very large distance, as there is no parent to the first element.))
 	neighbor_stack.push(std::make_pair(*remaining.begin(), 100));
@@ -437,8 +427,10 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees){
 		}
 	}
 
+
+	typedef std::map < unsigned int, set <unsigned int> >::iterator it_map;
 	for(it_map iterator = clusters.begin(); iterator != clusters.end(); iterator++){//for each cluster
-		ret_clusters.push_back(iterator->second);
+		ret_clusters.push_back(iterator->second); //add to the return set
 	}
 
 	//Prints out the clusters map
