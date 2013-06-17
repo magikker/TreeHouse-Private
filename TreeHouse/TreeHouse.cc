@@ -533,7 +533,7 @@ void load_data_from_trz_file(string file){
 		boost::dynamic_bitset<> TNT(::NUM_TAXA);
 		biparttable.taxa_in_trees.push_back(TNT);
 	}
-	cout << "table created but not filled. " << endl;
+	//cout << "table created but not filled. " << endl;
 	
 	//read in number of unique trees
 	getline(fin, str);
@@ -843,20 +843,6 @@ void load_data_from_trz_file(string file){
   }
   assert(::biparttable.lm.size()!=0); 
  
-	//GRB what is going on here... no really?
-	// this whole thing is just to initialize taxa_in_trees
-	/*
-	for (unsigned int tree = 0; tree < ::NUM_TREES; tree++){
-	  vector<bool *> tree_bipartitions;
-	  vector<unsigned int> tree_bs_sizes;
-	  vector<float> tree_branches;
-	  get_tree_data(tree, tree_bipartitions, tree_bs_sizes, tree_branches);
-		for (unsigned int bip = 0; bip < tree_bipartitions.size(); bip++){
-			differentLengthsOr(tree_bipartitions[bip], tree_bs_sizes[bip], ::biparttable.taxa_in_trees[tree]);
-		}
-	  cout << "is this where the memory is going?" << tree << endl;
-	}
-	*/
     for (unsigned int i = 0; i < ::NUM_TREES; i++){
 		for (unsigned int j = 0; j < ::tree_dups[i].size(); j++){
 			if (::tree_dups[::tree_dups[i][j]].size() == 0){

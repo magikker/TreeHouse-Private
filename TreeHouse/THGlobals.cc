@@ -19,9 +19,6 @@ using namespace std;
 //vector<int> shuffledTaxa;
 bool DEBUGMODE;
 
-//bool hetero; // = 0; // If the trees are taxa heterogenious
-//unsigned num_trees; // = 0; // number of trees
-//unsigned num_taxa; //  = 0; // number of taxa
 
 BipartitionTable biparttable;
 
