@@ -193,10 +193,6 @@ int num_taxa_in_tree(int treeindex){
 		return avebranchlens;
 	}
 	
-
-	unsigned int num_trees(int bitstringindex){
-		return BipartitionTable[bitstringindex].num_trees();
-	}
 	vector< unsigned int> get_trees(int bitstringindex){
 		return BipartitionTable[bitstringindex].get_trees();
 	}

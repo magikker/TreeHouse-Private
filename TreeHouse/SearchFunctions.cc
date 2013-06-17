@@ -92,7 +92,7 @@ set<unsigned int> clade_size_search(vector<int> required, int size)
 		//cout << "Good Bipartition: " << B.goodBipartitions[i] << endl;
 		//cout << "Search table is: "; for(int q = 0; q < biparttable.searchtable[B.goodBipartitions[i]].size(); q++) { cout << biparttable.searchtable[B.goodBipartitions[i]][q];} cout << endl;
 		
-		for(int j = 0; j < biparttable.num_trees(B.goodBipartitions[i]); j++){ //for each tree in the searchtable
+		for(int j = 0; j < biparttable.trees_size(B.goodBipartitions[i]); j++){ //for each tree in the searchtable
 			if(B.heteroMode.at(i)){ //this means the clade we found contained all 0s and the data set is hetero
 				//we need to find the real bSize for each tree.
 				int bSize = B.size.at(i); //the size of the clade for this bipartition. 
@@ -190,7 +190,7 @@ set<unsigned int> smallest_clade(vector<int> required){
 	if(!::HETERO) {
 		cout << endl << "The smallest clade found is of size " << smallest << ", found in trees:";
 		for(int i = 0; i < index; i++){ //for each bipartition whose trees we want
-			for(int j = 0; j < biparttable.num_trees(B.goodBipartitions[i]); j++){ //for each tree in the searchtable
+			for(int j = 0; j < biparttable.trees_size(B.goodBipartitions[i]); j++){ //for each tree in the searchtable
 				retSet.insert(biparttable.get_tree(B.goodBipartitions[i],j));
 				}
 			}
@@ -201,7 +201,7 @@ set<unsigned int> smallest_clade(vector<int> required){
 		int returnTreesIndex = 0;
 		//smallest is still set to the number of taxa. We'll use it to keep track of where in returnTrees we are
 		for(int i = 0; i < B.goodBipartitions.size(); i++){ //for each good bipartition
-			for(int j = 0; j < biparttable.num_trees(B.goodBipartitions[i]); j++){ //for each tree with that bipartition
+			for(int j = 0; j < biparttable.trees_size(B.goodBipartitions[i]); j++){ //for each tree with that bipartition
 				int tree = biparttable.get_tree(B.goodBipartitions[i],j);				
 				int bSize = B.size.at(i);
 				if(B.allZeros.at(i)){ //if the clade is all 0s, we have to make sure all the required biparts are in it and adjust the size
