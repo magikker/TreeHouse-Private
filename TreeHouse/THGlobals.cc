@@ -611,112 +611,47 @@ bool is_strict_homog(int bitstringindex, vector<int> positions){
 	return false;		
 }
 
-//bool is_compat_ind(int bitstringindex1, int bitstringindex2) {
-// bool x1ny1 = true;
-//bool x1ny2 = true;
-//bool x2ny1 = true;
-//bool x2ny2 = true;
-//bool fullbitstring1 [NUM_TAXA];
-//bool fullbitstring2 [NUM_TAXA];
-//for (unsigned int i = 0; i < NUM_TAXA; i++) {
-//  if (!biparttable.in_bitstring(bitstringindex1, i) || biparttable.is_zero(bitstringindex1, i))
-//    fullbitstring1[i] = 0;
-//  else
-//    fullbitstring1[i] = 1;
-//  if (!biparttable.in_bitstring(bitstringindex2, i) || biparttable.is_zero(bitstringindex2, i))
-//    fullbitstring2[i] = 0;
-//  else
-//    fullbitstring2[i] = 1;
-//}
-//for (unsigned int i = 0; i < NUM_TAXA; i++) {
-//  if (!x1ny1 && !x1ny2 && !x2ny1 && !x2ny2)
-//    break;
-//  else if (fullbitstring1[i] == 1 && fullbitstring2[i] == 1)
-//    x1ny1 = false;
-//  else if (fullbitstring1[i] == 1 && fullbitstring2[i] == 0)
-//    x1ny2 = false;
-//  else if (fullbitstring1[i] == 0 && fullbitstring2[i] == 1)
-//    x2ny1 = false;
-//  else if (fullbitstring1[i] == 0 && fullbitstring2[i] == 0)
-//    x2ny2 = false;
-//}
-//return (x1ny1 || x1ny2 || x2ny1 || x2ny2);
-//}
-/*
-bool is_compat(bool *bitstring1, int length1, bool *bitstring2, int length2) {
-  bool x1ny1 = true;
-  bool x1ny2 = true;
-  bool x2ny1 = true;
-  bool x2ny2 = true;
-  bool fullbitstring1 [NUM_TAXA];
-  bool fullbitstring2 [NUM_TAXA];
-  for (unsigned int i = 0; i < NUM_TAXA; i++) {
-    if (i >= length1 || bitstring1[i] == 0)
-      fullbitstring1[i] = 0;
-    else
-      fullbitstring1[i] = 1;
-    if (i >= length2 || bitstring2[i] == 0)
-      fullbitstring2[i] = 0;
-    else
-      fullbitstring2[i] = 1;
-  }
-  for (unsigned int i = 0; i < NUM_TAXA; i++) {
-    if (!x1ny1 && !x1ny2 && !x2ny1 && !x2ny2)
-      break;
-    else if (fullbitstring1[i] == 1 && fullbitstring2[i] == 1)
-      x1ny1 = false;
-    else if (fullbitstring1[i] == 1 && fullbitstring2[i] == 0)
-      x1ny2 = false;
-    else if (fullbitstring1[i] == 0 && fullbitstring2[i] == 1)
-      x2ny1 = false;
-    else if (fullbitstring1[i] == 0 && fullbitstring2[i] == 0)
-      x2ny2 = false;
-  }
-  return (x1ny1 || x1ny2 || x2ny1 || x2ny2);
-}
-*/
-//for bipartitions to be compatible one has to be a subset of the other. 
 bool is_compat(boost::dynamic_bitset<>  bitstring1, boost::dynamic_bitset<>  bitstring2) {
-  bool x1ny1 = true;
-  bool x1ny2 = true;
-  bool x2ny1 = true;
-  bool x2ny2 = true;
-  bool fullbitstring1 [NUM_TAXA];
-  bool fullbitstring2 [NUM_TAXA];
-  //GRB need a get non-truncated_bitstring function? 
-  for (unsigned int i = 0; i < NUM_TAXA; i++) {
-    if (i >= bitstring1.size() || bitstring1[i] == 0)
-      fullbitstring1[i] = 0;
-    else
-      fullbitstring1[i] = 1;
-    if (i >= bitstring2.size() || bitstring2[i] == 0)
-      fullbitstring2[i] = 0;
-    else
-      fullbitstring2[i] = 1;
+  
+  if (bitstring1.size() > bitstring2.size() ){
+	  bitstring2.resize(bitstring1.size(), 0);
   }
+  if (bitstring2.size() > bitstring1.size() ){
+	  bitstring1.resize(bitstring2.size(), 0);
+  }
+
   //checking if one is the subset of the other. 
-  for (unsigned int i = 0; i < NUM_TAXA; i++) {
-    if (!x1ny1 && !x1ny2 && !x2ny1 && !x2ny2)
-      break;
-    else if (fullbitstring1[i] == 1 && fullbitstring2[i] == 1)
-      x1ny1 = false;
-    else if (fullbitstring1[i] == 1 && fullbitstring2[i] == 0)
-      x1ny2 = false;
-    else if (fullbitstring1[i] == 0 && fullbitstring2[i] == 1)
-      x2ny1 = false;
-    else if (fullbitstring1[i] == 0 && fullbitstring2[i] == 0)
-      x2ny2 = false;
-  }
+  bool x1ny1 = bitstring1.is_subset_of(bitstring2);
+  bool x1ny2 = bitstring2.is_subset_of(bitstring1);
+  bitstring2.flip();
+  bool x2ny1 = bitstring1.is_subset_of(bitstring2);
+  bool x2ny2 = bitstring2.is_subset_of(bitstring1);
+  
   return (x1ny1 || x1ny2 || x2ny1 || x2ny2);
 }
 
+//for bipartitions to be compatible one has to be a subset of the other. 
 bool is_compat(int bitstringindex1, int bitstringindex2) {
-  return is_compat(biparttable.get_bitstring(bitstringindex1), biparttable.get_bitstring(bitstringindex2));
-    }
+  
+  boost::dynamic_bitset<> fullbitstring1 = biparttable.non_trunc_bitstring(bitstringindex1);
+  boost::dynamic_bitset<> fullbitstring2 = biparttable.non_trunc_bitstring(bitstringindex2);
+
+  bool x1ny1 = fullbitstring1.is_subset_of(fullbitstring2);
+  bool x1ny2 = fullbitstring2.is_subset_of(fullbitstring1);
+  fullbitstring2.flip();
+  bool x2ny1 = fullbitstring1.is_subset_of(fullbitstring2);
+  bool x2ny2 = fullbitstring2.is_subset_of(fullbitstring1);  
+  
+  return (x1ny1 || x1ny2 || x2ny1 || x2ny2);
+}
+
 
 bool is_compat(boost::dynamic_bitset<>  bitstring1, int bitstringindex2) {
-  return is_compat(bitstring1, biparttable.get_bitstring(bitstringindex2)); 
-    }
+  return is_compat(bitstring1, biparttable.non_trunc_bitstring(bitstringindex2)); 
+}
+
+
+
 /*
 vector<unsigned int> find_incompat_old(bool *bitstring, int length, set<unsigned int> inputtrees) {
   vector<unsigned int> incompat_indices;
