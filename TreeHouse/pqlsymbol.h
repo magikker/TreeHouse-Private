@@ -665,11 +665,7 @@ class pqlsymbol
 				case ATOM: 
 					cout << "ATOM" << endl;
 					break;
-				
-				case TREESET: 
-					cout << "TREESET" << endl;
-					break;
-					
+									
 				case LIST:
 					cout << "LIST" << endl;
 					break;
