@@ -23,15 +23,21 @@ public:
 	//iterators
 	std::vector<unsigned int>::iterator trees_begin();
 	std::vector<unsigned int>::iterator trees_end();
-
 	std::vector<unsigned int>::reverse_iterator trees_rbegin();
 	std::vector<unsigned int>::reverse_iterator trees_rend();
-
 	std::vector<unsigned int>::const_iterator trees_cbegin() const;
 	std::vector<unsigned int>::const_iterator trees_cend() const;
-
 	std::vector<unsigned int>::const_reverse_iterator trees_crbegin() const;
 	std::vector<unsigned int>::const_reverse_iterator trees_crend() const;
+
+	std::vector<float>::iterator branchlengths_begin();
+	std::vector<float>::iterator branchlengths_end();
+	std::vector<float>::reverse_iterator branchlengths_rbegin();
+	std::vector<float>::reverse_iterator branchlengths_rend();
+	std::vector<float>::const_iterator branchlengths_cbegin() const;
+	std::vector<float>::const_iterator branchlengths_cend() const;
+	std::vector<float>::const_reverse_iterator branchlengths_crbegin() const;
+	std::vector<float>::const_reverse_iterator branchlengths_crend() const;
 
 	//access
 	bool get_bit(int bitindex);

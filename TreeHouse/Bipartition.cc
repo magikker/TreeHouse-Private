@@ -48,6 +48,31 @@ std::vector<unsigned int>::const_reverse_iterator Bipartition::trees_crend() con
 	return trees.crend();
 }
 
+std::vector<float>::iterator Bipartition::branchlengths_begin() { 
+	return branchlengths.begin(); 
+}
+std::vector<float>::iterator Bipartition::branchlengths_end() { 
+	return branchlengths.end(); 
+}
+std::vector<float>::reverse_iterator Bipartition::branchlengths_rbegin() { 
+	return branchlengths.rbegin(); 
+}
+std::vector<float>::reverse_iterator Bipartition::branchlengths_rend() { 
+	return branchlengths.rend(); 
+}
+std::vector<float>::const_iterator Bipartition::branchlengths_cbegin() const{
+	return branchlengths.cbegin();
+}
+std::vector<float>::const_iterator Bipartition::branchlengths_cend() const{
+	return branchlengths.cend();
+}
+std::vector<float>::const_reverse_iterator Bipartition::branchlengths_crbegin() const{
+	return branchlengths.crbegin();
+}
+std::vector<float>::const_reverse_iterator Bipartition::branchlengths_crend() const{
+	return branchlengths.crend();
+}
+
 bool Bipartition::get_bit(int bitindex){
 	return bitstring[bitindex];
 }
