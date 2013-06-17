@@ -48,6 +48,7 @@ public:
 	boost::dynamic_bitset<> get_bitstring();
 	float get_ave_branchlength();
 	vector<float> get_branchlengths();
+	vector<unsigned int> get_ones_indices();
 	bool in_bitstring(int len);
 	int number_of_ones();
 	int number_of_zeros();
