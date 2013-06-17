@@ -90,10 +90,6 @@ vector<float> Bipartition::get_branchlengths(){
 	return branchlengths;
 }
 
-unsigned int Bipartition::num_trees(){
-	return trees.size();
-}
-	
 vector<unsigned int> Bipartition::get_trees(){
 	return trees;
 }
@@ -119,7 +115,6 @@ void Bipartition::add_tree(int tree, float branch_len){
 	branchlengths.push_back(branch_len);
 
 }
-
 
 bool Bipartition::in_bitstring(int len){
 	if(bitstring.size() > (unsigned)len){
@@ -197,6 +192,10 @@ unsigned int Bipartition::bitstring_size(){
 unsigned int Bipartition::trees_size(){
 	return trees.size();
 }
+unsigned int Bipartition::branchlengths_size(){
+	return branchlengths.size();
+}
+
 
 
 void Bipartition::print_bitstring(bool endline){

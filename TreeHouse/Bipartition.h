@@ -48,7 +48,6 @@ public:
 	boost::dynamic_bitset<> get_bitstring();
 	float get_ave_branchlength();
 	vector<float> get_branchlengths();
-	unsigned int num_trees();
 	bool in_bitstring(int len);
 	int number_of_ones();
 	int number_of_zeros();
@@ -56,9 +55,10 @@ public:
 	bool same_bitstring_value(int position1, int position2);
 	bool same_bitstring_value(vector<int> positions);
 	bool is_one(int position);
+	//size
 	unsigned int bitstring_size();
 	unsigned int trees_size();
-
+	unsigned int branchlengths_size();
 	//print
 	void print_bitstring(bool endline);
 	void print_trees(bool endline);
