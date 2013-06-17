@@ -1,6 +1,7 @@
 //file Bipartition.cc
 #include "Bipartition.h"
 
+//Constructor
 Bipartition::Bipartition(int len){
 	bitstring = boost::dynamic_bitset<>(len);
 }
@@ -23,6 +24,7 @@ Bipartition::Bipartition(boost::dynamic_bitset<> bs, vector<unsigned int> t, flo
 	}
 }
 
+//Iterators
 std::vector<unsigned int>::iterator Bipartition::trees_begin() { 
 	return trees.begin(); 
 }
@@ -78,12 +80,15 @@ bool Bipartition::get_bit(int bitindex){
 }
 
 float Bipartition::get_ave_branchlength(){
-	float ave;
+	float ave = 0;
 	for (unsigned int i = 0; i < branchlengths.size(); i++){
 		ave += branchlengths[i];
 	}
-	ave /= branchlengths.size();
-	return ave;
+	if(branchlengths.size() > 0){
+		ave /= branchlengths.size();
+		return ave;
+	}
+	return 0.0;
 }
 
 vector<float> Bipartition::get_branchlengths(){
@@ -101,6 +106,16 @@ boost::dynamic_bitset<> Bipartition::get_bitstring(){
 	return bitstring;
 }
 
+vector<unsigned int> Bipartition::get_ones_indices(){
+	vector<unsigned int> indices;
+	size_t index = bitstring.find_first();
+	while(index != boost::dynamic_bitset<>::npos){
+		indices.push_back(index);
+        index = bitstring.find_next(index);
+	}
+	return indices;
+}
+
 void Bipartition::set(int place, bool val){
 	if(bitstring.size() > (unsigned)place){
 		bitstring[place] = val;
@@ -113,7 +128,6 @@ void Bipartition::set(int place, bool val){
 void Bipartition::add_tree(int tree, float branch_len){
 	trees.push_back(tree);
 	branchlengths.push_back(branch_len);
-
 }
 
 bool Bipartition::in_bitstring(int len){
@@ -131,6 +145,16 @@ int Bipartition::number_of_zeros(){
 	return bitstring.size() - bitstring.count();
 }
 
+
+bool Bipartition::is_one(int position){
+	if(in_bitstring(position) && bitstring[position] == true){
+		return true;
+	}
+	else{ 
+		return false;
+	}
+}
+
 bool Bipartition::is_zero(int position){
 	if( (! in_bitstring(position)) || bitstring[position] == false){
 		return true;
@@ -140,9 +164,7 @@ bool Bipartition::is_zero(int position){
 	}
 }
 
-bool Bipartition::same_bitstring_value(int position1, int position2){
-	bool value;
-	
+bool Bipartition::same_bitstring_value(int position1, int position2){	
 	if(is_one(position1)){
 		if(is_one(position2)){
 			return true;
@@ -177,15 +199,7 @@ bool Bipartition::same_bitstring_value(vector<int> positions){
 	return true;
 }
 
-bool Bipartition::is_one(int position){
-	if(in_bitstring(position) && bitstring[position] == true){
-		return true;
-	}
-	else{ 
-		return false;
-	}
-}
-
+//size
 unsigned int Bipartition::bitstring_size(){
 	return bitstring.size();
 }
@@ -196,8 +210,7 @@ unsigned int Bipartition::branchlengths_size(){
 	return branchlengths.size();
 }
 
-
-
+//print
 void Bipartition::print_bitstring(bool endline){
 	for (unsigned int i = 0; i < bitstring.size(); i++){
 		cout << bitstring[i];
