@@ -1367,9 +1367,9 @@ void init_the_constants(){
 	constant_table["false"] = true;
 	symbol_table["taxa"] = new pqlsymbol(taxaset);
 	constant_table["taxa"] = true;
-	symbol_table["trees"] = new pqlsymbol(all_trees, (unsigned int)::NUM_TREES);
+	symbol_table["trees"] = new pqlsymbol(all_trees);
 	constant_table["trees"] = true;
-	symbol_table["original_trees"] = new pqlsymbol(original_trees, (unsigned int)::NUM_TREES_INIT);
+	symbol_table["original_trees"] = new pqlsymbol(original_trees);
 	constant_table["original_trees"] = true;
 	
 	//for (unsigned int i=0; i < ::NUM_TAXA; ++i) 

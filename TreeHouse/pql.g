@@ -180,7 +180,7 @@ not_expression
          
           std::set_difference( all_trees.begin(), all_trees.end(), s1.begin(), s1.end(),  std::inserter( sdiff, sdiff.begin() ) );
           
-          $result = new pqlsymbol(sdiff, NUM_TREES);
+          $result = new pqlsymbol(sdiff);
         }
         else{
           $result = new pqlsymbol(ERROR, "'Not' is only avaible for a treeset." );
@@ -212,7 +212,7 @@ difference_expression
           std::set_difference( s1.begin(), s1.end(), s2.begin(), s2.end(),
     	std::inserter( diff, diff.begin() ) );
            s1 = diff;
-          $result = new pqlsymbol(diff, NUM_TREES);
+          $result = new pqlsymbol(diff);
         }
         else{
           $result = new pqlsymbol(ERROR, "'Difference' is currently only avaible between two int vector types." );
@@ -242,7 +242,7 @@ union_expression
     	std::inserter( uni, uni.begin() ) );
            s1 = uni;
            
-          $result = new pqlsymbol(uni, NUM_TREES);
+          $result = new pqlsymbol(uni);
      }
      else{errorFlag = true;}
         
@@ -280,7 +280,7 @@ intersection_expression
           
           s1 = intersection;
                     
-          $result = new pqlsymbol(intersection, NUM_TREES);
+          $result = new pqlsymbol(intersection);
         }
         else{
           errorFlag = true;
@@ -583,7 +583,7 @@ $result = $a.result;
         //set<int> *tempset  = new set<int>;
         vector<int> tempvect = $b.result->get_int_vect();
         std::set<unsigned int> tempset( tempvect.begin(), tempvect.end() );
-        $result = new pqlsymbol(tempset, NUM_TREES);
+        $result = new pqlsymbol(tempset);
          emptylist = false;
 }
 )?  '}'
@@ -591,7 +591,7 @@ $result = $a.result;
    if (emptylist == true)
    {
      set<unsigned int> tempset;
-     $result = new pqlsymbol(tempset, NUM_TREES);
+     $result = new pqlsymbol(tempset);
    }
 }
  

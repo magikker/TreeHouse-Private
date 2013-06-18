@@ -45,19 +45,30 @@ class pqlsymbol
 		otype = LIST;
 	}
 
-	pqlsymbol(std::set<unsigned int> inval, unsigned int num_trees){
+
+	pqlsymbol(std::set<unsigned int> inval){
 		dtype = TREESET;
 		otype = ATOM;
-		ntrees = num_trees;
 		
 		for(set<unsigned int>::const_iterator pos = inval.begin(); pos != inval.end(); ++pos){
 			treeset.insert(*pos);
-			/*
-			if(*pos < ntrees && *pos >= 0){
-				treeset.insert(*pos);
-			}*/
 		}
 	}
+
+
+	//pqlsymbol(std::set<unsigned int> inval, unsigned int num_trees){
+		//dtype = TREESET;
+		//otype = ATOM;
+		////ntrees = num_trees;
+		
+		//for(set<unsigned int>::const_iterator pos = inval.begin(); pos != inval.end(); ++pos){
+			//treeset.insert(*pos);
+			///*
+			//if(*pos < ntrees && *pos >= 0){
+				//treeset.insert(*pos);
+			//}*/
+		//}
+	//}
 
 	pqlsymbol(bool inval){
 		dtype = BOOLEAN;
@@ -141,7 +152,7 @@ class pqlsymbol
 		dtype = TREESET;
 		otype = LIST;
 		for(std::vector<int>::size_type i = 0; i != inval.size(); i++){
-			list.push_back(new pqlsymbol(inval[i], inval[i].size()));
+			list.push_back(new pqlsymbol(inval[i]));
 		}
 	}
 
@@ -225,7 +236,7 @@ class pqlsymbol
 		    		return new pqlsymbol(get_string() );
 
 				case TREESET:
-					return new pqlsymbol(get_treeset(), treeset.size() );
+					return new pqlsymbol(get_treeset() );
 
 		    	case THE_EMPTY_LIST:
 		    		return new pqlsymbol();
@@ -442,7 +453,7 @@ class pqlsymbol
 		    		return new pqlsymbol(list[i]->get_string() );
 
 				case TREESET:
-					return new pqlsymbol(list[i]->get_treeset(), list[i]->get_treeset_size() );
+					return new pqlsymbol(list[i]->get_treeset() );
 
 				default:
 	    			return new pqlsymbol(ERROR, "Shouldn't hit this in [] return") ;	
