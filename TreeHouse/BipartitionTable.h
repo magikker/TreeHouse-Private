@@ -12,28 +12,34 @@
 using namespace std;
 
 class BipartitionTable {
-
+	
+	
 public:
 
 	vector<Bipartition> BipartitionTable;
 	LabelMap lm;
 
-	set<unsigned int> trivial_bipartitions; //keep track of which bipartitions are trivial
-	//vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
-	vector< boost::dynamic_bitset<> > taxa_in_trees; // which taxa are in which trees					NEED
-	
 	//by bipartitions
-	/**///vector < vector < unsigned int > > searchtable; //number of biparts long by which trees with the bipart wide
 	vector < bool * > treetable; //number of biparts long by number of trees wide
-	/**///vector < bool * > bipartitions; //number of biparts long by number of taxa wide
-	/**///vector< unsigned int> length_of_bitstrings; //number of biparts long. value correlates to bipartitions
+	//this treetable is an overlap with the inverted index. We shouldn't need both. 
+	
+	set<unsigned int> trivial_bipartitions; //keep track of which bipartitions are trivial
+	//not sure why this is being kept. 
+	
+
+	//by trees
+	vector< boost::dynamic_bitset<> > taxa_in_trees; // which taxa are in which trees					NEED
+	//needs to be moved to the treetable. 
 	
 	vector< vector <float> > tree_branches;
-	
+	//needs to be moved to the tree table
+
+
+	//this stuff needs to be phased out. 
 	//for consensus trees
 	vector<unsigned int> global_indices;
 	vector< float > branches; //seems to only be used for compute tree which is called by the consensus functions
-	
+
 	
 void print_taxa_in_trees(){
 	cout << "taxa_in_trees" << endl;
@@ -384,7 +390,7 @@ int num_taxa_in_tree(int treeindex){
 	void print_bitstring_and_trees(int index){
 		BipartitionTable[index].print_line();
 	}
-
+	
 	void print_treetable() {
 	  for (unsigned int i = 0; i < treetable.size(); i++) {
 	    cout << "[";
@@ -396,7 +402,7 @@ int num_taxa_in_tree(int treeindex){
 	}
 
 	void calculate_trivial_bipartitions(){
-	for(int i = 0; i < BipartitionTable.size(); i++){
+	for(unsigned int i = 0; i < BipartitionTable.size(); i++){
 	  if(BipartitionTable.at(i).number_of_ones()<2 || ((BipartitionTable.at(i).number_of_zeros()+::NUM_TAXA-BipartitionTable.at(i).bitstring_size()) < 2)){
 		trivial_bipartitions.insert(i);
 		}

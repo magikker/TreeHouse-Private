@@ -35,16 +35,8 @@ typedef std::map<std::string, afptr> argFuncts;
 
 extern bool DEBUGMODE;
 
-//extern vector<int> shuffledTaxa;
-
-//extern bool hetero; // = 0; // If the trees are taxa heterogenious
-//extern unsigned num_trees; // = 0; // number of trees
-//extern unsigned num_taxa; //  = 0; // number of taxa
-
 extern BipartitionTable biparttable;
 //extern TreeTable treetable;
-
-//extern LabelMap lm;		// A mapping between taxa name and placement in bitstring
 
 extern vector<Taxon *> taxa_info;
 //These objects are number of total trees long

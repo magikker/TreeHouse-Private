@@ -29,26 +29,6 @@ vector<float> silhouette(vector < set < unsigned int >> inputclusts);
 
 vector< set < unsigned int > > agglo_clust(set <unsigned int > inputtrees);
 
-void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< bool * > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes);
-
-unsigned int compute_threshold(unsigned int numberofTrees, float threshold);
-
-string consen(set<unsigned int> inputtrees, float percent);
-
-float consensus_reso_rate(set<unsigned int> inputtrees, float percent);
-
-float reso_rate(string inputtree);
-  
-BipartitionTable least_conflict_bt(set<unsigned int> inputtrees);
-
-string least_conflict(set<unsigned int> inputtrees);
-
-BipartitionTable get_consen_bt(set<unsigned int> inputtrees, float percent);
-
-BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent);
-
-string greedy_consen(set<unsigned int> inputtrees, float percent);
-
 void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned int tree, int iterations, string folder);
 
 void TestClust();
