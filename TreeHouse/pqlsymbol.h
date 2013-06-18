@@ -442,11 +442,7 @@ class pqlsymbol
 		    		return new pqlsymbol(list[i]->get_string() );
 
 				case TREESET:
-				return new pqlsymbol(list[i]->get_treeset(), ntrees );
-	
-	//			I need to implement a deep copy of the vector. 			
-	//			case VECTOR:
-	//				return shared_ptr<pqlsymbol>( new pqlsymbol() );
+					return new pqlsymbol(list[i]->get_treeset(), list[i]->ntrees );
 
 				default:
 	    			return new pqlsymbol(ERROR, "Shouldn't hit this in [] return") ;	
