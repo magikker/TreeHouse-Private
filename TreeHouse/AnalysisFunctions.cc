@@ -143,21 +143,23 @@ vector<float> diff_to_own_clusters(vector< set <unsigned int> > inputclusts, vec
 	unsigned int offset = 0;
 	vector< float > diff;
 	for(unsigned int i = 0; i < inputclusts.size(); i++){//For each cluster
+		float tempsum = 0;
+		float tempaverage;
 		if(i > 0){
 			//offset used for tracking change from cluster to cluster
 			offset += inputclusts[i-1].size();
 		}
-		for(unsigned int j = 0 + offset; j < inputclusts[i].size() + offset; j++){//For each tree in the cluster
+		for(unsigned int j = 0 + offset; j < offset + 1; j++){//For first tree in the cluster
 			//Temporarily stores sum for computing average
-			float tempsum = 0; 
 			for(unsigned int k = 1 + offset; k < inputclusts[i].size() + offset; k++){//For each othe tree in cluster
 				tempsum += distances[j][k];
 			}
 			//average difference from tree to all other trees in cluster
-			float tempaverage;
-			tempaverage = tempsum / inputclusts[i].size();
-			diff.insert(diff.begin() + (j), tempaverage);
 		}
+
+		tempaverage = tempsum / inputclusts[i].size();
+
+		diff.push_back(tempaverage);
 	}
 	return diff;
 }
@@ -235,6 +237,16 @@ vector<float> silhouette (vector< set <unsigned int>  > inputclusts){
 	}
 	//Finds and stores the distances
 	distances = compute_distances(tree_biparts);
+	
+	//For checking that silhouette properly computes the silhouette width
+
+//	for(unsigned int i = 0; i < distances.size(); i++){//for each tree
+//		cout << "Tree : " << i << ": "; 
+//		for (unsigned int j = i + 1; j < distances.size(); j++){//for each other tree
+//			cout << distances[i][j] << " ";
+//		}
+//		cout << endl;
+//	}
 
 	//Computes diff_within_cluster
 	diff_within_cluster = diff_to_own_clusters(inputclusts, distances);
@@ -246,24 +258,33 @@ vector<float> silhouette (vector< set <unsigned int>  > inputclusts){
 
 	//Computes the neighboring_clusters
 	neighboring_cluster = neighboring_cluster_diffs(inputclusts, distances);
-
+	//	cout <<"neighboring_cluster " << endl;
 	//	for (unsigned int i = 0; i < neighboring_cluster.size(); i++){
 	//		cout << neighboring_cluster[i] << " ";
-	//	}
+//		}
+//		cout << endl;
 
 	//Computes the actual silhouette width
-	for(unsigned int i = 0; i < diff_within_cluster.size(); i++){//for each tree
-		float ai = diff_within_cluster[i];
-		float bi = neighboring_cluster[i];
-		float si;
-		//Prevents dividing by zero
-		if(ai == bi){
-			si = 0;
+	unsigned int soffset = 0;
+	for(unsigned int i = 0; i < inputclusts.size(); i++){//for each cluster
+		if(i != 0){
+			soffset += inputclusts[i-1].size();
 		}
-		else{
-			si = (bi - ai) /max(ai, bi);
+		for(unsigned int j = 0 + soffset; j < inputclusts[i].size() + soffset; j++){//for each tree in cluster
+			float ai = diff_within_cluster[i];
+			float bi = neighboring_cluster[j];
+//			cout << "ai is " << ai << endl;
+//			cout << "bi is " << bi << endl;
+			float si;
+			//Prevents dividing by zero
+			if(ai == bi){
+				si = 0;
+			}
+			else{
+				si = (bi - ai) /max(ai, bi);
+			}
+			swidth.insert(swidth.begin() + j, si);
 		}
-		swidth.insert(swidth.begin() + i, si);
 	}
 	unsigned int ioffset = 0;
 
@@ -287,11 +308,11 @@ vector<float> silhouette (vector< set <unsigned int>  > inputclusts){
 	//prints the tree and their silhouette widths (by tree)
 //	unsigned int offset = 0;
 //	for(unsigned int i = 0; i < inputclusts.size(); i++){//for each cluster
-//		if(i > 0){
+//		if(i != 0){
 //			offset += inputclusts[i - 1].size();
 //		}
+//		unsigned int j = 0;
 //		for(std::set<unsigned int>::iterator pos = inputclusts[i].begin(); pos!=inputclusts[i].end(); ++pos){//for each tree
-//			unsigned int j = 0;
 //			cout << "Tree: " << *pos << " has a silhouette of " << swidth[j + offset] << endl;
 //			j++;
 //		}
@@ -314,7 +335,6 @@ pair<unsigned int, float> closest_neighbor(unsigned int clustid, set <unsigned i
 		float tempdist;
 
 		tempdist = distances[clustid][ *pos];
-
 		if (tempdist < bestdist){
 			bestdist = tempdist;
 			best_neighbor = *pos;
@@ -373,28 +393,35 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees){
 	unsigned int fin_num = 4;
 
 	//Stores each tree
+	unsigned int id = 0;
 	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos!=inputtrees.end(); ++pos){//for each tree
 		set < unsigned int > temp;
 		temp.clear();
 		temp.insert(*pos);
-		clusters.insert(std::make_pair(*pos,temp));//Creates a cluster for each tree
-		remaining.insert(*pos);//Inserts the cluster ids into remaining
+		clusters.insert(std::make_pair(id,temp));//Creates a cluster for each tree
+		remaining.insert(id);//Inserts the cluster ids into remaining
 		tree_biparts.push_back(biparts_in_tree(*pos));//Collects the bipartitions for each tree (for computing distances)
+		id++;
 	}
+
 
 	//Computes the distances
 	distances = compute_distances(tree_biparts);
+
 
 	//Initialize neighbor_stack with an arbitrary element of remaining (the first one here) ((100 is arbitrary, 
 	//it's meant to represent a very large distance, as there is no parent to the first element.))
 	neighbor_stack.push(std::make_pair(*remaining.begin(), 100));
 	remaining.erase(remaining.begin());
+	
 
 	//Form clusters while number of clusters is larger than the number of desired clusters
 	while(clusters.size() > fin_num){
 		//Find the closest neighbor of the top cluster on the stack in remaining
 		pair<unsigned int, float> temp_neighbor;
 		temp_neighbor = closest_neighbor(neighbor_stack.top().first,remaining,distances);
+
+	
 		//if temp neighbor is more similar to the current cluster than the current cluster's parent
 		//then place temp neighbor on the stack and move on.
 		if(temp_neighbor.second < neighbor_stack.top().second){
@@ -416,6 +443,7 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees){
 			merge(tempcluster.first, tempparent.first, clusters);
 			//Adds the new cluster to the set of remaining elements
 			remaining.insert(tempcluster.first);
+
 			//Then recompute the distances matrix for the newly added cluster (recompute_distances currently unwritten)
 			recompute_distances(distances, clusters, tempcluster.first, tempparent.first);
 		}
@@ -430,8 +458,14 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees){
 
 	typedef std::map < unsigned int, set <unsigned int> >::iterator it_map;
 	for(it_map iterator = clusters.begin(); iterator != clusters.end(); iterator++){//for each cluster
-		ret_clusters.push_back(iterator->second); //add to the return set
+		set<unsigned int> tempset;
+		tempset.clear();
+		for(std::set<unsigned int>::iterator pos = iterator->second.begin(); pos != iterator->second.end(); ++pos){
+			tempset.insert(*pos);
+		}
+		ret_clusters.push_back(tempset); //add to the return set
 	}
+
 
 	//Prints out the clusters map
 	typedef std::map< unsigned int, set < unsigned int >>::iterator it_map;
@@ -449,11 +483,41 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees){
 }
 
 void TestClust(){
+
 	set <unsigned int> testset;
 	for(unsigned int i = 0; i < 10; i++){
 		testset.insert(i);
 	}
 	silhouette(agglo_clust(testset));
+
+	set <unsigned int> testset2;
+	for(unsigned int i = 3; i < 10; i++){
+		testset2.insert(i);
+	}
+	agglo_clust(testset2);
+
+	//Tests silhouette
+	//Uncommenting print statements (in silhouette) will show the data being used
+	//to calculate the silhouette
+	//
+	//Based on manual calculations cluster silhouettes should be
+	//Cluster 1: -.15
+	//Cluster 2: .6333(repeating)
+	//Cluster 3: -.2
+	set <unsigned int> testset3;
+	testset3.insert(1);
+	testset3.insert(4);
+	set <unsigned int> testset4;
+	testset4.insert(3);
+	testset4.insert(8);
+	set <unsigned int> testset5;
+	testset5.insert(10);
+	testset5.insert(6);
+	vector <set < unsigned int > > test_tree_vect;
+	test_tree_vect.push_back(testset3);
+	test_tree_vect.push_back(testset4);
+	test_tree_vect.push_back(testset5);
+	silhouette(test_tree_vect);
 }
 
 
