@@ -5,9 +5,7 @@
 #include <vector>
 #include <set>
 #include <map>
-
-//#include <stdlib.h>
-//#include <string.h>
+#include <math.h>
 
 //#include "global.h"
 #include "THGlobals.h"
