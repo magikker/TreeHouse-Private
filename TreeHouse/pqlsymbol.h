@@ -51,9 +51,11 @@ class pqlsymbol
 		ntrees = num_trees;
 		
 		for(set<unsigned int>::const_iterator pos = inval.begin(); pos != inval.end(); ++pos){
+			treeset.insert(*pos);
+			/*
 			if(*pos < ntrees && *pos >= 0){
 				treeset.insert(*pos);
-			}
+			}*/
 		}
 	}
 
@@ -138,9 +140,9 @@ class pqlsymbol
 	pqlsymbol(vector< set <unsigned int>> inval){
 		dtype = TREESET;
 		otype = LIST;
-			for(std::vector<int>::size_type i = 0; i != inval.size(); i++){
-				list.push_back(new pqlsymbol(inval[i], inval[i].size()));
-			}
+		for(std::vector<int>::size_type i = 0; i != inval.size(); i++){
+			list.push_back(new pqlsymbol(inval[i], inval[i].size()));
+		}
 	}
 
 	pqlsymbol(const std::string& instring){
@@ -202,10 +204,6 @@ class pqlsymbol
 			return new pqlsymbol(ERROR, get_string() );
 		}
 		
-		//if (otype == TREESET){
-		//	return new pqlsymbol(get_treeset(), ntrees);
-		//}
-		
 		if (otype == ATOM){
 			switch (dtype){
 				case BOOLEAN:
@@ -227,7 +225,7 @@ class pqlsymbol
 		    		return new pqlsymbol(get_string() );
 
 				case TREESET:
-				return new pqlsymbol(get_treeset(), ntrees );
+					return new pqlsymbol(get_treeset(), treeset.size() );
 
 		    	case THE_EMPTY_LIST:
 		    		return new pqlsymbol();
@@ -260,7 +258,7 @@ class pqlsymbol
 		    		return new pqlsymbol(get_string_vect() );
 
 				case TREESET:
-				return new pqlsymbol(get_treeset_vect() );
+					return new pqlsymbol(get_treeset_vect() );
 		    		
 		    	case THE_EMPTY_LIST:
 		    		return new pqlsymbol();
@@ -275,13 +273,15 @@ class pqlsymbol
 		}
 	}
 	
+	//should string get a size? 
 	int get_size(){
-		if (dtype == TREESET){
-			return (int)treeset.size();
-		}
-		
 		if (otype == ATOM){
-			return 1;
+			if (dtype == TREESET){
+				return (int)treeset.size();
+			}
+			else{
+				return 1;
+			}
 		}
 		
 		if (otype == LIST){
@@ -442,11 +442,7 @@ class pqlsymbol
 		    		return new pqlsymbol(list[i]->get_string() );
 
 				case TREESET:
-				return new pqlsymbol(list[i]->get_treeset(), ntrees );
-	
-	//			I need to implement a deep copy of the vector. 			
-	//			case VECTOR:
-	//				return shared_ptr<pqlsymbol>( new pqlsymbol() );
+					return new pqlsymbol(list[i]->get_treeset(), list[i]->get_treeset_size() );
 
 				default:
 	    			return new pqlsymbol(ERROR, "Shouldn't hit this in [] return") ;	

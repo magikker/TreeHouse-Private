@@ -1777,21 +1777,23 @@ void init_the_functs()
 	add_function("agglo_clust", &u_agglo_clust, "Returns the agglomerative clustering of the given input set of trees.");
 	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
 
+
 	//quartets
 	add_function("shared_quartets_strict", &u_shared_quartets_strict, "Returns quartets present in every tree of treeset");
 	add_function("shared_quartets_majority", &u_shared_quartets_majority, "Returns quartets present in a majority of trees");
 	add_function("print_quartets_from_tree", &u_print_quartets_from_tree, "Prints all quartets of a tree given its index as an int");
-
+		
 		//consensus
 		add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.");
-		add_function("strict_consensus", &u_strict_consen, "Returns the newick string for the strict consensus tree for the input treeset.");
-		add_function("majority_consensus", &u_majority_consen, "Returns the newick string for the majority consensus tree for the input treeset.");
+		add_function("consensus_strict", &u_strict_consen, "Returns the newick string for the strict consensus tree for the input treeset.");
+		add_function("consensus_majority", &u_majority_consen, "Returns the newick string for the majority consensus tree for the input treeset.");
+		add_function("consensus_greedy", &u_greedy_consen, " ");	
+		add_function("consensus_least_conflict", &u_least_conflict, " ");
+		//should move to a single function that calls consensus_reso_rate, or reso rate depending on input.
 		add_function("consensus_reso_rate", &u_consensus_reso_rate, "Returns the consensus resolution rate for a set of trees and a given consensus strictness.");
 		add_function("crr", &u_consensus_reso_rate, "Returns the consensus resolution rate for a  set of trees and a given consensus strictness.");
 		add_function("reso_rate", &u_reso_rate, "Returns the resolution rate for a given tree.");
 
-		add_function("greedy_consen", &u_greedy_consen, " ");	
-		add_function("least_conflict", &u_least_conflict, " ");
 	
 	
 	//utilities

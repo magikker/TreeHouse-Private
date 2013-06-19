@@ -31,7 +31,6 @@ std::vector<std::string> functionKeys;
 vector< vector<unsigned int> > inverted_index;	
 //vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
 
-//LabelMap lm;
 
 vector<Taxon *> taxa_info;
 
