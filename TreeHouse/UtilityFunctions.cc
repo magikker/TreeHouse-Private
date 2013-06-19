@@ -1,5 +1,4 @@
 #include "UtilityFunctions.h"
-#include <math.h>
 
 using namespace std;
 
@@ -1334,7 +1333,9 @@ void print_vector_of_strings(vector< string > bitstrings){
   }
 }
 
+/*
 //TODO- make using template
+* Please uses STL's find. 
 bool isInVector(vector<int> toSearch, int x){
 
 	for(int i = 0; i < toSearch.size(); i++)
@@ -1344,153 +1345,12 @@ bool isInVector(vector<int> toSearch, int x){
 			}
 		}
 	return false;
-}
-
-bool areBitsSame(bool* BS, int length) //checks if all of the bits in a bitstring are the same
-{
-	if(length<=0) {return false;}
-	bool firstBit = BS[0];
-	for(int i = 1; i < length; i++){ //iterate through all subsequent bits
-		if(BS[i]!=firstBit) {
-			return false;
-			}
-		}
-	return true;
-}
+}*/
+/*
 
 unsigned int factorial(int n){
 	return (n<=1) ? 1 : (n * factorial(n-1));
 	}
-//Lets not use vectors of chars. 
-/*
-vector<char> copyToCharVector(bool* in, unsigned int size){ 
-//copies array of bools to vector<char>
-  vector<char> out;
-  for(int i = 0; i < size; i++){
-	if(in[i]){
-		out.push_back(1); //note- do we want to use '1' instead?
-		}
-	else{
-		out.push_back(0);
-		}
-	}
-return out;
-}
-
-vector<char> fullBitstring(bool* in, unsigned int size){ 
-//copies bool* to vector AND pads with 0s to make length==NUM_TAXA
-  vector<char> out;
-  for(int i = 0; i < size; i++){
-	if(in[i]){
-		out.push_back(1); //note- do we want to use '1' instead?
-		}
-	else{
-		out.push_back(0);
-		}
-	}
-  for(int i = size; i < ::NUM_TAXA; i++){
-	out.push_back(0);
-	}
-}
-
-vector<char> chOR(vector<char> v1, vector<char> v2)
-{
-//returns the result of ORing two vectors of chars where all chars equal either 0 or 1
-  vector<char> retVec;
-  if(v1.size()!=v2.size()){
-	cerr << "chOR error: trying to AND two vectors of different sizes";
-	return retVec;
-	}
-  for(unsigned int i = 0; i < v1.size(); i++){
-	if(v1.at(i)==0 && v2.at(i)==0){
-		retVec.push_back(0);
-		}	
-	else{
-		retVec.push_back(1);
-		}
-	}
-}
+	
 
 
-vector<char> chXOR(vector<char> v1, vector<char> v2)
-{
-//returns the result of ORing two vectors of chars where all chars equal either 0 or 1
-  vector<char> retVec;
-  if(v1.size()!=v2.size()){
-	cerr << "chXOR error: trying to AND two vectors of different sizes";
-	return retVec;
-	}
-  for(unsigned int i = 0; i < v1.size(); i++){
-	if((v1.at(i)==0 && v2.at(i)==0) || (v1.at(i)==1 && v2.at(i)==1)){
-		retVec.push_back(0);
-		}	
-	else{
-		retVec.push_back(1);
-		}
-	}
-}
-
-vector<char> chAND(vector<char> v1, vector<char> v2)
-{
-//returns the result of ANDing two vectors of chars where all chars equal either 0 or 1
-  vector<char> retVec;
-  if(v1.size()!=v2.size()){
-	cerr << "chAND error: trying to AND two vectors of different sizes";
-	return retVec;
-	}
-  for(unsigned int i = 0; i < v1.size(); i++){
-	if(v1.at(i)==1 && v2.at(i)==1){
-		retVec.push_back(1);
-		}	
-	else{
-		retVec.push_back(0);
-		}
-	}
-}
-
-int chNumberOfZeros(vector<char> v){
-  int retVal = 0;
-  for(vector<char>::iterator it = v.begin(); it!= v.end(); it++){
-	if(*it==0){++retVal;}
-     	} 
-   return retVal;
-}
-
-int chNumberOfOnes(vector<char> v){
-  int retVal = 0;
-  for(vector<char>::iterator it = v.begin(); it!= v.end(); it++){
-	if(*it==1){++retVal;}
-     	} 
-   return retVal;
-}
-
-vector<int> chSharedOnes(vector<char> v1, vector<char> v2){
-//this function accomplishes adding all of the ones from chAND to a vector
-  vector<int> retVec;
-  if(v1.size()!=v2.size()){
-	cerr << "chSharedOnes error: the vectors are of different sizes!";
-	return retVec;
-	}
-  for(unsigned int i = 0; i < v1.size(); i++){
-	if(v1.at(i)==1 && v2.at(i)==1){
-		retVec.push_back(i);
-		}	
-	}
-  return retVec;
-}
-
-vector<int> chSharedZeros(vector<char> v1, vector<char> v2){
-//this function accomplishes adding all of the zeros from chOR to a vector
-  vector<int> retVec; 
-  if(v1.size()!=v2.size()){
-	cerr << "chSharedZeros error: the vectors are of different sizes!";
-	return retVec;
-	}
-  for(unsigned int i = 0; i < v1.size(); i++){
-	if(v1.at(i)==0 && v2.at(i)==0){
-		retVec.push_back(i);
-		}	
-	}
-  return retVec;
-}
-*/
