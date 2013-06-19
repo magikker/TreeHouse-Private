@@ -7,7 +7,7 @@
 //Global Vars like the hashtable.
 #include "THGlobals.h"
 #include "UtilityFunctions.h"
-#include "global.h"
+//#include "global.h"
 
 //The label map class. 
 #include "label-map.hh"

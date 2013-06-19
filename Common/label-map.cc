@@ -3,7 +3,7 @@
 //                             Contact: Thomas Mailund <mailund@birc.dk>
 
 #include "label-map.hh"
-#include "global.h"
+//#include "global.h"
 #include <iostream>
 #include <algorithm>
 #include <boost/algorithm/string/predicate.hpp>
@@ -28,23 +28,24 @@ LabelMap::add(string label) {
     return _map[label];
 }
 
+
 size_t
-LabelMap::operator[](string label) throw(UnkownLabelEx)
-{
+LabelMap::operator[](string label) throw(UnkownLabelEx){
     map<string, size_t>::const_iterator i = _map.find(label);
     if (i == _map.end()) {
-      if (!HETERO || !HCHECK){
+      //if (!HETERO || !HCHECK){
 		cout << "WARNING: Used the currently unsafe LabelMap::operator[](string label)" <<endl;
-		HETERO = true;
-		NUM_TAXA++;
+		//HETERO = true;
+		//NUM_TAXA++;
 		size_t loc = push(label);	
 		return loc;
-      }
+      //}
       std::cout << "cannot find label : " << label << std::endl; 
       throw UnkownLabelEx(label);
     }
     return i->second;
 }
+
 
 int
 LabelMap::position(string label){

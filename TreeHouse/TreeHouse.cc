@@ -625,11 +625,7 @@ void load_data_from_trz_file(string file){
 
   while ( counter < nbipart) { 
 	//GRB NEW Round
-
-    bool * tt1 = new bool[NUM_TREES]; //tt
-	for (unsigned int i = 0; i < NUM_TREES; i++) {
-	  tt1[i] = 0;
-	}
+    boost::dynamic_bitset<> tt1(NUM_TREES); //tt
 	::biparttable.treetable.push_back(tt1); //tt
 	
     getline(fin, str);  

@@ -6,13 +6,15 @@
 #include <stdexcept>
 #include <string>
 #include <iostream>
-#include "global.h"
+//#include "global.h"
 #include "Bipartition.h"
 
 using namespace std;
 
 class BipartitionTable {
-	
+
+private:
+	bool hetero;
 	
 public:
 
@@ -20,7 +22,7 @@ public:
 	LabelMap lm;
 
 	//by bipartitions
-	vector < bool * > treetable; //number of biparts long by number of trees wide
+	vector < boost::dynamic_bitset<> > treetable; //number of biparts long by number of trees wide
 	//this treetable is an overlap with the inverted index. We shouldn't need both. 
 	
 	set<unsigned int> trivial_bipartitions; //keep track of which bipartitions are trivial
@@ -44,7 +46,7 @@ public:
 void print_taxa_in_trees(){
 	cout << "taxa_in_trees" << endl;
 	for(unsigned int i = 0; i < taxa_in_trees.size(); i++) {
-		for (unsigned int j = 0; j < ::NUM_TAXA; j++){
+		for (unsigned int j = 0; j < taxa_in_trees[i].size(); j++){
 			cout << taxa_in_trees[i][j]; 
 		}
 		cout << endl; 
@@ -52,10 +54,10 @@ void print_taxa_in_trees(){
 }
 
 bool is_taxa_homogenious(set<unsigned int> treeset){
-	if(!::HETERO){
-		return true;
-	}
-	else{
+	//if(!::HETERO){
+	//	return true;
+	//}
+	//else{
 		for (unsigned int i = 0; i < treeset.size(); i++){
 			for (unsigned int j = 0; j < lm.size(); j++){
 				if (taxa_in_trees[0][j] != taxa_in_trees[i][j]){
@@ -63,7 +65,7 @@ bool is_taxa_homogenious(set<unsigned int> treeset){
 				}
 			}
 		}
-	}
+	//}
 	return true;
 }
 vector<string> get_taxa_in_tree(unsigned int treeindex){
@@ -102,7 +104,7 @@ int num_taxa_in_tree(int treeindex){
 	vector<string> get_common_taxa(){
 		set<string> taxaset = lm.get_all_taxa_set();
 		for(unsigned int i = 0; i < taxa_in_trees.size(); i++ ){
-			for(unsigned int j = 0; j < ::NUM_TAXA; j++ ){
+			for(unsigned int j = 0; j < taxa_in_trees[i].size(); j++ ){
 				if (taxa_in_trees[i][j] == 0){
 					taxaset.erase(lm.name(j));
 				}
@@ -115,7 +117,7 @@ int num_taxa_in_tree(int treeindex){
 	vector<string> get_mask_for_homog(){
 		set<string> taxaset;
 		for(unsigned int i = 0; i < taxa_in_trees.size(); i++ ){
-			for(unsigned int j = 0; j < ::NUM_TAXA; j++ ){
+			for(unsigned int j = 0; j < taxa_in_trees[i].size(); j++ ){
 				if (taxa_in_trees[i][j] == 0){
 					taxaset.insert(lm.name(j));
 				}
@@ -394,7 +396,7 @@ int num_taxa_in_tree(int treeindex){
 	void print_treetable() {
 	  for (unsigned int i = 0; i < treetable.size(); i++) {
 	    cout << "[";
-	    for (unsigned int j = 0; j < ::NUM_TREES; j++) {
+	    for (unsigned int j = 0; j < treetable[i].size(); j++) {
 	      cout << treetable[i][j];
 	    }
 	    cout << "]";
@@ -403,7 +405,7 @@ int num_taxa_in_tree(int treeindex){
 
 	void calculate_trivial_bipartitions(){
 	for(unsigned int i = 0; i < BipartitionTable.size(); i++){
-	  if(BipartitionTable.at(i).number_of_ones()<2 || ((BipartitionTable.at(i).number_of_zeros()+::NUM_TAXA-BipartitionTable.at(i).bitstring_size()) < 2)){
+	  if(BipartitionTable.at(i).number_of_ones()<2 || ((BipartitionTable.at(i).number_of_zeros()+lm.size()-BipartitionTable.at(i).bitstring_size()) < 2)){
 		trivial_bipartitions.insert(i);
 		}
 	}
@@ -415,7 +417,7 @@ int num_taxa_in_tree(int treeindex){
 	void create_random_bt(){
 		
 		unsigned int numbiparts = 20;
-		unsigned int lengthofbitstring = ::NUM_TAXA;
+		unsigned int lengthofbitstring = lm.size();
 		unsigned int numberoftrees = 40;
 		
 		

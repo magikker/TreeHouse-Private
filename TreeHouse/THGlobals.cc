@@ -9,7 +9,6 @@
 #include "label-map.hh"
 #include "BipartitionTable.h"
 #include "THGlobals.h"
-#include "global.h"
 
 #include "pqlsymbol.h"
 #include "newick.h"
@@ -733,3 +732,6 @@ double stop_clockf(){
 	double secs = ( ( std::clock() - clocks.front() ) / (double)CLOCKS_PER_SEC );
 	return secs;
 }
+
+
+

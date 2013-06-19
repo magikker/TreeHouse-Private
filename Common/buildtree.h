@@ -33,7 +33,7 @@ along with TreeZip.  If not, see <http://www.gnu.org/licenses/>.
 #include <bitset>
 #include <map>
 #include <utility>
-
+#include <boost/dynamic_bitset.hpp>
 #include "label-map.hh"
 
 using namespace std;
@@ -65,4 +65,13 @@ string compute_tree(
     vector<float> my_branches,
     unsigned id,
     bool branch);
+
+string compute_tree(
+    LabelMap lm,
+    vector< boost::dynamic_bitset<> > my_bs,
+    vector< float > my_branches,
+    unsigned id,
+    bool branch,
+    vector<unsigned int> bs_sizes);
+
 #endif 

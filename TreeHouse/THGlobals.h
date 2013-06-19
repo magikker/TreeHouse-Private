@@ -11,7 +11,7 @@
 #include "BipartitionTable.h"
 #include "Taxon.h"
 #include "TreeTable.h"
-#include "global.h"
+//#include "global.h"
 #include "UtilityFunctions.h"
 
 using namespace std;
