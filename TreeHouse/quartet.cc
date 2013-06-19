@@ -450,15 +450,15 @@ set<quartet> generateQuartetsFromOnesZerosSet(vector<int> ones, vector<int> zero
 	//first, store all of the pairs from zeros in a vector so we don't have too many
 	//	nested loops
 	  vector<iPair> zerosPairs;
-	  for(int i = 0; i < zeros.size()-1; i++){
-		for(int j = i+1; j < zeros.size(); j++){	
+	  for(unsigned int i = 0; i < zeros.size()-1; i++){
+		for(unsigned int j = i+1; j < zeros.size(); j++){	
 			zerosPairs.push_back(make_pair(zeros.at(i), zeros.at(j)));
 			}
 	 	}
 
 	//now we have to choose 2 from each of these vectors. We know both are of at least size 2
-	  for(int i = 0; i < ones.size()-1; i++){
-		for(int j = i+1; j < ones.size(); j++){
+	  for(unsigned int i = 0; i < ones.size()-1; i++){
+		for(unsigned int j = i+1; j < ones.size(); j++){
 			iPair p = make_pair(ones.at(i), ones.at(j));
 			for(vector<iPair>::iterator k = zerosPairs.begin(); k!= zerosPairs.end(); k++){
 				//add a quartet of both pairs
@@ -472,7 +472,7 @@ set<quartet> generateQuartetsFromOnesZerosSet(vector<int> ones, vector<int> zero
 void insertQuartetsFromBipart(int b, set<quartet> &setty){
   vector<int> ones;
   vector<int> zeros;
-  for(int i = 0; i < biparttable.BipartitionTable.at(b).bitstring_size(); i++){
+  for(unsigned int i = 0; i < biparttable.BipartitionTable.at(b).bitstring_size(); i++){
 	if(biparttable.BipartitionTable.at(b).get_bit(i)==false){
 		zeros.push_back(i);
 		}
@@ -484,7 +484,7 @@ void insertQuartetsFromBipart(int b, set<quartet> &setty){
 	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
    	}
   else{
-  	for(int i = biparttable.BipartitionTable.at(b).bitstring_size(); i < ::NUM_TAXA; i++){
+  	for(unsigned int i = biparttable.BipartitionTable.at(b).bitstring_size(); i < ::NUM_TAXA; i++){
 		zeros.push_back(i);
 		}
 	}
@@ -496,15 +496,15 @@ void insertQuartetsFromBipart(int b, set<quartet> &setty){
 	//first, store all of the pairs from zeros in a vector so we don't have too many
 	//	nested loops
 	  vector<iPair> zerosPairs;
-	  for(int i = 0; i < zeros.size()-1; i++){
-		for(int j = i+1; j < zeros.size(); j++){	
+	  for(unsigned int i = 0; i < zeros.size()-1; i++){
+		for(unsigned int j = i+1; j < zeros.size(); j++){	
 			zerosPairs.push_back(make_pair(zeros.at(i), zeros.at(j)));
 			}
 	 	}
 
 	//now we have to choose 2 from each of these vectors. We know both are of at least size 2
-	  for(int i = 0; i < ones.size()-1; i++){
-		for(int j = i+1; j < ones.size(); j++){
+	  for(unsigned int i = 0; i < ones.size()-1; i++){
+		for(unsigned int j = i+1; j < ones.size(); j++){
 			iPair p = make_pair(ones.at(i), ones.at(j));
 			for(vector<iPair>::iterator k = zerosPairs.begin(); k!= zerosPairs.end(); k++){
 				setty.insert(quartet(p, *k));
@@ -535,8 +535,8 @@ vector<quartet> generateQuartetsFromOnesZeros(vector<int> ones, vector<int> zero
 	 	}
 
 	//now we have to choose 2 from each of these vectors. We know both are of at least size 2
-	  for(int i = 0; i < ones.size()-1; i++){
-		for(int j = i+1; j < ones.size(); j++){
+	  for(unsigned int i = 0; i < ones.size()-1; i++){
+		for(unsigned int j = i+1; j < ones.size(); j++){
 			iPair p = make_pair(ones.at(i), ones.at(j));
 			for(vector<iPair>::iterator k = zerosPairs.begin(); k!= zerosPairs.end(); k++){
 				//add a quartet of both pairs
@@ -691,9 +691,87 @@ unsigned int quartet_distance(int tree1, int tree2){
   for(set<unsigned int>::iterator it = b1.begin(); it!=b1.end(); it++){
 	cout << *it << "   ";
 	}cout << endl;
+  
+  set<unsigned int> b1nonTrivial, b2nonTrivial, b1Unique, sharedBiparts; 
+ 
+ set_difference(b1.begin(), b1.end(), biparttable.trivial_bipartitions.begin(), biparttable.trivial_bipartitions.end(), inserter(b1nonTrivial, b1nonTrivial.begin()));
+
+  set_difference(b2.begin(), b2.end(), biparttable.trivial_bipartitions.begin(), biparttable.trivial_bipartitions.end(), inserter(b2nonTrivial, b2nonTrivial.begin()));
+
+  set_difference(b1.begin(), b1.end(), b2.begin(), b2.end(), inserter(b1Unique, b1Unique.begin()));
+  
+  set_intersection(b1.begin(), b1.end(), b2.begin(), b2.end(), inserter(sharedBiparts, sharedBiparts.begin()));
+  
+  cout << "printing biparts 1 non trivial  ";
+  for(set<unsigned int>::iterator it = b1nonTrivial.begin(); it != b1nonTrivial.end(); it++){
+	cout << *it << "   ";
+	}cout << endl;
+
+  //now, compare all bipartitions in b1Unique to those in b1Unique and in set_difference
+  unsigned int total = 0;
+  for(unsigned int i = 0; i < b1Unique.size(); i++){
+        
+  	for(int k = 0; k < sharedBiparts.size(); k++){
+		total=getNumDifferentQuartets(i,k);
+		}  
+	for(unsigned int j = i+1; j<b1Unique.size(); j++){
+		total+=getNumDifferentQuartets(i,j);
+		}
+	}
 
 
-  return 0;
+  return total;
+}
+
+
+void shared_quartets_strict(set<unsigned int> trees){
+//takes a set of trees, returns via print the quartets which are present in all of the trees
+  set<quartet> strictly_shared;
+  
+  //first, generate all quartets from the first tree
+  strictly_shared = generateQuartetsFromTree(*trees.begin());
+  //now, go through all remaining trees and yank out values that aren't found
+  for(set<unsigned int>::iterator it = trees.begin(); it!=trees.end(); it++){
+	if(it!=trees.begin()){
+	set<quartet> treeSet = generateQuartetsFromTree(*it);
+	set<quartet> temp;
+	set_intersection(strictly_shared.begin(), strictly_shared.end(), treeSet.begin(), treeSet.end(), inserter(temp, temp.end()));
+	strictly_shared = temp;}
+	}
+  cout << "Now printing quartets which are common to all trees in the treeset:\n";
+  printSet(strictly_shared);
+}
+
+void shared_quartets_majority(set<unsigned int> trees){
+//takes a set of trees, returns via print the quartets which are present in all of the trees
+  set<quartet> quartets;
+  map<quartet, unsigned int> counter;
+  
+  for(set<unsigned int>::iterator it = trees.begin(); it!=trees.end(); it++){
+	set<quartet> treeSet = generateQuartetsFromTree(*it);
+	for(set<quartet>::iterator j = treeSet.begin(); j!= treeSet.end(); j++){
+		quartet q = *j;
+		if(counter.count(q)==0){ //we have a new quartet we haven't seen
+			counter[q] = 1;
+			}
+		else{ //add to the count
+			unsigned int count = counter[q];
+			counter.erase(q);
+			counter[q] = count+1;
+			}
+		}
+	}
+  int threshhold = trees.size()/2 + trees.size()%2;
+  //copy quartets in counter to set quartets if they meet the threshhold
+  for(map<quartet, unsigned int>::iterator it = counter.begin(); it!=counter.end(); it++){
+	if(it->second >= threshhold){
+		quartets.insert(it->first);
+		}
+	}
+  cout << "Now printing quartets which are in at least 50% of all trees in the treeset:\n";
+  printSet(quartets);
+
+
 }
 
 
@@ -738,7 +816,7 @@ void bipartAnalysis(){ //dumps info about quartets in a bipartition
 //the goal is to generate the number of quartets implied by each bipartition, and the similarity/difference matrix with each other
 cout << "DIFFERENT/SIMILAR\n";
 cout << "# qts:";
-for(int i = 0; i < biparttable.BipartitionTable.size(); i++)
+for(unsigned int i = 0; i < biparttable.BipartitionTable.size(); i++)
 {
 if(biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.end()) {cout << setw(8) << i;}
 
@@ -761,7 +839,6 @@ cout << endl;
 
 
 }
-
 
 void quartetAnalysis(int tree1, int tree2){ //info dump of quartet stuff from both trees
  set<quartet> q;
@@ -790,9 +867,13 @@ void quartetAnalysis(int tree1, int tree2){ //info dump of quartet stuff from bo
 
 
 void TESTSTUFF(){
-quartet_distance(0,1);
+ // set<unsigned int> testy; testy.insert(0); testy.insert(1);
+//shared_quartets_strict(testy);
+//cout << endl << endl << endl;
+// printSet(generateSameQuartetsFromTrees(0,1));
+  //cout << endl << quartet_distance(0,1) << endl;
 /*
- calculateTrivialBipartitions();
+
 // bipartAnalysis();
   quartetAnalysis(2, 4);
 

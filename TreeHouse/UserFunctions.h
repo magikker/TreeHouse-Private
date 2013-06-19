@@ -13,7 +13,9 @@
 #include "SearchFunctions.h"
 #include "UtilityFunctions.h"
 #include "InterfaceFunctions.h"
+#include "quartet.h"
 #include "ConsensusFunctions.h"
+
 void init_the_functs();
 
 #endif

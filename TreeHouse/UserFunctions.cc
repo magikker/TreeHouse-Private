@@ -101,6 +101,46 @@ pqlsymbol * u_get_trees_by_taxa(vector< pqlsymbol * > arglist){
 	return result;
 }
 
+pqlsymbol * u_shared_quartets_strict(vector< pqlsymbol * > arglist){  
+  pqlsymbol * result;
+  if(arglist.size()!=1 || !arglist[0]->is_treeset()){
+	cout << "Error: this function expects one input- a treeSet. It was given " << get_arg_types(std::move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+	}
+  else{
+  	shared_quartets_strict(arglist[0]->get_treeset());
+        result = new pqlsymbol();
+	}
+  return result;
+}
+
+pqlsymbol * u_shared_quartets_majority(vector< pqlsymbol * > arglist){  
+  pqlsymbol * result;
+  if(arglist.size()!=1 || !arglist[0]->is_treeset()){
+	cout << "Error: this function expects one input- a treeSet. It was given " << get_arg_types(std::move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+	}
+  else{
+  	shared_quartets_majority(arglist[0]->get_treeset());
+        result = new pqlsymbol();
+	}
+  return result;
+}
+
+pqlsymbol * u_print_quartets_from_tree(vector< pqlsymbol * > arglist){  
+  pqlsymbol * result;
+  if(arglist.size()!=1 || !arglist[0]->is_int()){
+	cout << "Error: this function expects one input- an int. It was given " << get_arg_types(std::move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+	}
+  else{
+  	printSet(generateQuartetsFromTree(arglist[0]->get_int()));
+        result = new pqlsymbol();
+	}
+  return result;
+}
+
+
 
 string missedTaxaErrorMessage(vector<string> missedtaxanames){
 	string errorstring = "The following taxa don't appear in any trees: ";
@@ -1736,6 +1776,12 @@ void init_the_functs()
 	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees");
 	add_function("agglo_clust", &u_agglo_clust, "Returns the agglomerative clustering of the given input set of trees.");
 	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
+
+
+	//quartets
+	add_function("shared_quartets_strict", &u_shared_quartets_strict, "Returns quartets present in every tree of treeset");
+	add_function("shared_quartets_majority", &u_shared_quartets_majority, "Returns quartets present in a majority of trees");
+	add_function("print_quartets_from_tree", &u_print_quartets_from_tree, "Prints all quartets of a tree given its index as an int");
 		
 		//consensus
 		add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.");
