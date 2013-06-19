@@ -13,6 +13,7 @@
 #include "SearchFunctions.h"
 #include "UtilityFunctions.h"
 #include "InterfaceFunctions.h"
+#include "quartet.h"
 
 void init_the_functs();
 

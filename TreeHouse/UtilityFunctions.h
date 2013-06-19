@@ -171,8 +171,24 @@ void printVector(vector<T> in){
 	}
 }
 
+template <class T> //this might not work- needs to be tested
+void printSet(set<T> in){
+  for(int i = 0; i < in.size(); i++){
+	cout << i+1 << ". " << in.at(i) << endl;
+	}
+  cout << endl;
+}
+
 template <class T> 
 void printVectorCompact(vector<T> in){
+  cout << endl;
+  for(int i = 0; i < in.size(); i++){
+	cout << in.at(i) << ", ";}
+
+}
+
+template <class T> 
+void printSetCompact(set<T> in){
   cout << endl;
   for(int i = 0; i < in.size(); i++){
 	cout << in.at(i) << ", ";}

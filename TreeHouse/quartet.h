@@ -108,9 +108,11 @@ set<quartet> generateQuartetsFromTree(int t);
 
 unsigned int quartet_distance(int tree1, int tree2);
 
+void shared_quartets_strict(set<unsigned int> trees);
+void shared_quartets_majority(set<unsigned int> trees);
 
-void bipartAnalysis();
-void quartetAnalysis(int, int);
+void bipartAnalysis(); //not implemented
+void quartetAnalysis(int, int); //not fully implemented
 void printSet(set<quartet> s);
 void TESTSTUFF();
 void testOperatorsForQuartets();
