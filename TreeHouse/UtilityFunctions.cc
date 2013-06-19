@@ -1300,7 +1300,7 @@ bool isInVector(vector<int> toSearch, int x){
 		}
 	return false;
 }*/
-/*
+
 
 unsigned int factorial(int n){
 	return (n<=1) ? 1 : (n * factorial(n-1));
