@@ -209,7 +209,7 @@ void print_set(set<unsigned int> t);
 
 void print_vector_of_strings(vector< string > bitstrings);
 
-//use find instead. No need to rewrite the stl. 
+//use find instead. 
 //bool isInVector(vector<int> toSearch, int x);
 
 unsigned int factorial(int);

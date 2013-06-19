@@ -24,52 +24,6 @@ set <unsigned int> duplicates(int treein){
 	return duplicatelist;
 }
 
-//~ void LookUpLabels(vector<string> names, vector<int> &numbers){
-	//~ for (unsigned int i = 0; i < names.size(); i++){
-       //~ numbers.push_back(::lm[names[i]]);
-    //~ }
-//~ }
-//~ 
-//~ vector<int> LookUpLabels(vector<string> names){
-	//~ vector<int> numbers;
-	//~ for (unsigned int i = 0; i < names.size(); i++){
-       //~ numbers.push_back(::lm[names[i]]);
-    //~ }
-	//~ return numbers;
-//~ }
-//~ 
-//~ 
-//~ 
-//~ bool are_legal_taxa(vector<string> taxanames){
-	//~ //Returns true if each taxa is already in the label map. AKA the user didn't typo a taxa name
-	//~ for (unsigned int i = 0; i < taxanames.size(); i++){
-		//~ if(::lm.position(taxanames[i]) == -1){
-			//~ return false;
-		//~ }
-	//~ }
-	//~ return true;
-//~ }
-//~ 
-//~ string legal_taxa(vector<string> taxanames){
-	//~ //Returns true if each taxa is already in the label map. AKA the user didn't typo a taxa name
-	//~ for (unsigned int i = 0; i < taxanames.size(); i++){
-		//~ if(::lm.position(taxanames[i]) == -1){
-			//~ return taxanames[i];
-		//~ }
-	//~ }
-	//~ return "";
-//~ }
-
-
-//~ int number_of_ones(bool * bitstring, int len){
-	//~ int count = 0;
-	//~ for(int i = 0; i < len; i ++ ){
-		//~ if (bitstring[i] == 1)
-			//~ count += 1;
-	//~ }
-	//~ return count;
-//~ }
-
 
 vector<string> to_newick(vector<int> input_from_int) 
 {
