@@ -15,12 +15,6 @@ using namespace std;
 //I need some work on this one. 
 set <unsigned int> duplicates(int treein);
 
-//void LookUpLabels(vector<string> names, vector<int> &numbers);
-
-//vector<int> LookUpLabels(vector<string> names);
-
-//int number_of_ones(bool * bitstring, int len);
-
 vector<string> to_newick(vector<int> input_from_int);
 
 vector<string> to_newick(set<unsigned int> inval);

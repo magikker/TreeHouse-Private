@@ -66,12 +66,4 @@ string compute_tree(
     unsigned id,
     bool branch);
 
-string compute_tree(
-    LabelMap lm,
-    vector< boost::dynamic_bitset<> > my_bs,
-    vector< float > my_branches,
-    unsigned id,
-    bool branch,
-    vector<unsigned int> bs_sizes);
-
 #endif 
