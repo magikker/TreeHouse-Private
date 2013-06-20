@@ -8,6 +8,7 @@
 #include "THGlobals.h"
 #include "UtilityFunctions.h"
 #include "global.h"
+#include "distance.h"
 
 //The label map class. 
 #include "label-map.hh"

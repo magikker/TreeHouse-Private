@@ -14,6 +14,7 @@
 #include "global.h"
 #include "UtilityFunctions.h"
 
+
 using namespace std;
 
 //class pqlsymbol;
@@ -88,8 +89,7 @@ bool init_output();
 vector<int> get_taxa_with_trait(unsigned int trait_id, int trait_value);
 vector<int> get_taxa_without_trait(unsigned int trait_id, int trait_value);
 vector<int> get_taxa_in_clade(vector<int> taxa, unsigned int tree);
-int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
-int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
+
 
 //string to_lower(string str);
 int index_in_labelmap(string label);

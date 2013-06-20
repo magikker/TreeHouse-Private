@@ -191,68 +191,6 @@ vector<int> get_taxa_without_trait(unsigned int trait_id, int trait_value=1) {
   }
   return taxa_vect;
 }
-/*
-int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
-  vector< bool *> tree_bipartitions = get_tree_bipartitions(tree);
-  vector<unsigned int> tree_bs_sizes = get_tree_bs_sizes(tree);
-  int distance = 0;
-  for (unsigned int i=0; i<tree_bipartitions.size(); i++) {
-    if ((taxon1 < tree_bs_sizes[i] && tree_bipartitions[i][taxon1]) != (taxon2 < tree_bs_sizes[i] && tree_bipartitions[i][taxon2]))
-      distance++;
-  }
-  return distance;
-}
-*/
-//editted needs retesting
-int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
-  vector< Bipartition > tree_bipartitions = get_tree_bipartitions(tree);
-  vector<unsigned int> tree_bs_sizes = get_tree_bs_sizes(tree);
-  int distance = 0;
-  for (unsigned int i=0; i<tree_bipartitions.size(); i++) {
-    if (!tree_bipartitions[i].same_bitstring_value(taxon1, taxon2))
-      distance++;
-  }
-  return distance;
-}
-
-int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
-  string taxon1name = ::biparttable.lm.name(taxon1);
-  string taxon2name = ::biparttable.lm.name(taxon2);
-  string taxastring = taxon1name + " " + taxon2name;
-  system(("echo \""+to_newick(tree)+"\" | ../NwUtils/src/nw_clade - "+taxastring+" > temp/clade.txt").c_str());
-  ifstream cladefile ("temp/clade.txt");
-  string clade;
-  getline (cladefile, clade);
-  cladefile.close();
-  vector<string> clade_parsed = parse_newick(clade);
-  int depth = 0;
-  int i = 0;
-  //count depth from left side of string
-  for (i; i<clade_parsed.size(); i++) {
-    if (clade_parsed[i] == "(")
-      depth++;
-    else if (clade_parsed[i] == ")")
-      depth--;
-    if (clade_parsed[i] == taxon1name)
-      return depth;
-    else if (clade_parsed[i] == taxon2name)
-      break;
-  }
-  //taxon2 found before taxon1. Locate taxon1.
-  for (i; i<clade_parsed.size(); i++) {
-    if (clade_parsed[i] == taxon1name)
-      break;
-  }
-  depth = 0;
-  //count depth to right side of string
-  for (i; i<clade_parsed.size(); i++) {
-    if (clade_parsed[i] == "(")
-      depth--;
-    else if (clade_parsed[i] == ")")
-      depth++;
-  }
-  return depth;
-}
 
 vector<int> get_taxa_in_clade(vector<int> taxa, unsigned int tree) {
   //vector<int> taxa_in_clade;

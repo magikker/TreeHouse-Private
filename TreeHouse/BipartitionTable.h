@@ -311,7 +311,6 @@ int num_taxa_in_tree(int treeindex){
 
 	
 
-
 	void print_length_of_bitstrings(){
 		cout << "We show the hash table below, with the corresponding bitstring reps of the bipartitions:" << endl << endl;
 		//keep in mind that hashtable and hash_lengths are global variables

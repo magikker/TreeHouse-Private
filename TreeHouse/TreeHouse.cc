@@ -57,6 +57,7 @@
 // The lexer/parser
 #include    "pql.h"
 #include "quartet.h"
+#include "distance.h"
 
 using namespace std;
 
@@ -1465,6 +1466,7 @@ int main(int argc, char **argv){
 
 	//start_clock();
 	if (strcmp(argv[cmdind],"-i") == 0) {
+		//testDistance();
 		//TESTSTUFF();
 	//	TestClust();
 		interactive = true;
