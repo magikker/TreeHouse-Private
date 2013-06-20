@@ -626,11 +626,7 @@ void load_data_from_trz_file(string file){
 
   while ( counter < nbipart) { 
 	//GRB NEW Round
-
-    bool * tt1 = new bool[NUM_TREES]; //tt
-	for (unsigned int i = 0; i < NUM_TREES; i++) {
-	  tt1[i] = 0;
-	}
+    boost::dynamic_bitset<> tt1(NUM_TREES); //tt
 	::biparttable.treetable.push_back(tt1); //tt
 	
     getline(fin, str);  
@@ -1368,9 +1364,9 @@ void init_the_constants(){
 	constant_table["false"] = true;
 	symbol_table["taxa"] = new pqlsymbol(taxaset);
 	constant_table["taxa"] = true;
-	symbol_table["trees"] = new pqlsymbol(all_trees, (unsigned int)::NUM_TREES);
+	symbol_table["trees"] = new pqlsymbol(all_trees);
 	constant_table["trees"] = true;
-	symbol_table["original_trees"] = new pqlsymbol(original_trees, (unsigned int)::NUM_TREES_INIT);
+	symbol_table["original_trees"] = new pqlsymbol(original_trees);
 	constant_table["original_trees"] = true;
 	
 	//for (unsigned int i=0; i < ::NUM_TAXA; ++i) 

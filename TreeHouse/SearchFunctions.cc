@@ -24,30 +24,31 @@ set<unsigned int> clade_size_search(vector<int> required, int size)
 		
 		
 		//create a partial bitstring out of the bipartition that represents all of the places of required	
-		bool partialBS[required.size()];
-				
+		//bool partialBS[required.size()];
+		boost::dynamic_bitset<> partialBS(required.size());	
+			
 		for(unsigned int i = 0; i < required.size(); i++){ //fill the partial bitstring
 			//check that required is in the bitstring
-			if(required.at(i) > ::NUM_TAXA-1){
-				cerr << "Error: element " << required.at(i) << " is not a valid taxon!" << endl;
-				return retSet;
+			if(required.at(i) > biparttable.lm.size()-1){
+					cerr << "Error: element " << required.at(i) << " is not a valid taxon!" << endl;
+					return retSet;
 				}				
 			if(biparttable.bitstring_size(b) <= i){ //we have a 0
-				partialBS[i] = 0;
+					partialBS[i] = 0;
 				}			
 			else{
-				partialBS[i] = biparttable.get_bit(b,required.at(i));
+					partialBS[i] = biparttable.get_bit(b,required.at(i));
 				}
 			}
 		
 		cout << "Partial BS is: "; 
-		for(unsigned int i = 0; i < required.size(); i++) { 
+		for(unsigned int i = 0; i < partialBS.size(); i++) { 
 			cout << partialBS[i]; 
 		} 
 		cout << endl; 		
 
 		//now, check that the partial bitstring is either all 1s or all 0s (meaning its in the clade)
-		if(areBitsSame(partialBS, required.size())){
+		if(partialBS.count() == partialBS.size() or partialBS.count() == 0){
 			//now we know that all of the taxa in required are in a clade. Find out if the clade is the 1s or the 0s
 			bool cladeBit = partialBS[0];
 			//now, count the number of members on that side of the bipartition
@@ -134,7 +135,7 @@ set<unsigned int> smallest_clade(vector<int> required){
 	int index = 0; //an index to where in the vector is. This vector will act in a circular way. Every time we find a smaller clade, we reset the index to 0
 
 	for(int b = 0; b < biparttable.biparttable_size(); b++){ //for each bipartition
-		bool partialBS[required.size()];
+		boost::dynamic_bitset<> partialBS(required.size());
 		for(int i = 0; i < required.size(); i++){ //fill the partial bitstring
 			if(required.at(i) > ::NUM_TAXA-1){
 				cerr << "Error: element " << required.at(i) << " is not a valid taxon!" << endl;
@@ -147,7 +148,7 @@ set<unsigned int> smallest_clade(vector<int> required){
 				partialBS[i] = biparttable.get_bit(b,required.at(i));
 				}
 			}
-		if(areBitsSame(partialBS, required.size())){
+		if(partialBS.count() == partialBS.size() or partialBS.count() == 0){
 			bool cladeBit = partialBS[0];
 			int bSize;			
 			if(cladeBit){
@@ -652,8 +653,6 @@ vector< vector <int > > compute_bitstrings_h(string inputstring) {
 	return treeout;
 }
 
-//A very similar version of this function is found in HashTableSearch.cc (differences are some additional code is commented out here
-//and &solution is a vector< vector <unsigned int> > in HashTableSearch.cc
 bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector< vector < int > > &solution ){
   //~ if (HETERO && !HCHECK){
       //~ cout << "if (HETERO && !HCHECK)" << endl;
@@ -668,7 +667,7 @@ bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector<
   ///fprintf(stderr, "AT NODE: ");
   if (startNode->Nchildren == 0) { // leaf node
     string temp(startNode->label);
-    unsigned int idx = ::biparttable.lm[temp];
+    unsigned int idx = ::biparttable.lm.position(temp);
     bool * bs = new bool[::NUM_TAXA];
 	
     for (unsigned int i = 0; i < ::NUM_TAXA; i++){

@@ -5,9 +5,7 @@
 #include <vector>
 #include <set>
 #include <map>
-
-//#include <stdlib.h>
-//#include <string.h>
+#include <math.h>
 
 //#include "global.h"
 #include "THGlobals.h"
@@ -16,12 +14,6 @@ using namespace std;
 
 //I need some work on this one. 
 set <unsigned int> duplicates(int treein);
-
-//void LookUpLabels(vector<string> names, vector<int> &numbers);
-
-//vector<int> LookUpLabels(vector<string> names);
-
-//int number_of_ones(bool * bitstring, int len);
 
 vector<string> to_newick(vector<int> input_from_int);
 
@@ -211,9 +203,8 @@ void print_set(set<unsigned int> t);
 
 void print_vector_of_strings(vector< string > bitstrings);
 
-bool isInVector(vector<int> toSearch, int x);
-
-bool areBitsSame(bool* BS, int length); //checks if all of the bits in a bitstring are the same
+//use find instead. 
+//bool isInVector(vector<int> toSearch, int x);
 
 unsigned int factorial(int);
 #endif

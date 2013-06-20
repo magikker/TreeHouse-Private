@@ -37,12 +37,14 @@ along with TreeZip.  If not, see <http://www.gnu.org/licenses/>.
 #include <limits>
 #include <bitset>
 
+#include <boost/dynamic_bitset.hpp>
 #include "label-map.hh"
 #include "hashfunc.hh"
 #include "hash.hh"
 #include "SCTree.h"
 #include "parsing.h"
 #include "global.h"
+
 
 // For newick parser
 extern "C" {
@@ -412,3 +414,5 @@ string compute_tree(
   return mytree;
 		
 }
+
+

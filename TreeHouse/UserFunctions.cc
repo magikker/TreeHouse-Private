@@ -59,7 +59,7 @@ string get_arg_types(vector<pqlsymbol * > arglist) {
 pqlsymbol * u_get_trees_by_subtree(vector< pqlsymbol * > arglist) {  
 	//type check and catch errors and handle any method overloading. 
 	if (arglist.size() == 1 && arglist[0]->is_string() ) {
-		return new pqlsymbol(get_trees_by_subtree(arglist[0]->get_string() ), NUM_TREES );
+		return new pqlsymbol(get_trees_by_subtree(arglist[0]->get_string() ) );
 	}
 	else {
 		cout << "get_trees_by_subtree expects 1 string argument." << "Found " << get_arg_types(arglist) << endl;
@@ -91,7 +91,7 @@ pqlsymbol * u_get_trees_by_taxa(vector< pqlsymbol * > arglist){
 			result = new pqlsymbol(ERROR, err);
 		}
 		else{
-			result = new pqlsymbol(get_trees_by_taxa(arglist[0]->get_string_vect(), arglist[1]->get_string_vect()), NUM_TREES );
+			result = new pqlsymbol(get_trees_by_taxa(arglist[0]->get_string_vect(), arglist[1]->get_string_vect()) );
 		}
 	}
 	else {	
@@ -184,7 +184,7 @@ pqlsymbol * u_clade_size_search(vector< pqlsymbol * > arglist) {
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
 		else{
-			result = new pqlsymbol(clade_size_search(temp, arglist[1]->get_int() ), ::NUM_TREES );
+			result = new pqlsymbol(clade_size_search(temp, arglist[1]->get_int() ) );
 		}
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_string() && arglist[1]->is_int()) {
@@ -193,12 +193,12 @@ pqlsymbol * u_clade_size_search(vector< pqlsymbol * > arglist) {
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
 		else{
-			result = new pqlsymbol(clade_size_search(arglist[0]->get_string_vect(), arglist[1]->get_int() ), ::NUM_TREES );
+			result = new pqlsymbol(clade_size_search(arglist[0]->get_string_vect(), arglist[1]->get_int() ) );
 		}
 		
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_int() && arglist[1]->is_int()) {
-		result = new pqlsymbol(clade_size_search(arglist[0]->get_int_vect(), arglist[1]->get_int() ), ::NUM_TREES );
+		result = new pqlsymbol(clade_size_search(arglist[0]->get_int_vect(), arglist[1]->get_int() ) );
 	}
 	else {
 		cout << "clade_size_search expects a StringVec/Intvec and an Integer" << "Found " << get_arg_types(move(arglist)) << endl;
@@ -222,7 +222,7 @@ pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
 		else{
-			result = new pqlsymbol(smallest_clade(temp), ::NUM_TREES );
+			result = new pqlsymbol(smallest_clade(temp) );
 		}
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_string()) {
@@ -231,12 +231,12 @@ pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
 		else{
-			result = new pqlsymbol(smallest_clade(arglist[0]->get_string_vect()), ::NUM_TREES );
+			result = new pqlsymbol(smallest_clade(arglist[0]->get_string_vect()) );
 		}
 		
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_int()) {
-		result = new pqlsymbol(smallest_clade(arglist[0]->get_int_vect()), ::NUM_TREES );
+		result = new pqlsymbol(smallest_clade(arglist[0]->get_int_vect()) );
 	}
 	else {
 		cout << "smallest_clade expects a StringVec/Intvec. " << "Found " << get_arg_types(move(arglist)) << endl;
@@ -255,7 +255,7 @@ pqlsymbol * u_similarity_search(vector< pqlsymbol * > arglist) {
 	else{
 		cout << "similarity_search expects a single string representing a tree " << "Found " << get_arg_types(move(arglist)) << endl;
 	}
-	return new pqlsymbol(similarity_search(stree), ::NUM_TREES);
+	return new pqlsymbol(similarity_search(stree));
 }
 
 pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {  
@@ -275,7 +275,7 @@ pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
 		else{
-			result = new pqlsymbol(get_trees_with_taxa(temp), ::NUM_TREES );
+			result = new pqlsymbol(get_trees_with_taxa(temp) );
 		}
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_string() ) {
@@ -285,12 +285,12 @@ pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
 		else{
-			result = new pqlsymbol(get_trees_with_taxa(arglist[0]->get_string_vect() ), ::NUM_TREES );
+			result = new pqlsymbol(get_trees_with_taxa(arglist[0]->get_string_vect() ) );
 		}
 		
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_int() ) {
-		result = new pqlsymbol(get_trees_with_taxa(arglist[0]->get_int_vect() ), ::NUM_TREES );
+		result = new pqlsymbol(get_trees_with_taxa(arglist[0]->get_int_vect() ) );
 	}
 	else {
 		cout << "get_trees_with_taxa expects either 1 StringVect or 1 IntVect argument. " << "Found " << get_arg_types(move(arglist)) << endl;
@@ -310,10 +310,10 @@ pqlsymbol * u_get_trees_without_taxa(vector<pqlsymbol * > arglist)
 		result = new pqlsymbol(ERROR, "Type Error");
 	}
 	else if (arglist[0]->is_string() && arglist[0]->is_vect()){
-		result = new pqlsymbol(get_trees_without_taxa(arglist[0]->get_string_vect() ), NUM_TREES );
+		result = new pqlsymbol(get_trees_without_taxa(arglist[0]->get_string_vect() ) );
 	}
 	else if (arglist[0]->is_int() && arglist[0]->is_vect()){
-		result = new pqlsymbol(get_trees_without_taxa(arglist[0]->get_int_vect() ), NUM_TREES );
+		result = new pqlsymbol(get_trees_without_taxa(arglist[0]->get_int_vect() ) );
 	}
 	else{
 		cout << "get_trees_without_taxa expects either 1 StringVect or 1 IntVect argument. " << "Found " << get_arg_types(move(arglist)) << endl;
@@ -596,7 +596,7 @@ pqlsymbol * u_search_hashtable_strict(vector<pqlsymbol * > arglist)
 	}
 	
 	if(LeftIsGood && RightIsGood){
-		result = new pqlsymbol(search_hashtable_strict_old( left, right, strict ), NUM_TREES );
+		result = new pqlsymbol(search_hashtable_strict_old( left, right, strict ) );
 
 	}
 	else{
@@ -717,7 +717,7 @@ pqlsymbol * u_search_hashtable_auto_and_timed(vector<pqlsymbol * > arglist) {
 	}
 	
 	if(LeftIsGood && RightIsGood){
-		result = new pqlsymbol(search_hashtable_strict_and_timed( left, right, strict ), NUM_TREES );
+		result = new pqlsymbol(search_hashtable_strict_and_timed( left, right, strict ) );
 	}
 	else{
 		cout << "consensus expects either 2 string vectors or 2 string vectors and an int. " << "Found " << get_arg_types(arglist) << endl;
@@ -786,7 +786,7 @@ pqlsymbol * u_search_hashtable_strict_and_timed(vector<pqlsymbol * > arglist) {
 	}
 	
 	if(LeftIsGood && RightIsGood){
-		result = new pqlsymbol(search_hashtable_strict_and_timed( left, right, strict ), NUM_TREES );
+		result = new pqlsymbol(search_hashtable_strict_and_timed( left, right, strict ) );
 	}
 	else{
 		cout << "consensus expects either 2 string vectors or 2 string vectors and an int. " << "Found " << get_arg_types(arglist) << endl;
@@ -856,7 +856,7 @@ pqlsymbol * u_new_search_hashtable_strict(vector<pqlsymbol * > arglist)
 	}
 	
 	if(LeftIsGood && RightIsGood){
-		result = new pqlsymbol(search_hashtable_strict( left, right, strict ), NUM_TREES );
+		result = new pqlsymbol(search_hashtable_strict( left, right, strict ) );
 	}
 	else{
 		cout << "consensus expects either 2 string vectors or 2 string vectors and an int. " << "Found " << get_arg_types(arglist) << endl;
@@ -946,7 +946,7 @@ pqlsymbol * u_unique(vector<pqlsymbol * > arglist)
 	pqlsymbol * result;
 
 	if (arglist.size() == 1 && arglist[0]->is_treeset() ){
-		result = new pqlsymbol(unique(arglist[0]->get_treeset()), NUM_TREES );
+		result = new pqlsymbol(unique(arglist[0]->get_treeset()) );
 	}
 	else{
 		cout << "unique expects 1 treeset argument. " << "Found " << get_arg_types(arglist) << endl;
@@ -1011,7 +1011,7 @@ pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist)
 	pqlsymbol * result;
 
 	if (arglist.size() == 1 && arglist[0]->is_int() &&  arglist[0]->is_atom()){
-		result = new pqlsymbol(duplicates(arglist[0]->get_int() ),NUM_TREES );
+		result = new pqlsymbol(duplicates(arglist[0]->get_int() ) );
 	}
 	else{
 		cout << "unique expects 1 Int argument. " << "Found " << get_arg_types(arglist) << endl;
@@ -1048,7 +1048,7 @@ pqlsymbol * u_union(vector<pqlsymbol * > arglist)
 		
 		std::set_union( s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter( sunion, sunion.begin() ) );
                     
-        result = new pqlsymbol(sunion, NUM_TREES);
+        result = new pqlsymbol(sunion);
 		
 	}
 	else{
@@ -1071,7 +1071,7 @@ pqlsymbol * u_difference(vector<pqlsymbol * > arglist)
 		
 		std::set_difference( s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter( sdiff, sdiff.begin() ) );
                     
-        result = new pqlsymbol(sdiff, NUM_TREES);
+        result = new pqlsymbol(sdiff);
 		
 	}
 	else{
@@ -1094,7 +1094,7 @@ pqlsymbol * u_intersection(vector<pqlsymbol * > arglist)
 		
 		std::set_intersection( s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter( sinter, sinter.begin() ) );
                     
-        result = new pqlsymbol(sinter, NUM_TREES);
+        result = new pqlsymbol(sinter);
 		
 	}
 	else{
@@ -1115,7 +1115,7 @@ pqlsymbol * u_not(vector<pqlsymbol * > arglist)
 		
 		std::set_difference( all_trees.begin(), all_trees.end(), s1.begin(), s1.end(),  std::inserter( sdiff, sdiff.begin() ) );
                     
-        result = new pqlsymbol(sdiff, NUM_TREES);
+        result = new pqlsymbol(sdiff);
 		
 	}
 	else{
@@ -1133,7 +1133,7 @@ pqlsymbol * u_set(vector<pqlsymbol * > arglist) {
 		vector<int> tempvect = arglist[0]->get_int_vect(); 
 		set<unsigned int> s1(tempvect.begin(), tempvect.end());
 
-        result = new pqlsymbol(s1, NUM_TREES);
+        result = new pqlsymbol(s1);
 	}
 	else{
 		cout << "set expects 1 intvect argument. " << "Found " << get_arg_types(arglist) << endl;
