@@ -1464,7 +1464,8 @@ int main(int argc, char **argv){
 	if (strcmp(argv[cmdind],"-i") == 0) {
 		//testDistance();
 		//TESTSTUFF();
-	//	TestClust();
+		//TestClust();
+		//TestDist();
 		interactive = true;
 		interactive_log.open("logs/interactive_log.txt");
 		if(interactive_log){

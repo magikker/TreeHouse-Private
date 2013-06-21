@@ -980,11 +980,11 @@ pqlsymbol * u_unique_biparts(vector<pqlsymbol *> arglist)
 pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
 	pqlsymbol * result = new pqlsymbol();
 
-	if(arglist.size() == 1 && arglist[0]->is_vect()){
-		result = new pqlsymbol(silhouette(arglist[0]->get_treeset_vect()));
+	if(arglist.size() == 2 && arglist[0]->is_vect() && arglist[1]->is_string()){
+		result = new pqlsymbol(silhouette(arglist[0]->get_treeset_vect(), arglist[1]->get_string()));
 	}
 	else{
-		cout << "silhouette expect a single treeset vector as input " << "Found " << get_arg_types(arglist) << endl;
+		cout << "silhouette expect a single treeset vector, and a string dist_type as input " << "Found " << get_arg_types(arglist) << endl;
 		result = new pqlsymbol(ERROR, "Type Error");
 	}	
 	return result;
@@ -993,17 +993,29 @@ pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
 
 pqlsymbol * u_agglo_clust(vector<pqlsymbol * > arglist){
 	pqlsymbol * result = new pqlsymbol();
-	if (arglist.size() == 1 && arglist[0]->is_treeset()){
-		result = new pqlsymbol(agglo_clust(arglist[0]->get_treeset()));
+	if (arglist.size() == 2 && arglist[0]->is_treeset() && arglist[1]->is_string()){
+		result = new pqlsymbol(agglo_clust(arglist[0]->get_treeset(), arglist[1]->get_string()));
 	}
 	else{
-		cout << "agglo_clust expects a single treeset as input " << " Found " << get_arg_types(arglist) << endl;
+		cout << "agglo_clust expects a treeset and a string dist_type as input " << " Found " << get_arg_types(arglist) << endl;
 		result = new pqlsymbol(ERROR, "Type Error");
 	}
 
 	return result;
 
-	}		
+	}
+
+pqlsymbol * u_kmeans_clust(vector<pqlsymbol *> arglist){
+	pqlsymbol * result = new pqlsymbol();
+	if(arglist.size() == 3 && arglist[0]->is_treeset() && arglist[1]->is_int() && arglist[2]->is_string()){
+		result = new pqlsymbol(kmeans_clust(arglist[0]->get_treeset(),arglist[1]->get_int(), arglist[2]->get_string()));
+	}
+	else{
+		cout << "kmeans_clust expects a treeset, an unsigned int, and a string dist_type as input " << "Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
 
 // takes an int. Returns the ints which share the same topology. 
 pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist) 
@@ -1775,6 +1787,7 @@ void init_the_functs()
 	add_function("unique_biparts", &u_unique_biparts, "Returns the number of all unique bipartitions given a treeset");
 	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees");
 	add_function("agglo_clust", &u_agglo_clust, "Returns the agglomerative clustering of the given input set of trees.");
+	add_function("kmeans_clust", &u_kmeans_clust, "returns the k means clustering of the given input set of trees.");
 	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
 
 
