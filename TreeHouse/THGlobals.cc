@@ -26,6 +26,7 @@ BipartitionTable biparttable;
 voidFuncts voidFunctMap;
 argFuncts argFunctMap;
 std::vector<std::string> functionKeys;
+std::map<std::string, std::string> helpRef;
 
 vector< vector<unsigned int> > inverted_index;	
 //vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
@@ -56,6 +57,30 @@ double SetTime;
 double HetTime;
 double AHetTime;
 double SearchTime;
+
+
+void help(string input){
+//returns the appropriate help string given a function name as input
+ // cout << "help: input is " << input << endl;
+ // cout  << "mapped input is: " << helpRef[input] << endl;
+ 
+ map<string, string>::iterator it;
+  it = helpRef.find(input);
+  if(it==helpRef.end()){
+	cout << "help error: Could not find specified function!\n";
+	}
+  else{
+	cout << it->second;
+	}
+}
+
+void printHelpMap(){
+  cout << "map size is: " << helpRef.size() << endl << endl;
+  for(map<string, string>::iterator it = helpRef.begin(); it!=helpRef.end(); it++){
+	cout << it->first << " --> " << it->second << endl;
+	}
+}
+
 
 bool write_to_output(string input){
   if (output_file.is_open())
@@ -645,6 +670,7 @@ string get_time_stamp(){
 	tm* localtm = localtime(&now);
 	return asctime(localtm);
 }
+
 
 void start_clock(){
 	//starts a clock and pushes it onto the back of the clock stack

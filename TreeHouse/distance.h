@@ -18,7 +18,7 @@
 int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
 int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
 unsigned int distance_to_root(unsigned int taxon1, unsigned int tree);
-double averageDepth(unsigned int tree);
+double average_depth(unsigned int tree);
 double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2);
 
 void testDistance();

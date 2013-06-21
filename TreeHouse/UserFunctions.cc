@@ -915,7 +915,7 @@ pqlsymbol * u_phlash(vector<pqlsymbol * > arglist)
 	return result;
 }
 
-int help( ) 
+/*int help( ) 
 {
 	cout << "add\n" << endl;
 	cout << "get_trees_without_taxa\n" << endl;
@@ -931,12 +931,20 @@ int help( )
 	
 	return 0;
 }
+*/
 
 pqlsymbol * u_help(vector<pqlsymbol * > arglist) 
 {  
-	pqlsymbol * result;
-	
-	result = new pqlsymbol(help( ));
+	pqlsymbol * result;	
+	if(arglist.size()!=1 || !arglist[0]->is_string()){
+		cout << "help expects one string argument. " << "Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+		}
+	else{
+	help(arglist[0]->get_string());
+	result = new pqlsymbol();
+		}
+
 
 	return result;
 }
@@ -1729,12 +1737,99 @@ pqlsymbol * u_distinguishing_taxa(vector<pqlsymbol * > arglist){
 	return result;
 }
 
+pqlsymbol * u_distance_between_taxa(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==3)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int() && arglist[2]->is_int()){
+	  result = new pqlsymbol(distance_between_taxa(arglist[0]->get_int(), arglist[1]->get_int(), arglist[2]->get_int()));
+	  }
+  } 
+  else {
+	cout << "distance_between_taxa expects three ints, taxon1 taxon2 and tree. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+pqlsymbol * u_distance_to_common_ancestor(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==3)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int() && arglist[2]->is_int()){
+	  result = new pqlsymbol(distance_to_common_ancestor(arglist[0]->get_int(), arglist[1]->get_int(), arglist[2]->get_int()));
+	  }
+  } 
+  else {
+	cout << "distance_to_common_ancestor expects three ints, taxon1 taxon2 and tree. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+pqlsymbol * u_distance_to_root(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+	  result = new pqlsymbol(distance_to_root(arglist[0]->get_int(), arglist[1]->get_int()));
+	  }
+  } 
+  else {
+	cout << "distance_to_root expects two ints, taxon and tree. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==1)
+  {
+	  if(arglist[0]->is_int()){
+	  result = new pqlsymbol(average_depth(arglist[0]->get_int()));
+	  }
+  } 
+  else {
+	cout << "average_depth expects one INT (a taxa) as an input. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+
+pqlsymbol * u_average_distance_between_taxa(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+	  result = new pqlsymbol(average_distance_between_taxa(arglist[0]->get_int(), arglist[1]->get_int()));
+	  }
+  } 
+  else {
+	cout << "average_distance_between_taxa expects two ints, i.e. two taxa. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
 
 
 void add_function(string functname, afptr funct, string doc ){
 	::argFunctMap.insert(std::make_pair(functname, funct));
 	//This is so tab-autocomplete works
-	::functionKeys.push_back(functname);	
+	::functionKeys.push_back(functname);
+	::helpRef.insert(std::make_pair(functname, doc));
+
 }
 
 //adds the functions to the their maps. 
@@ -1796,7 +1891,14 @@ void init_the_functs()
 	add_function("shared_quartets_majority", &u_shared_quartets_majority, "Returns quartets present in a majority of trees");
 	add_function("print_quartets_from_tree", &u_print_quartets_from_tree, "Prints all quartets of a tree given its index as an int");
 		
-		//consensus
+	//distance
+	add_function("distance_between_taxa", &u_distance_between_taxa, "Returns distance between two specified taxa in a specified tree");
+	add_function("distance_to_common_ancestor", &u_distance_to_common_ancestor, "Returns distance between two specified taxa in a specified tree");
+	add_function("distance_to_root", &u_distance_to_root, "Returns distance to root of specified taxa in specified tree");
+	add_function("average_depth", &u_average_depth, "Returns the average depth of a specified taxa among all trees");
+	add_function("average_distance_between_taxa", &u_average_distance_between_taxa, "Returns the average distance between two taxa among all trees");
+
+	//consensus
 		add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.");
 		add_function("consensus_strict", &u_strict_consen, "Returns the newick string for the strict consensus tree for the input treeset.");
 		add_function("consensus_majority", &u_majority_consen, "Returns the newick string for the majority consensus tree for the input treeset.");
@@ -1810,7 +1912,7 @@ void init_the_functs()
 	
 	
 	//utilities
-	add_function("help", &u_help, " ");
+	add_function("help", &u_help, "Prints function description given a function name");
 
 	//visualization
 	add_function("show", &u_show, "Displays images of the specified tree or trees (Int, IntVect, or Treeset). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
