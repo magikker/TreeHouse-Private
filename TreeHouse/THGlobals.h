@@ -57,6 +57,7 @@ extern vector< pqlsymbol* > query_results;
 extern voidFuncts voidFunctMap;
 extern argFuncts argFunctMap;
 extern std::vector<std::string> functionKeys;
+extern std::map<std::string, std::string> helpRef;
 
 //map of the symbol in the language. These are were declared varibles are stored. If a user enters r = 7; r is set to 7 in the map. 
 extern std::map<string, pqlsymbol * > symbol_table;
@@ -76,6 +77,8 @@ extern double AHetTime;
 extern double SearchTime;
 
 
+void help(string input);
+void printHelpMap();
 bool write_to_output(string input);
 bool change_output_pointer(string input);
 bool init_output();

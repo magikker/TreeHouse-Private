@@ -14,6 +14,10 @@ int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int
 */
 //editted needs retesting
 int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
+ string taxon1name = ::biparttable.lm.name(taxon1);
+  string taxon2name = ::biparttable.lm.name(taxon2);
+	cout << "taxa names are: " << taxon1name << " and " << taxon2name << endl;
+
   vector< Bipartition > tree_bipartitions = get_tree_bipartitions(tree);
   vector<unsigned int> tree_bs_sizes = get_tree_bs_sizes(tree);
   int distance = 0;
@@ -157,7 +161,7 @@ unsigned int distance_to_root(unsigned int taxon, unsigned int tree){
 
 }
 
-double averageDepth(unsigned int tree){ //returns the average taxon depth of a tree.
+double average_depth(unsigned int tree){ //returns the average taxon depth of a tree.
 
   string nwTree = to_newick(tree);
   //cout << "newick string is: " << nwTree << endl;
@@ -204,7 +208,7 @@ cout << endl << endl;
 //cout << "Distance to root in taxon " << taxon << " in tree " << tree << " is: " << distance_to_root(taxon,tree) << endl;
 
 //for(int tree = 0; tree < ::NUM_TREES; tree++){
-//	cout << "Average depth of taxa in tree " << tree << " is: " << averageDepth(tree) << endl;
+//	cout << "Average depth of taxa in tree " << tree << " is: " << average_depth(tree) << endl;
 //	}
 
 for(int i = 0; i < 500; i++)

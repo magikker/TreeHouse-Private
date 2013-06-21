@@ -104,6 +104,12 @@ class pqlsymbol
 		intvalue = inval;
 	}
 
+	pqlsymbol(unsigned int inval){
+		dtype = INT;
+		otype = ATOM;
+		intvalue = inval;
+	}
+
 	pqlsymbol(vector<int> inval){
 		dtype = INT;
 		otype = LIST;
@@ -525,6 +531,7 @@ class pqlsymbol
 	data_type get_data_type(){
 		return dtype;
 	}
+
 
 	string value_to_string(){
 		std::stringstream out;
