@@ -1,5 +1,5 @@
 #include "distance.h"
-
+using namespace std;
 /*
 int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
   vector< bool *> tree_bipartitions = get_tree_bipartitions(tree);
@@ -16,7 +16,7 @@ int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int
 int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
  string taxon1name = ::biparttable.lm.name(taxon1);
   string taxon2name = ::biparttable.lm.name(taxon2);
-	cout << "taxa names are: " << taxon1name << " and " << taxon2name << endl;
+	//cout << "taxa names are: " << taxon1name << " and " << taxon2name << endl;
 
   vector< Bipartition > tree_bipartitions = get_tree_bipartitions(tree);
   vector<unsigned int> tree_bs_sizes = get_tree_bs_sizes(tree);
@@ -32,7 +32,7 @@ double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2){
   //only homogeneous?
 
   if(!::HETERO){
-  cout << "we have a homogeneous data set!" << endl;
+//  cout << "we have a homogeneous data set!" << endl;
   //takes the average distance between taxa for every tree.
   //first, we need to look at every bipartition and indicate whether the taxa are on a different side of the edge
   //each edge where the taxa differ adds 1 to the distance
@@ -69,7 +69,26 @@ return 0;
 
 }
 
+double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2){
+  set<unsigned int> allTrees;
+  for(int i = 0; i < ::NUM_TREES; i++){
+	allTrees.insert(i);
+	}
+  return average_ancestral_distance(taxon1, taxon2, allTrees);
+}
 
+double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2, set<unsigned int> treeSet){
+//note- this uses a bruteforce approach
+//because we have to look at rooted trees, we need to get the newick strings for all trees
+//for that reason, we can't take any shortcuts by just looking at the bipartition table
+  unsigned int total = 0;
+  for(int i = 0; i < treeSet.size(); i++){
+	total+=distance_to_common_ancestor(taxon1, taxon2, i);
+	}
+
+  return total/(double)treeSet.size();
+
+}
 
 int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsigned int tree) {
   string taxon1name = ::biparttable.lm.name(taxon1);
@@ -81,6 +100,10 @@ int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsign
   getline (cladefile, clade);
   cladefile.close();
   vector<string> clade_parsed = parse_newick(clade);
+  string nwTree = to_newick(tree);
+  //cout << "newick string is: " << nwTree << endl;
+  //cout << "printing clade_parsed..." << endl;
+  //printVector(clade_parsed);
   int depth = 0;
   int i = 0;
   //count depth from left side of string
@@ -199,11 +222,41 @@ return totalDepth/(double)biparttable.num_taxa_in_tree(tree);
 }
 
 
+vector<unsigned int> checkForDuplicateBitstrings(){
+  vector<unsigned int> retVec;
+  for(unsigned int x = 0; x < biparttable.BipartitionTable.size()-1; x++){
+	boost::dynamic_bitset<> b = biparttable.BipartitionTable[x].get_bitstring();
+	//pad b with 0s
+	while(b.size() < ::NUM_TAXA){
+		b.push_back(0);
+		}
+	b.flip();
+		for(unsigned int j = x+1; j < biparttable.BipartitionTable.size(); j++){
+			boost::dynamic_bitset<> z = biparttable.BipartitionTable.at(j).get_bitstring();
+				while(z.size() < ::NUM_TAXA){
+				z.push_back(0);
+				}		
+			if(z==b){
+				retVec.push_back(x);
+				cout << "DUPLICATE FOUND AT: " << x << endl;
+				}
+			}
+		}
+return retVec;
+}
+
 
 
 void testDistance(){
 
-cout << endl << endl;
+//cout << "printing inverted tree index: ";
+//for(unsigned int i = 0; i < ::NUM_TREES; i++){
+//	printVectorCompact(::inverted_index.at(i));
+//	}
+
+//vector<unsigned int> duplicates = checkForDuplicateBitstrings();
+//printVectorCompact(duplicates);
+//cout << "Number of duplicates is: " << duplicates.size();
 //int taxon = 3; int tree = 2;
 //cout << "Distance to root in taxon " << taxon << " in tree " << tree << " is: " << distance_to_root(taxon,tree) << endl;
 
@@ -211,9 +264,11 @@ cout << endl << endl;
 //	cout << "Average depth of taxa in tree " << tree << " is: " << average_depth(tree) << endl;
 //	}
 
-for(int i = 0; i < 500; i++)
-{
-cout << "average distance between taxa 0 and " << i << " is: " << average_distance_between_taxa(0, i) << endl;
- }
+
+
+//for(int i = 0; i < 500; i++)
+//{
+//cout << "average distance between taxa 0 and " << i << " is: " << average_distance_between_taxa(0, i) << endl;
+// }
 
 }

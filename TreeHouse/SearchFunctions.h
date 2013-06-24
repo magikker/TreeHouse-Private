@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <random>
+#include <algorithm>
 
 #include "UtilityFunctions.h"
 #include "THGlobals.h"
@@ -13,6 +14,10 @@
 #include "newick.h"
 
 using namespace std;
+
+set<unsigned int> get_subset_trees(int tree);
+
+set<unsigned int> get_superset_trees(int tree);
 
 set<unsigned int> clade_size_search(vector<int> required, int size);
 

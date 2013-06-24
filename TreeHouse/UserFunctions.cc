@@ -168,6 +168,62 @@ string missedTaxaErrorMessage(vector<string> missedtaxanames1, vector<string> mi
 	}
 	return errorstring;
 }
+
+/*
+pqlsymbol * u_get_subset_trees(vector< pqlsymbol * > arglist) {
+  pqlsymbol * result;
+  if(arglist.size()!=1 || !arglist[0]->is_int()){
+	cout << "Error: get_subset_trees expects ONE argument of type INT!" << " Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR,"Type Error");
+	}
+  else{
+	result = new pqlsymbol(get_subset_trees(arglist[0]->get_int()));
+	}
+ return result;
+}
+
+pqlsymbol * u_get_superset_trees(vector< pqlsymbol * > arglist) {
+  pqlsymbol * result;
+  if(arglist.size()!=1 || !arglist[0]->is_int()){
+	cout << "Error: get_superset_trees expects ONE argument of type INT!" << " Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR,"Type Error");
+	}
+  else{
+	result = new pqlsymbol(get_superset_trees(arglist[0]->get_int()));
+	}
+ return result;
+}
+*/
+pqlsymbol * u_average_ancestral_distance(vector< pqlsymbol * > arglist) {
+  pqlsymbol * result;
+  bool error = false;
+  if(arglist.size()<2 || arglist.size()>3){
+	error = true;
+	}
+  else if(arglist.size()==2){
+	if(arglist[0]->is_int() && arglist[1]->is_int()){
+  		result = new pqlsymbol(average_ancestral_distance(arglist[0]->get_int(), arglist[1]->get_int()));
+		}
+	else{
+		error = true;
+		}
+	}
+  else if(arglist.size()==3){
+	if(arglist[0]->is_int() && arglist[1]->is_int() && arglist[2]->is_treeset()){
+  		result = new pqlsymbol(average_ancestral_distance(arglist[0]->get_int(), arglist[1]->get_int(), arglist[2]->get_treeset()));
+		}
+	else{
+		error = true;
+		}
+	}	
+  if(error){
+  cout << "Error: average_ancestral_distance expects two INTS and an OPTIONAL treeset (leave empty for all trees)!" << " Found " << get_arg_types(move(arglist)) << endl;
+  result = new pqlsymbol(ERROR,"Type Error");
+	}
+
+ return result;
+}
+
 //set<unsigned int> clade_size_search(vector<int> required, int size)
 pqlsymbol * u_clade_size_search(vector< pqlsymbol * > arglist) {
 	pqlsymbol * result;
@@ -1826,6 +1882,7 @@ void init_the_functs()
 	//::functionKeys.push_back("");
 	
 	//search
+	add_function("average_ancestral_distance", &u_average_ancestral_distance, "Returns average distance to common ancestor given two taxa and an optional set of trees (no third input = all trees");
 	add_function("get_trees_without_taxa", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa");
 	add_function("gtwot", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa");
 
