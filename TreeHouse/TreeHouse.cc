@@ -55,7 +55,8 @@
 #include "BipartitionTable.h"
 
 // The lexer/parser
-#include    "pql.h"
+#include  "pql.h"
+
 #include "quartet.h"
 #include "distance.h"
 
