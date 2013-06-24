@@ -639,21 +639,23 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	//Computes the tree-distances matrix
 	tree_distances = compute_bipart_distances(tree_biparts, dist_type);
 
-	//Arbitrarily assign original centroids (should find a good way to do this -the current method is not a good way-)
-	unsigned int id = 0;
-	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos!=inputtrees.end(); ++pos){//for each tree
-		if(centroids.size() < k){//for as long as we don't have k centroids
-			set <unsigned int> temp;
-			temp.clear();
-			temp.insert(*pos);
-			oclusters.insert(std::make_pair(id,temp));
-			centroids.insert(id);	
-		}
-		id++;
-	}
-	
+	//Arbitrarily assign original centroids
 
-	centroid_distances.resize(centroids.size(), vector < unsigned int>(inputtrees.size(), 0));
+	vector < unsigned int > shuffled;
+	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos){//for each tree
+		shuffled.push_back(*pos);
+	}
+	random_shuffle(shuffled.begin(), shuffled.end());
+	for(unsigned int i = 0; i < k; i++){//while we do not have k clusters
+		set<unsigned int> temp;
+		temp.clear();
+		temp.insert(shuffled[i]);
+		cout << "shuffled[i] = " << shuffled[i] << endl;
+		oclusters.insert(std::make_pair(i,temp));
+		centroids.insert(i);
+	}
+
+	centroid_distances.resize(centroids.size(), vector <unsigned int>(inputtrees.size(), 0));
 
 	//Initializes the centroid_distance matrix
 	for(unsigned int i = 0; i < centroid_distances.size(); i++){//for each centroid
