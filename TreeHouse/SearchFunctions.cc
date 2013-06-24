@@ -1,4 +1,41 @@
 #include "SearchFunctions.h"
+using namespace std;
+
+set<unsigned int> get_subset_trees(int tree){ //return trees which are subsets of the given tree, 
+						//i.e. trees whose only bipartitions are contained within the given tree
+  set<unsigned int> retSet;
+  
+  vector<unsigned int> b = ::inverted_index.at(tree);
+  set<unsigned int> treeBiparts(b.begin(), b.end());
+  for(unsigned int i = 0; i < ::NUM_TREES; i++){
+	if(i!=tree){ //don't include itself 
+		vector<unsigned int> biparts = ::inverted_index.at(i);
+	 	set<unsigned int> bipartSet(biparts.begin(), biparts.end());
+		if(includes(treeBiparts.begin(), treeBiparts.end(), bipartSet.begin(), bipartSet.end())){
+			retSet.insert(i);
+			} 
+		}
+	}	
+
+  return retSet;
+}
+
+set<unsigned int> get_superset_trees(int tree){ //return trees which have all of the bipartitions of the given tree
+  set<unsigned int> retSet;
+  vector<unsigned int> b = ::inverted_index.at(tree);
+  set<unsigned int> treeBiparts(b.begin(), b.end());
+  for(unsigned int i = 0; i < ::NUM_TREES; i++){
+	if(i!=tree){ //don't include itself 
+		vector<unsigned int> biparts = ::inverted_index.at(i);
+	 	set<unsigned int> bipartSet(biparts.begin(), biparts.end());
+		if(includes(bipartSet.begin(), bipartSet.end(), treeBiparts.begin(), treeBiparts.end())){
+			retSet.insert(i);
+			} 
+		}
+	}	
+
+  return retSet;
+}
 
 
 
