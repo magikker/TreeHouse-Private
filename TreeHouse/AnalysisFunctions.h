@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <stack>
+#include <iomanip> //Formatting output
 
 //Global Vars like the hashtable.
 #include "THGlobals.h"
