@@ -1123,7 +1123,7 @@ void testGenerateDifferentQuartets(){
 	printSet(conflict3 = generateConflictingQuartets(6,4));
 	cout << "conflicting quartets between biparts 6 and 13:\n";
 	printSet(conflict4 = generateConflictingQuartets(6,13));
-	}
+	
 
 
 	
