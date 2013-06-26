@@ -72,6 +72,7 @@ class bPair{ //holds all relevant info about quartets on a pair of bipartitions
 	
 };
 
+
 char isQuartetImplied(quartet x, unsigned int bipart);
 bool isQuartetImplied(quartet x, set<unsigned int> biparts);
 
@@ -93,6 +94,9 @@ void fillDifferenceVectors(boost::dynamic_bitset<> v1, boost::dynamic_bitset<> v
 
 void addMatchedPairs(vector<iPair> p1, vector<iPair> p2, vector<quartet> &retVec);
 vector<quartet> generateDifferentQuartets(int bipartA, int bipartB);
+vector<quartet> generateDifferentQuartetsGroup(int bipartA, int bipartB);
+set<quartet> generateConflictingQuartets2(int bipart1, int bipart2);
+unsigned int numConflictingQuartets(int bipart1, int bipart2);
 vector<quartet> generateSameQuartets(int bipartA, int bipartB);
 
 unsigned int getNumQuartets(int);
@@ -122,6 +126,9 @@ void ktetAnalysis(int t);
 void quartetAnalysis(int, int); //not fully implemented
 void printSet(set<quartet> s);
 void TESTSTUFF();
+void testNumConflictingQuartets();
+void testGenerateDifferentQuartets();
 void testOperatorsForQuartets();
+void testGeenerateDifferentQuartetsFromTrees();
 
 #endif
