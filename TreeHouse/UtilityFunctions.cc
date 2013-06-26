@@ -1306,5 +1306,10 @@ unsigned int factorial(int n){
 	return (n<=1) ? 1 : (n * factorial(n-1));
 	}
 	
+void printSetCompactTwo(set<unsigned int> in){
+  for(set<unsigned int>::iterator it = in.begin(); it!=in.end(); it++){
+	cout << *it << ", ";}
+	cout << endl;
+}
 
 
