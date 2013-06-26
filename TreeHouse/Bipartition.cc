@@ -164,6 +164,14 @@ bool Bipartition::is_zero(int position){
 	}
 }
 
+bool Bipartition::is_trivial(){
+	int nOnes = number_of_ones();
+	if(nOnes==1 || nOnes==(::NUM_TAXA-1)){
+	return true;
+	}
+	return false;
+	}
+
 bool Bipartition::same_bitstring_value(int position1, int position2){	
 	if(is_one(position1)){
 		if(is_one(position2)){
@@ -198,6 +206,30 @@ bool Bipartition::same_bitstring_value(vector<int> positions){
 	}
 	return true;
 }
+
+std::set<unsigned int> Bipartition::getOnes(){
+  std::set<unsigned int> retSet;
+  for(unsigned int i = 0; i < bitstring.size(); i++){
+	if(bitstring[i]){
+		retSet.insert(i);
+		}
+	}
+  return retSet;
+}
+
+std::set<unsigned int> Bipartition::getZeros(){
+  std::set<unsigned int> retSet;
+  for(unsigned int i = 0; i < bitstring.size(); i++){
+	if(!bitstring[i]){
+		retSet.insert(i);
+		}
+	}
+  for(unsigned int j = bitstring.size(); j < ::NUM_TAXA; j++){
+	retSet.insert(j);
+	}
+  return retSet;
+}
+
 
 //size
 unsigned int Bipartition::bitstring_size(){

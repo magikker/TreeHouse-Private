@@ -72,6 +72,9 @@ class bPair{ //holds all relevant info about quartets on a pair of bipartitions
 	
 };
 
+char isQuartetImplied(quartet x, unsigned int bipart);
+bool isQuartetImplied(quartet x, set<unsigned int> biparts);
+
 void printQuartets(vector<quartet>);
 vector<quartet> generateQuartetsFromBipart(int);
 set<quartet> generateQuartetsFromBipartSet(int);
@@ -103,15 +106,19 @@ unsigned int getNumSameQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset
 unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b);
 
 set<quartet> generateDifferentQuartetsFromTrees(int a, int b);
+set<quartet> generateDifferentQuartetsFromTrees2(int a, int b);
+set<quartet> generateDifferentQuartetsFromTrees3(int a, int b);
+set<quartet> generateDifferentQuartetsFromTrees4(int a, int b);
 set<quartet> generateSameQuartetsFromTrees(int a, int b);
 set<quartet> generateQuartetsFromTree(int t);
+set<quartet> generateQuartetsFromBiparts(set<unsigned int> s);
 
 unsigned int quartet_distance(int tree1, int tree2);
 
 void shared_quartets_strict(set<unsigned int> trees);
 void shared_quartets_majority(set<unsigned int> trees);
 
-void bipartAnalysis(); //not implemented
+void ktetAnalysis(int t);
 void quartetAnalysis(int, int); //not fully implemented
 void printSet(set<quartet> s);
 void TESTSTUFF();

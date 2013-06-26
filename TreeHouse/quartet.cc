@@ -137,6 +137,44 @@ void printQuartets(vector<quartet> input){
 	}
 }
 
+char isQuartetImplied(quartet x, unsigned int bipart){
+//note- this can return three values
+//0- quartet is DISPROVEN
+//1- quartet is PROVEN
+//2- we don't know (e.g. we're looking for a quartet and we find three 0s and a 1
+  boost::dynamic_bitset<> b = biparttable.BipartitionTable.at(bipart).get_bitstring();
+  iPair A = x.getA();
+  iPair B = x.getB();
+  int numOnes = (int)b[A.first] + (int)b[A.second] + (int)b[B.first] + (int)b[B.second];
+  if(numOnes!=2){
+	//in the significant places we're looking at, there is not a 2 and 2 pairing
+	//for instance, in the bipartition 11000, we can't check a quartet over BCDE because there are 3 0s and a 1
+	return 2;
+	}
+  else{
+	bool left = b[A.first];
+	return (b[A.second]==left && b[B.first]!=left && b[B.second]!=left) ? 1 : 0;
+		
+	}
+}
+
+bool isQuartetImplied(quartet x, set<unsigned int> biparts){
+  for(set<unsigned int>::iterator it = biparts.begin(); it!=biparts.end(); it++){ //for each bipartition
+	//cout << "bipart is: "; biparttable.BipartitionTable.at(*it).print_bitstring(true);
+	//cout << "quartet is: "; x.print();
+	//cout << "isQuartetImplied? " << (int)isQuartetImplied(x,*it) << endl;
+	if(isQuartetImplied(x, *it)==1){
+		return true;
+		}
+	else if(isQuartetImplied(x, *it)==0){
+		return false;
+		}
+	}
+  cout << "CODE SHOULDN'T REACH HERE!!!\n\n";
+  return false;
+}
+
+
 bPair::bPair(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b){
  if(a.size()!=b.size()){
 	cerr << "bPair constructor error! You gave vectors of different size! Unpredictable behavior may ensue!";
@@ -657,13 +695,74 @@ set<quartet> generateQuartetsFromTree(int t){ //takes an int index of the tree f
 return retSet;
 }
 
+set<quartet> generateQuartetsFromBiparts(set<unsigned int> s){
+  set<quartet> retSet;
+  for(set<unsigned int>::iterator it = s.begin(); it!=s.end(); it++){
+   	insertQuartetsFromBipart(*it, retSet);
+	}
+  return retSet;
+
+}
+
+
 //NOTE- for one directional set different, use set_difference
 set<quartet> generateDifferentQuartetsFromTrees(int a, int b){
  set<quartet> qa = generateQuartetsFromTree(a);
  set<quartet> qb = generateQuartetsFromTree(b);
  set<quartet> result;
- set_symmetric_difference(qa.begin(), qa.end(), qb.begin(), qb.end(), inserter(result, result.end()));
+ set_difference(qa.begin(), qa.end(), qb.begin(), qb.end(), inserter(result, result.end()));
  return result;
+}
+
+set<quartet> generateDifferentQuartetsFromTrees2(int a, int b){
+//first, take all bipartitions from each tree and add them into sets
+ set<unsigned int> t1Biparts(::inverted_index.at(a).begin(), ::inverted_index.at(a).end());
+ set<unsigned int> t2Biparts(::inverted_index.at(b).begin(), ::inverted_index.at(b).end());
+ set<unsigned int> unique;
+ set_difference(t1Biparts.begin(), t1Biparts.end(), t2Biparts.begin(), t2Biparts.end(), inserter(unique, unique.end()));
+//now we have unique, a set of all bipartitions that are unique to tree 1 (note that this set_difference ISNT symmetric)
+ set<quartet> retSet;
+ for(set<unsigned int>::iterator it = unique.begin(); it!=unique.end(); it++){ //for each bipartition unique to tree1
+	set<quartet> qs = generateQuartetsFromBipartSet(*it);
+	for(set<quartet>::iterator j = qs.begin(); j != qs.end(); j++){
+		if(!isQuartetImplied(*j, t2Biparts)){
+			retSet.insert(*j);
+			}
+		}
+	} 
+  return retSet;
+}
+
+set<quartet> generateDifferentQuartetsFromTrees3(int a, int b){
+//first, take all bipartitions from each tree and add them into sets
+ set<unsigned int> t1Biparts(::inverted_index.at(a).begin(), ::inverted_index.at(a).end());
+ set<unsigned int> t2Biparts(::inverted_index.at(b).begin(), ::inverted_index.at(b).end());
+ set<unsigned int> unique;
+ set_difference(t1Biparts.begin(), t1Biparts.end(), t2Biparts.begin(), t2Biparts.end(), inserter(unique, unique.end()));
+//now we have unique, a set of all bipartitions that are unique to tree 1 (note that this set_difference ISNT symmetric)
+ set<quartet> retSet, qUnique, qb;
+ qUnique = generateQuartetsFromBiparts(unique);
+ qb = generateQuartetsFromTree(b);
+ set_difference(qUnique.begin(), qUnique.end(), qb.begin(), qb.end(), inserter(retSet, retSet.end()));
+  
+  return retSet;
+}
+
+set<quartet> generateDifferentQuartetsFromTrees4(int a, int b){
+//first, take all bipartitions from each tree and add them into sets
+ set<unsigned int> t1Biparts(::inverted_index.at(a).begin(), ::inverted_index.at(a).end());
+ set<unsigned int> t2Biparts(::inverted_index.at(b).begin(), ::inverted_index.at(b).end());
+ set<unsigned int> unique, unique2;
+ set_difference(t1Biparts.begin(), t1Biparts.end(), t2Biparts.begin(), t2Biparts.end(), inserter(unique, unique.end()));
+ set_difference(t2Biparts.begin(), t2Biparts.end(), t1Biparts.begin(), t1Biparts.end(), inserter(unique2, unique2.end()));
+//now we have unique, a set of all bipartitions that are unique to tree 1 (note that this set_difference ISNT symmetric)
+ set<quartet> retSet, qUnique, qUnique2;
+ qUnique = generateQuartetsFromBiparts(unique);
+ qUnique2 = generateQuartetsFromBiparts(unique2);
+// qb = generateQuartetsFromTree(b);
+ set_difference(qUnique.begin(), qUnique.end(), qUnique2.begin(), qUnique2.end(), inserter(retSet, retSet.end()));
+  
+  return retSet;
 }
 
 
@@ -812,34 +911,6 @@ void testOperatorsForQuartets(){
 
 }
 
-void bipartAnalysis(){ //dumps info about quartets in a bipartition
-//the goal is to generate the number of quartets implied by each bipartition, and the similarity/difference matrix with each other
-cout << "DIFFERENT/SIMILAR\n";
-cout << "# qts:";
-for(unsigned int i = 0; i < biparttable.BipartitionTable.size(); i++)
-{
-if(biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.end()) {cout << setw(8) << i;}
-
-}
-
-cout << endl;
-
-for(int i = -1; ++i < biparttable.BipartitionTable.size() && biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.end();){
-	cout << setw(6) << getNumQuartets(i);
-	for(int j = 0; j < biparttable.BipartitionTable.size(); j++){	  
-		string outty = "";
-		stringstream s;
-		s << getNumDifferentQuartets(i, j) << "/" << getNumSameQuartets(i,j);
-		outty = s.str();
-		cout << setw(8) << outty;
-
-		}
-cout << endl;
-	}
-
-
-}
-
 void quartetAnalysis(int tree1, int tree2){ //info dump of quartet stuff from both trees
  set<quartet> q;
  q = generateQuartetsFromTree(tree1);
@@ -864,10 +935,83 @@ void quartetAnalysis(int tree1, int tree2){ //info dump of quartet stuff from bo
 
 }
 
-
+void ktetAnalysis(int t){
+//gets all the bipartitions of a tree and gets the ones and zero sets
+vector<unsigned int> biparts = ::inverted_index.at(t);
+set<set<unsigned int>> bSets; 
+for(int i = 0; i < biparts.size(); i++){
+	if(!biparttable.BipartitionTable.at(biparts.at(i)).is_trivial()){
+		set<unsigned int> ones, zeros;
+		ones = biparttable.BipartitionTable.at(biparts.at(i)).getOnes();
+		zeros = biparttable.BipartitionTable.at(biparts.at(i)).getZeros();
+		cout << "Bipartition " << biparts.at(i) << ":" << endl;	
+		cout << "ones: "; printSetCompactTwo(ones);
+		cout << "zeros: "; printSetCompactTwo(zeros);
+		bSets.insert((ones.size() < zeros.size()) ? ones : zeros);
+		}
+	}
+cout << "PRINTING SET OF SETS:\n";
+for(int i = 2; i < 26; i++){
+	for(set<set<unsigned int>>::iterator it = bSets.begin(); it!=bSets.end(); it++)
+	{
+		if((*it).size()==i) {printSetCompactTwo(*it); cout << endl;}
+		}
+	}
+}
 
 void TESTSTUFF(){
- // set<unsigned int> testy; testy.insert(0); testy.insert(1);
+/*
+cout << "TREE 0:" << endl;
+ktetAnalysis(0);
+cout << "TREE 1:" << endl;
+ktetAnalysis(1);
+cout << "Different quartets from 0 and 1:" << endl;
+set<quartet> q2, q6, q4, q13, insersect1, intersect2;
+printSet(generateDifferentQuartetsFromTrees3(0,1));
+cout << "quartets implied by bipartition 2:\n";
+printSet(q2 = generateQuartetsFromBipartSet(2));
+cout << "quartets implied by bipartition 6:\n";
+printSet(q6 = generateQuartetsFromBipartSet(6));
+cout << "quartets implied by bipartition 4:\n";
+printSet(q4 = generateQuartetsFromBipartSet(4));
+cout << "quartets implied by bipartition 13:\n";
+printSet(q13 = generateQuartetsFromBipartSet(13));
+
+*/
+cout << "generate different quartets from trees VERSION 0:\n";
+for(int i = 0; i < 9; i++){
+	set<quartet> qs = generateDifferentQuartetsFromTrees(0,i);
+	cout << "qs size for trees 0 and " << i << " is: " << qs.size() << endl << endl;
+
+}
+
+cout << "generate different quartets from trees VERSION 1:\n";
+for(int i = 0; i < 9; i++){
+	set<quartet> qs = generateDifferentQuartetsFromTrees3(0,i);
+	cout << "qs size for trees 0 and " << i << " is: " << qs.size() << endl << endl;
+
+}
+
+cout << "generate different quartets from trees VERSION 2:\n";
+for(int i = 0; i < 9; i++){
+	set<quartet> qs = generateDifferentQuartetsFromTrees4(0,i);
+	cout << "qs size for trees 0 and " << i << " is: " << qs.size() << endl << endl;
+
+}
+
+
+//cout << "generate different quartets from trees 2:\n";
+//printSet(generateDifferentQuartetsFromTrees2(0,1));
+//cout << "generate same quartets from trees:\n";
+//printSet(generateSameQuartetsFromTrees(0,1));
+//cout << "tree 1:\n";
+//printSet(generateQuartetsFromTree(1)); 
+//cout << "tree 2:\n";
+//printSet(generateQuartetsFromTree(2)); 
+
+
+
+// set<unsigned int> testy; testy.insert(0); testy.insert(1);
 //shared_quartets_strict(testy);
 //cout << endl << endl << endl;
 // printSet(generateSameQuartetsFromTrees(0,1));

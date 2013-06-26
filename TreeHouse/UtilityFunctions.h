@@ -178,14 +178,16 @@ void printVectorCompact(vector<T> in){
 	cout << in.at(i) << ", ";}
 
 }
-
+/*
 template <class T> 
 void printSetCompact(set<T> in){
   cout << endl;
-  for(int i = 0; i < in.size(); i++){
-	cout << in.at(i) << ", ";}
+  for(set<typename T>::iterator it = in.begin(); it!=in.end(); it++){
+	cout << *it << ", ";}
 
-}
+}*/
+
+void printSetCompactTwo(set<unsigned int> in);
 
 template <class T>
 vector<T> copyToVector(T* in, unsigned int size){
