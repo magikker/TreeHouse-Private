@@ -16,10 +16,6 @@ using namespace std;
 //I need some work on this one. 
 set <unsigned int> duplicates(int treein);
 
-void mdsTests();
-
-void display_clusters(string type, vector <set < unsigned int > >clusters);
-
 vector<string> to_newick(vector<int> input_from_int);
 
 vector<string> to_newick(set<unsigned int> inval);
