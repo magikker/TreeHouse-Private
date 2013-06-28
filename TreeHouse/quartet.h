@@ -18,6 +18,11 @@ using namespace std;
 void calculateTrivialBipartitions();
 
 typedef pair<int, int> iPair;
+typedef pair< set<iPair>, set<iPair> > qPair;
+
+void printQPair(qPair a);
+qPair mergeQPair(qPair a, qPair b);
+bool isQPairEmpty(qPair a);
 
 class quartet{ //a class to store quartets. I'm open to ideas about how to make this better...
 	private:	
@@ -74,7 +79,7 @@ class bPair{ //holds all relevant info about quartets on a pair of bipartitions
 
 
 char isQuartetImplied(quartet x, unsigned int bipart);
-bool isQuartetImplied(quartet x, set<unsigned int> biparts);
+char isQuartetImplied(quartet x, set<unsigned int> biparts);
 
 void printQuartets(vector<quartet>);
 vector<quartet> generateQuartetsFromBipart(int);
@@ -94,10 +99,14 @@ void fillDifferenceVectors(boost::dynamic_bitset<> v1, boost::dynamic_bitset<> v
 
 void addMatchedPairs(vector<iPair> p1, vector<iPair> p2, vector<quartet> &retVec);
 vector<quartet> generateDifferentQuartets(int bipartA, int bipartB);
-vector<quartet> generateDifferentQuartetsGroup(int bipartA, int bipartB);
-set<quartet> generateConflictingQuartets2(int bipart1, int bipart2);
-unsigned int numConflictingQuartets(int bipart1, int bipart2);
 vector<quartet> generateSameQuartets(int bipartA, int bipartB);
+
+
+set<quartet> generateConflictingQuartets(int bipart1, int bipart2);
+set<quartet> generateConflictingQuartets2(int bipart1, int bipart2);
+qPair generateConflictingQuartets3(int bipart1, int bipart2);
+unsigned int numConflictingQuartets(int bipart1, int bipart2);
+set<quartet> generateConflictingQuartetsGroup(int bipart1, set<unsigned int> bipart2);
 
 unsigned int getNumQuartets(int);
 unsigned int getNumQuartets(vector<bool> bipart);
@@ -126,6 +135,7 @@ void ktetAnalysis(int t);
 void quartetAnalysis(int, int); //not fully implemented
 void printSet(set<quartet> s);
 void TESTSTUFF();
+void testGenerateConflictingQuartets();
 void testNumConflictingQuartets();
 void testGenerateDifferentQuartets();
 void testOperatorsForQuartets();

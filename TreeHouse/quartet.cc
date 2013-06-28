@@ -165,20 +165,20 @@ char isQuartetImplied(quartet x, unsigned int bipart){
 	}
 }
 
-bool isQuartetImplied(quartet x, set<unsigned int> biparts){
+char isQuartetImplied(quartet x, set<unsigned int> biparts){
   for(set<unsigned int>::iterator it = biparts.begin(); it!=biparts.end(); it++){ //for each bipartition
 	//cout << "bipart is: "; biparttable.BipartitionTable.at(*it).print_bitstring(true);
 	//cout << "quartet is: "; x.print();
 	//cout << "isQuartetImplied? " << (int)isQuartetImplied(x,*it) << endl;
 	if(isQuartetImplied(x, *it)==1){
-		return true;
+		return 1;
 		}
 	else if(isQuartetImplied(x, *it)==0){
-		return false;
+		return 0;
 		}
 	}
-  cout << "CODE SHOULDN'T REACH HERE!!!\n\n";
-  return false;
+  
+  return 2;
 }
 
 
@@ -395,22 +395,31 @@ set<quartet> generateConflictingQuartets(int bipart1, int bipart2){
 	}
   return retSet;
 }
-set<quartet> generateConflictingQuartetsGroup(int bipart1, int bipart2){
-  //right now, we will brute force this because we need to results for testing
-  set<quartet> retSet;
 
-  return retSet;
+set<quartet> generateConflictingQuartetsGroup(int bipart1, set<unsigned int> biparts){
+	//right now, we will brute force this because we need to results for testing
+	set<quartet> retSet;
+	set<unsigned int> ones, zeros;
+	//ones = biparttable.BipartitionTable.at(bipart1).getOnes();
+	//zeros = biparttable.BipartitionTable.at(bipart1).getZeros();
+	set<quartet> bipartsA = generateQuartetsFromBipartSet(bipart1);
+	for(set<quartet>::iterator it = bipartsA.begin(); it!=bipartsA.end(); it++){
+	if(isQuartetImplied(*it, biparts)==0){
+		retSet.insert(*it);
+		}
+	}
+	return retSet;
 }
 
 set<quartet> generateConflictingQuartets2(int bipart1, int bipart2){
-  set<quartet> retSet;
-  boost::dynamic_bitset<> a, b;
-  a = biparttable.BipartitionTable.at(bipart1).get_bitstring();
-  b = biparttable.BipartitionTable.at(bipart2).get_bitstring();
-  a.resize(::NUM_TAXA); //restore trailing 0s in bipartitions
-  b.resize(::NUM_TAXA);
-  vector<unsigned int> sharedOnes, sharedZeros, unsharedOnes, unsharedZeros;
-  for(int i = 0; i < a.size(); i++){
+	set<quartet> retSet;
+	boost::dynamic_bitset<> a, b;
+	a = biparttable.BipartitionTable.at(bipart1).get_bitstring();
+	b = biparttable.BipartitionTable.at(bipart2).get_bitstring();
+	a.resize(::NUM_TAXA); //restore trailing 0s in bipartitions
+	b.resize(::NUM_TAXA);
+	vector<unsigned int> sharedOnes, sharedZeros, unsharedOnes, unsharedZeros;
+	for(int i = 0; i < a.size(); i++){
 	if(a[i]==1){
 		if(b[i]==1){
 			sharedOnes.push_back(i);
@@ -428,9 +437,9 @@ set<quartet> generateConflictingQuartets2(int bipart1, int bipart2){
 			}
 		}
 	}
-//now we have all the sets of ones and zeros, create quartets by taking
-//  shared1s/unshared1s |  shared0s/unshared0s
-for(vector<unsigned int>::iterator a = sharedOnes.begin(); a!=sharedOnes.end(); a++){
+	//now we have all the sets of ones and zeros, create quartets by taking
+	//  shared1s/unshared1s |  shared0s/unshared0s
+	for(vector<unsigned int>::iterator a = sharedOnes.begin(); a!=sharedOnes.end(); a++){
 	for(vector<unsigned int>::iterator b = unsharedOnes.begin(); b!=unsharedOnes.end(); b++){
 		for(vector<unsigned int>::iterator c = sharedZeros.begin(); c!=sharedZeros.end(); c++){
 			for(vector<unsigned int>::iterator d = unsharedZeros.begin(); d!=unsharedZeros.end(); d++){
@@ -439,7 +448,88 @@ for(vector<unsigned int>::iterator a = sharedOnes.begin(); a!=sharedOnes.end(); 
 			}
 		}
 	} 
-  return retSet;
+	return retSet;
+}
+
+void printQPair(qPair a){
+	  set<iPair> one = a.first;
+	  set<iPair> two = a.second;
+	  if(one.size()==0 || two.size()==0){
+		cout << "empty!\n";
+		}
+	  else{
+	  cout << "{ ";
+	  for(set<iPair>::iterator i = one.begin(); i!=one.end(); i++){ //for each iPair in first
+		cout << (*i).first << "," << (*i).second << "  ";
+		}
+	  cout << "}\n{ ";
+	  for(set<iPair>::iterator j = two.begin(); j!=two.end(); j++){ //for each iPair in first
+		cout << (*j).first << "," << (*j).second << "  ";
+		}
+	 cout << "}\n";
+	}
+}
+
+qPair mergeQPair(qPair a, qPair b){
+
+         set<iPair> one, two;
+	 merge(a.first.begin(), a.first.end(), b.first.begin(), b.first.end(), inserter(one, one.begin()));
+	 merge(a.second.begin(), a.second.end(), b.second.begin(), b.second.end(), inserter(two, two.begin()));
+	 return make_pair(one, two);
+}
+
+bool isQPairEmpty(qPair a){
+  return (a.first.size()==0 || a.second.size()==0);
+}
+
+
+qPair generateConflictingQuartets3(int bipart1, int bipart2){
+	  qPair retPair;
+	  boost::dynamic_bitset<> a, b;
+	  a = biparttable.BipartitionTable.at(bipart1).get_bitstring();
+	  b = biparttable.BipartitionTable.at(bipart2).get_bitstring();
+	  a.resize(::NUM_TAXA); //restore trailing 0s in bipartitions
+	  b.resize(::NUM_TAXA);
+	  vector<unsigned int> sharedOnes, sharedZeros, unsharedOnes, unsharedZeros;
+	  for(int i = 0; i < a.size(); i++){
+		if(a[i]==1){
+			if(b[i]==1){
+				sharedOnes.push_back(i);
+				}
+			else{
+				unsharedOnes.push_back(i);
+				}
+			}
+		else{
+			if(b[i]==0){
+				sharedZeros.push_back(i);
+				}
+			else{
+				unsharedZeros.push_back(i);
+				}
+			}
+		}
+	  for(vector<unsigned int>::iterator a = sharedOnes.begin(); a!=sharedOnes.end(); a++){
+		for(vector<unsigned int>::iterator b = unsharedOnes.begin(); b!=unsharedOnes.end(); b++){
+				retPair.first.insert(make_pair(*a, *b));
+			}
+		} 
+
+	  for(vector<unsigned int>::iterator c = sharedZeros.begin(); c!=sharedZeros.end(); c++){
+		for(vector<unsigned int>::iterator d = unsharedZeros.begin(); d!=unsharedZeros.end(); d++){
+				retPair.second.insert(make_pair(*c, *d));
+				}
+		}
+
+	  return retPair;
+}
+
+qPair generateConflictingQuartetsGroup2(int bipart1, set<unsigned int> biparts){
+  qPair retPair;
+  for(set<unsigned int>::iterator it = biparts.begin(); it!=biparts.end(); it++){
+	retPair = mergeQPair(retPair, generateConflictingQuartets3(bipart1, *it));
+	}
+  return retPair;
 }
 
 unsigned int numConflictingQuartets(int bipart1, int bipart2){
@@ -1055,10 +1145,127 @@ for(int i = 2; i < 26; i++){
 }
 
 void TESTSTUFF(){
-testNumConflictingQuartets();
+testGenerateConflictingQuartets();
+//testNumConflictingQuartets();
 //testGenerateDifferentQuartets();
 //testGeenerateDifferentQuartetsFromTrees(){
 }
+
+void testGenerateConflictingQuartets(){
+  
+ 
+unsigned int numNonEmpty = 0;
+unsigned int total = 0;
+
+for(int i = 0; i < 100; i++){
+	for(int k = i + 1; k < 100; k++){
+		total++;
+		if(!isQPairEmpty(generateConflictingQuartets3(i, k))){
+			numNonEmpty++;
+			//cout << i << "," << k << " is nonempty\n";
+			}
+		}
+	}
+	cout << "total: " << total << endl;
+	cout << "nonEmpty: " << numNonEmpty << endl;
+	cout << "ratio: " << (double)numNonEmpty/(double)total << endl;
+
+/*
+  vector<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = ::inverted_index.at(258);
+  vector<unsigned int> t2 = ::inverted_index.at(561);
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+  set<unsigned int> group;
+  for(int r = 0; r < rf2.size(); r++){
+	group.insert(rf2.at(r));
+	}
+
+  for(int k = 0; k < rf.size(); k++){
+	set<quartet> conflict = generateConflictingQuartetsGroup(k, group);
+	if(conflict.size() > 0){
+		for(int i = 0; i < rf2.size(); i++){
+		cout << "conflicting quartets between bipartitions " << rf.at(k) << " and " << rf2.at(i) << " are:\n";
+		printQPair(generateConflictingQuartets3(rf.at(k), rf2.at(i)));
+		group.insert(rf2.at(i));
+		cout << endl;
+		}
+		cout << "conflicting quartets between " << rf.at(k) << " and group:\n";
+		printSet(generateConflictingQuartetsGroup(rf.at(k), group));
+		//return;
+		}
+	else{
+		cout << "bipartition " << rf.at(k) << " created no conflict!\n";
+		}
+	}  
+*/
+/*
+  int a, g1, g2, g3, g4;
+  a = 9;
+  g1 =3; g2 = 10; g3 = 11; g4 = 12;
+  set<unsigned int> group;
+  group.insert(g1); group.insert(g2); group.insert(g3); group.insert(g4); 
+  cout << "conflicting quartets between " << a << " and " << g1 << ":\n";
+  printQPair(generateConflictingQuartets3(a, g1));
+
+  cout << "conflicting quartets between " << a << " and " << g2 << ":\n";
+  printQPair(generateConflictingQuartets3(a, g2));
+
+  cout << "conflicting quartets between " << a << " and " << g3 << ":\n";
+  printQPair(generateConflictingQuartets3(a, g3));
+
+  cout << "conflicting quartets between " << a << " and " << g4 << ":\n";
+  printQPair(generateConflictingQuartets3(a, g4));
+
+  cout << "conflicting quartets between " << a << " and group:\n";
+  printSet(generateConflictingQuartetsGroup(a, group));
+  //qPair x = generateConflictingQuartets3(2,4);
+  //printQPair(x);
+  */
+
+
+  //cout << "quartet distance is:\n";
+ // printSet(generateDifferentQuartetsFromTrees(1, 8));
+
+/*  set<quartet> conflictingQuartets;
+  set<unsigned int> group;
+  group.insert(4); group.insert(13);
+
+  cout << "conflicting quartets between 2 and 4:\n";
+  printSet(generateConflictingQuartets(2,4));
+  cout << "conflicting quartets between 2 and 13:\n";
+  printSet(generateConflictingQuartets(2,13));
+  cout << "conflicting quartets between 2 and group:\n";
+  printSet(generateConflictingQuartetsGroup(2, group));
+  cout << "conflicting quartets between 6 and 4:\n";
+  printSet(generateConflictingQuartets(6,4));
+  cout << "conflicting quartets between 6 and 13:\n";
+  printSet(generateConflictingQuartets(6,13));
+  cout << "conflicting quartets between 6 and group:\n";
+  printSet(generateConflictingQuartetsGroup(6, group));
+
+
+  cout << "quartet distance is:\n";
+  printSet(generateDifferentQuartetsFromTrees(0, 1));
+*/
+ /*
+ vector<unsigned int> rf;
+ for(int i = 0; i < 10; i++){
+ 	for(int j = 2000; j < 2050; j++){
+	 vector<unsigned int> t1 = ::inverted_index.at(i);
+	 vector<unsigned int> t2 = ::inverted_index.at(j);
+	 set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+	 cout << "rf distance between " << i << " and " << j << " is: " << rf.size() << endl;
+	 rf.clear();
+	}
+}
+*/
+
+
+
+}
+
 
 void testNumConflictingQuartets(){
 	//TO TEST NUMCONFLICTINGQUARTETS ON LARGE DATA SETS
@@ -1071,10 +1278,10 @@ void testNumConflictingQuartets(){
 			numBipartsLookedAt++;		
 			unsigned int x =  numConflictingQuartets(i,j);
 			if(x!=0) {
-				//cout << x; 
+				cout << x; 
 				nonZero++;
 					}
-		//numConflictingQuartets(i,j);
+		numConflictingQuartets(i,j);
 			}
 		cout << "done with " << i << endl << endl;
 		}
