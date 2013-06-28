@@ -1087,7 +1087,7 @@ pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist)
 	pqlsymbol * result;
 
 	if (arglist.size() == 1 && arglist[0]->is_int() &&  arglist[0]->is_atom()){
-		result = new pqlsymbol(duplicates(arglist[0]->get_int() ) );
+		result = new pqlsymbol(biparttable.duplicates(arglist[0]->get_int() ) );
 	}
 	else{
 		cout << "unique expects 1 Int argument. " << "Found " << get_arg_types(arglist) << endl;
@@ -1700,11 +1700,11 @@ pqlsymbol * u_set_hetero(vector<pqlsymbol * > arglist) {
 	if (arglist.size() == 1 && arglist[0]->is_bool() ){
 		
         if (arglist[0]->get_bool()){
-			::HETERO = true;
+			::biparttable.hetero = true;
 			result = new pqlsymbol("HETERO set to true");
 		}
 		else{
-			::HETERO = false;
+			::biparttable.hetero = false;
 			result = new pqlsymbol("HETERO set to false");
 		}		
 	}

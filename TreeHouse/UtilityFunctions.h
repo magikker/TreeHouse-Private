@@ -9,11 +9,12 @@
 
 //#include "global.h"
 #include "THGlobals.h"
+#include "TreeParsing.h"
 #include "pql.h"
 using namespace std;
 
 //I need some work on this one. 
-set <unsigned int> duplicates(int treein);
+//set <unsigned int> duplicates(int treein);
 
 vector<string> to_newick(vector<int> input_from_int);
 
@@ -119,9 +120,9 @@ int num_labels_in_newick(string newick);
 
 set <unsigned int> unique(set<unsigned int> treesin);
 
-vector <unsigned int> unique(vector<unsigned int> treesin);
+//vector <unsigned int> unique(vector<unsigned int> treesin);
 
-vector <int> unique(vector<int> treesin);
+//vector <int> unique(vector<int> treesin);
 
 int unique_biparts(set< unsigned int > treesin);
 

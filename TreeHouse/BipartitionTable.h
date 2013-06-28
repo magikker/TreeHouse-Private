@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <string>
 #include <iostream>
-//#include "global.h"
 #include "Bipartition.h"
 
 using namespace std;
@@ -14,11 +13,11 @@ using namespace std;
 class BipartitionTable {
 
 private:
-	bool hetero;
+	
 	
 public:
 
-	vector<Bipartition> BipartitionTable;
+	vector<Bipartition> BipartTable;
 	LabelMap lm;
 
 	//by bipartitions
@@ -28,7 +27,6 @@ public:
 	set<unsigned int> trivial_bipartitions; //keep track of which bipartitions are trivial
 	//not sure why this is being kept. 
 	
-
 	//by trees
 	vector< boost::dynamic_bitset<> > taxa_in_trees; // which taxa are in which trees					NEED
 	//needs to be moved to the treetable. 
@@ -36,13 +34,41 @@ public:
 	vector< vector <float> > tree_branches;
 	//needs to be moved to the tree table
 
-
 	//this stuff needs to be phased out. 
 	//for consensus trees
 	vector<unsigned int> global_indices;
 	vector< float > branches; //seems to only be used for compute tree which is called by the consensus functions
+	vector< vector< unsigned int> > inverted_index;
+	std::map<int, vector<int> > tree_dups;
 
+
+	//NumTaxa ought to be pulled from LM.size()
+	unsigned int NumTrees; //NumTrees as a replacement to NUM_TREES for now... Not sure if it's actually needed. 
+	bool weighted;
+	bool hetero;
 	
+//I need some work on this one. 
+set <unsigned int> duplicates(int treein){
+	//Returns the unique trees in a tree set. 
+	set<unsigned int> duplicatelist;
+	
+	if (tree_dups[treein].size() > 0 ){
+		if(tree_dups[treein][0] < treein){
+			vector<int> tempvect = tree_dups[tree_dups[treein][0]];
+			copy(tempvect.begin(), tempvect.end(), inserter(duplicatelist, duplicatelist.end()));
+			//duplicatelist = ::dups[dups[treein][0]];
+			duplicatelist.insert(tree_dups[treein][0]);
+		}
+		
+		else{
+			vector<int> tempvect = tree_dups[treein];
+			copy(tempvect.begin(), tempvect.end(), inserter(duplicatelist, duplicatelist.end()));
+			//duplicatelist = ::dups[treein];
+		}
+	}
+	return duplicatelist;
+}
+
 void print_taxa_in_trees(){
 	cout << "taxa_in_trees" << endl;
 	for(unsigned int i = 0; i < taxa_in_trees.size(); i++) {
@@ -130,63 +156,63 @@ int num_taxa_in_tree(int treeindex){
 
 	
 	std::vector<unsigned int>::iterator trees_begin(int bitstringindex) { 
-		return BipartitionTable[bitstringindex].trees_begin(); 
+		return BipartTable[bitstringindex].trees_begin(); 
 	}
 	std::vector<unsigned int>::iterator trees_end(int bitstringindex) { 
-		return BipartitionTable[bitstringindex].trees_end(); 
+		return BipartTable[bitstringindex].trees_end(); 
 	}
 	std::vector<unsigned int>::reverse_iterator trees_rbegin(int bitstringindex) { 
-		return BipartitionTable[bitstringindex].trees_rbegin(); 
+		return BipartTable[bitstringindex].trees_rbegin(); 
 	}
 	std::vector<unsigned int>::reverse_iterator trees_rend(int bitstringindex) { 
-		return BipartitionTable[bitstringindex].trees_rend(); 
+		return BipartTable[bitstringindex].trees_rend(); 
 	}
 	std::vector<unsigned int>::const_iterator trees_cbegin(int bitstringindex) const{
-		return BipartitionTable[bitstringindex].trees_cbegin();
+		return BipartTable[bitstringindex].trees_cbegin();
 	}
 	std::vector<unsigned int>::const_iterator trees_cend(int bitstringindex) const{
-		return BipartitionTable[bitstringindex].trees_cend();
+		return BipartTable[bitstringindex].trees_cend();
 	}
 	std::vector<unsigned int>::const_reverse_iterator trees_crbegin(int bitstringindex) const{
-		return BipartitionTable[bitstringindex].trees_crbegin();
+		return BipartTable[bitstringindex].trees_crbegin();
 	}
 	std::vector<unsigned int>::const_reverse_iterator trees_crend(int bitstringindex) const{
-		return BipartitionTable[bitstringindex].trees_crend();
+		return BipartTable[bitstringindex].trees_crend();
 	}
 	
 	std::vector<float>::iterator branchlengths_begin(int bitstringindex) { 
-		return BipartitionTable[bitstringindex].branchlengths_begin(); 
+		return BipartTable[bitstringindex].branchlengths_begin(); 
 	}
 	std::vector<float>::iterator branchlengths_end(int bitstringindex) { 
-		return BipartitionTable[bitstringindex].branchlengths_end(); 
+		return BipartTable[bitstringindex].branchlengths_end(); 
 	}
 	std::vector<float>::reverse_iterator branchlengths_rbegin(int bitstringindex) { 
-		return BipartitionTable[bitstringindex].branchlengths_rbegin(); 
+		return BipartTable[bitstringindex].branchlengths_rbegin(); 
 	}
 	std::vector<float>::reverse_iterator branchlengths_rend(int bitstringindex) { 
-		return BipartitionTable[bitstringindex].branchlengths_rend(); 
+		return BipartTable[bitstringindex].branchlengths_rend(); 
 	}
 	std::vector<float>::const_iterator branchlengths_cbegin(int bitstringindex) const{
-		return BipartitionTable[bitstringindex].branchlengths_cbegin();
+		return BipartTable[bitstringindex].branchlengths_cbegin();
 	}
 	std::vector<float>::const_iterator branchlengths_cend(int bitstringindex) const{
-		return BipartitionTable[bitstringindex].branchlengths_cend();
+		return BipartTable[bitstringindex].branchlengths_cend();
 	}
 	std::vector<float>::const_reverse_iterator branchlengths_crbegin(int bitstringindex) const{
-		return BipartitionTable[bitstringindex].branchlengths_crbegin();
+		return BipartTable[bitstringindex].branchlengths_crbegin();
 	}
 	std::vector<float>::const_reverse_iterator branchlengths_crend(int bitstringindex) const{
-		return BipartitionTable[bitstringindex].branchlengths_crend();
+		return BipartTable[bitstringindex].branchlengths_crend();
 	}	
 	
 	
 
 	unsigned int bitstring_size(int bitstringindex){
-		return BipartitionTable[bitstringindex].bitstring_size();
+		return BipartTable[bitstringindex].bitstring_size();
 	}
 
 	bool get_bit(int bitstringindex, int bitindex){
-		return BipartitionTable[bitstringindex].get_bit(bitindex);
+		return BipartTable[bitstringindex].get_bit(bitindex);
 	}
 	
 	
@@ -199,83 +225,83 @@ int num_taxa_in_tree(int treeindex){
 	}
 	
 	float get_ave_branchlength(int bitstringindex){
-		return BipartitionTable[bitstringindex].get_ave_branchlength();
+		return BipartTable[bitstringindex].get_ave_branchlength();
 	}
 	
 	vector<float> get_branchlengths(int index){
-		return BipartitionTable[index].get_branchlengths();
+		return BipartTable[index].get_branchlengths();
 	}
 
 	vector<unsigned int> get_ones_indices(int index){
-		return BipartitionTable[index].get_ones_indices();
+		return BipartTable[index].get_ones_indices();
 	}
 	
 	//I need to return some specific stuff for the compute_tree function
-	vector<bool*> get_compute_tree_bipartitions(){
-		vector<bool*> bipartitions;
-		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
-			bipartitions.push_back(get_boolarray(i));
+	vector<boost::dynamic_bitset<> > get_compute_tree_bipartitions(){
+		vector<boost::dynamic_bitset<> > bipartitions;
+		for (unsigned int i = 0; i < BipartTable.size(); i++){
+			bipartitions.push_back(get_bitstring(i));
 		}
 		return bipartitions;
 	}
-	
+	/*
 	vector<unsigned int> get_compute_tree_bipartitions_bitlens(){
 		vector<unsigned int> bipartitionlens;
-		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
+		for (unsigned int i = 0; i < BipartTable.size(); i++){
 			bipartitionlens.push_back(bitstring_size(i));
 		}
 		return bipartitionlens;
 	}
-	
+	*/
 	vector<float> get_compute_tree_bipartitions_branchlens(){
 		vector<float> avebranchlens;
-		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
+		for (unsigned int i = 0; i < BipartTable.size(); i++){
 			avebranchlens.push_back(get_ave_branchlength(i));
 		}
 		return avebranchlens;
 	}
 	
 	vector< unsigned int> get_trees(int bitstringindex){
-		return BipartitionTable[bitstringindex].get_trees();
+		return BipartTable[bitstringindex].get_trees();
 	}
 	
 	boost::dynamic_bitset<> get_bitstring(int bitstringindex){
-		return BipartitionTable[bitstringindex].get_bitstring();
+		return BipartTable[bitstringindex].get_bitstring();
 	}
 	
 	void add_tree(int bitstringindex, int treeindex, float branchlength){
-		BipartitionTable[bitstringindex].add_tree(treeindex, branchlength);
+		BipartTable[bitstringindex].add_tree(treeindex, branchlength);
 	}
 	
 	unsigned int biparttable_size(){
-		return BipartitionTable.size();
+		return BipartTable.size();
 	}
 	
 	unsigned int trees_size(int index){
-		return BipartitionTable[index].trees_size();
+		return BipartTable[index].trees_size();
 	}
 	unsigned int get_tree(int bitstringindex, int treeindex){
-		return BipartitionTable[bitstringindex].get_tree(treeindex);
+		return BipartTable[bitstringindex].get_tree(treeindex);
 	}
 
 	bool in_bitstring(int bitstringindex, int place){
-		return BipartitionTable[bitstringindex].in_bitstring(place);
+		return BipartTable[bitstringindex].in_bitstring(place);
 	}
 
 	int number_of_ones(int bitstringindex){
-		return BipartitionTable[bitstringindex].number_of_ones();
+		return BipartTable[bitstringindex].number_of_ones();
 	}
 	
 	int number_of_zeros(int bitstringindex){
-		return BipartitionTable[bitstringindex].number_of_zeros();
+		return BipartTable[bitstringindex].number_of_zeros();
 	}
 
 	bool is_zero(int bitstringindex, int position){
-		return BipartitionTable[bitstringindex].is_zero(position);
+		return BipartTable[bitstringindex].is_zero(position);
 	}
 
 	bool same_bitstring_value(int bitstringindex, int position1, int position2){
-		return BipartitionTable[bitstringindex].same_bitstring_value(position1, position2);
+		return BipartTable[bitstringindex].same_bitstring_value(position1, position2);
 	}
 
 	bool same_bitstring_value(int bitstringindex, vector<int> positions){
@@ -304,11 +330,11 @@ int num_taxa_in_tree(int treeindex){
 
 	
 	bool is_one(int bitstringindex, int position){
-		return BipartitionTable[bitstringindex].is_one(position);
+		return BipartTable[bitstringindex].is_one(position);
 	}
 
 	unsigned int get_bipart_table_size(){
-		return BipartitionTable.size();
+		return BipartTable.size();
 	}
 
 	
@@ -316,15 +342,15 @@ int num_taxa_in_tree(int treeindex){
 	void print_length_of_bitstrings(){
 		cout << "We show the hash table below, with the corresponding bitstring reps of the bipartitions:" << endl << endl;
 		//keep in mind that hashtable and hash_lengths are global variables
-		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
-			cout << BipartitionTable[i].bitstring_size() << " ";
+		for (unsigned int i = 0; i < BipartTable.size(); i++){
+			cout << BipartTable[i].bitstring_size() << " ";
 		}
 		cout << endl;
 	}
 	
 	void print_biparttable(){
-		for (unsigned int i = 0; i < BipartitionTable.size(); i++){
-			BipartitionTable[i].print_line();
+		for (unsigned int i = 0; i < BipartTable.size(); i++){
+			BipartTable[i].print_line();
 		}
 	}
 	
@@ -366,13 +392,13 @@ int num_taxa_in_tree(int treeindex){
 	*/
 	
 	void print_bitstring(int index){
-		BipartitionTable[index].print_bitstring(true);
+		BipartTable[index].print_bitstring(true);
 	}
 
 	boost::dynamic_bitset<> non_trunc_bitstring(int bitstringindex){ //gives the full bitstring (i.e. with 0s at the end)
 		boost::dynamic_bitset<> returnVal(lm.size());
-		for(unsigned int i = 0; i < BipartitionTable[bitstringindex].bitstring_size(); i++){
-			returnVal[i] = BipartitionTable[bitstringindex].get_bit(i);
+		for(unsigned int i = 0; i < BipartTable[bitstringindex].bitstring_size(); i++){
+			returnVal[i] = BipartTable[bitstringindex].get_bit(i);
 		}
 		return returnVal;
 	}
@@ -389,7 +415,7 @@ int num_taxa_in_tree(int treeindex){
 		}
 	*/
 	void print_bitstring_and_trees(int index){
-		BipartitionTable[index].print_line();
+		BipartTable[index].print_line();
 	}
 	
 	void print_treetable() {
@@ -403,8 +429,8 @@ int num_taxa_in_tree(int treeindex){
 	}
 
 	void calculate_trivial_bipartitions(){
-	for(unsigned int i = 0; i < BipartitionTable.size(); i++){
-	  if(BipartitionTable.at(i).number_of_ones()<2 || ((BipartitionTable.at(i).number_of_zeros()+lm.size()-BipartitionTable.at(i).bitstring_size()) < 2)){
+	for(unsigned int i = 0; i < BipartTable.size(); i++){
+	  if(BipartTable.at(i).number_of_ones()<2 || ((BipartTable.at(i).number_of_zeros()+lm.size()-BipartTable.at(i).bitstring_size()) < 2)){
 		trivial_bipartitions.insert(i);
 		}
 	}
@@ -421,7 +447,7 @@ int num_taxa_in_tree(int treeindex){
 		
 		
 		
-		//BipartitionTable.push_back(b);
+		//BipartTable.push_back(b);
 
 		
 		for(unsigned int i = 0; i < numbiparts; i++ ){
@@ -454,7 +480,7 @@ int num_taxa_in_tree(int treeindex){
 				//	treebs[j] = 0;
 				//}
 			}
-			BipartitionTable.push_back(b); //
+			BipartTable.push_back(b); //
 			
 			//tree_branches.push_back(treebranchs);
 			//treetable.push_back(treebs);

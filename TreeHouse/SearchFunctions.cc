@@ -5,11 +5,11 @@ set<unsigned int> get_subset_trees(int tree){ //return trees which are subsets o
 						//i.e. trees whose only bipartitions are contained within the given tree
   set<unsigned int> retSet;
   
-  vector<unsigned int> b = ::inverted_index.at(tree);
+  vector<unsigned int> b = ::biparttable.inverted_index.at(tree);
   set<unsigned int> treeBiparts(b.begin(), b.end());
-  for(unsigned int i = 0; i < ::NUM_TREES; i++){
+  for(unsigned int i = 0; i < ::biparttable.NumTrees; i++){
 	if(i!=tree){ //don't include itself 
-		vector<unsigned int> biparts = ::inverted_index.at(i);
+		vector<unsigned int> biparts = ::biparttable.inverted_index.at(i);
 	 	set<unsigned int> bipartSet(biparts.begin(), biparts.end());
 		if(includes(treeBiparts.begin(), treeBiparts.end(), bipartSet.begin(), bipartSet.end())){
 			retSet.insert(i);
@@ -22,11 +22,11 @@ set<unsigned int> get_subset_trees(int tree){ //return trees which are subsets o
 
 set<unsigned int> get_superset_trees(int tree){ //return trees which have all of the bipartitions of the given tree
   set<unsigned int> retSet;
-  vector<unsigned int> b = ::inverted_index.at(tree);
+  vector<unsigned int> b = ::biparttable.inverted_index.at(tree);
   set<unsigned int> treeBiparts(b.begin(), b.end());
-  for(unsigned int i = 0; i < ::NUM_TREES; i++){
+  for(unsigned int i = 0; i < ::biparttable.NumTrees; i++){
 	if(i!=tree){ //don't include itself 
-		vector<unsigned int> biparts = ::inverted_index.at(i);
+		vector<unsigned int> biparts = ::biparttable.inverted_index.at(i);
 	 	set<unsigned int> bipartSet(biparts.begin(), biparts.end());
 		if(includes(bipartSet.begin(), bipartSet.end(), treeBiparts.begin(), treeBiparts.end())){
 			retSet.insert(i);
@@ -66,7 +66,7 @@ set<unsigned int> clade_size_search(vector<int> required, int size)
 			
 		for(unsigned int i = 0; i < required.size(); i++){ //fill the partial bitstring
 			//check that required is in the bitstring
-			if(required.at(i) > biparttable.lm.size()-1){
+			if(required.at(i) > ::biparttable.lm.size()-1){
 					cerr << "Error: element " << required.at(i) << " is not a valid taxon!" << endl;
 					return retSet;
 				}				
@@ -100,10 +100,10 @@ set<unsigned int> clade_size_search(vector<int> required, int size)
 				}
 			else{
 				//we're counting 0s, but trailing zeros are cut off, so we have to account for that since number_of_zeros doesn't
-				bSize =  ::biparttable.number_of_zeros(b) + (::NUM_TAXA - biparttable.bitstring_size(b)); 
+				bSize =  ::biparttable.number_of_zeros(b) + (::biparttable.lm.size() - biparttable.bitstring_size(b)); 
 				}	
 			//cout << "Clade found, bSize is: " << bSize << ", Bipart index is " << b << endl;						
-			if(::HETERO && !cladeBit){
+			if(::biparttable.hetero && !cladeBit){
 				//if the data is hetero and the clade is all 0s, then we don't truly know the size without looking at trees
 				//the real size could be smaller since some 0s don't exist in individual trees
 				if(bSize >= size){
@@ -135,7 +135,7 @@ set<unsigned int> clade_size_search(vector<int> required, int size)
 				//we need to find the real bSize for each tree.
 				int bSize = B.size.at(i); //the size of the clade for this bipartition. 
 				int tree = biparttable.get_tree(B.goodBipartitions[i],j);
-				bSize = bSize + ::biparttable.num_taxa_in_tree(tree) - ::NUM_TAXA; //since the clade was all 0s, n of those 0s don't actually exist in the tree, NUM_TAXA - num_taxa_in_tree(tree)
+				bSize = bSize + ::biparttable.num_taxa_in_tree(tree) - ::biparttable.lm.size(); //since the clade was all 0s, n of those 0s don't actually exist in the tree, NUM_TAXA - num_taxa_in_tree(tree)
 				//cout << "Tree " << tree << ", adjusted bSize is " << bSize << endl;
 				if(bSize == size && biparttable.are_taxa_in_tree(tree, required)){
 					retSet.insert(biparttable.get_trees(B.goodBipartitions[i])[j]);
@@ -174,7 +174,7 @@ set<unsigned int> smallest_clade(vector<int> required){
 	for(int b = 0; b < biparttable.biparttable_size(); b++){ //for each bipartition
 		boost::dynamic_bitset<> partialBS(required.size());
 		for(int i = 0; i < required.size(); i++){ //fill the partial bitstring
-			if(required.at(i) > ::NUM_TAXA-1){
+			if(required.at(i) > ::biparttable.lm.size()-1){
 				cerr << "Error: element " << required.at(i) << " is not a valid taxon!" << endl;
 				return retSet;
 				}
@@ -193,10 +193,10 @@ set<unsigned int> smallest_clade(vector<int> required){
 				}
 			else{
 				//we're counting 0s, but trailing zeros are cut off, so we have to account for that since number_of_zeros doesn't
-				bSize =  ::biparttable.number_of_zeros(b) + (::NUM_TAXA - biparttable.bitstring_size(b)); 
+				bSize =  ::biparttable.number_of_zeros(b) + (::biparttable.lm.size() - biparttable.bitstring_size(b)); 
 				}		
 
-			if(::HETERO){
+			if(::biparttable.hetero){
 				B.goodBipartitions.push_back(b);
 				B.allZeros.push_back(!cladeBit);
 				B.size.push_back(bSize);
@@ -225,7 +225,7 @@ set<unsigned int> smallest_clade(vector<int> required){
 			}
 			}		
 		}	
-	if(!::HETERO) {
+	if(!::biparttable.hetero) {
 		cout << endl << "The smallest clade found is of size " << smallest << ", found in trees:";
 		for(int i = 0; i < index; i++){ //for each bipartition whose trees we want
 			for(int j = 0; j < biparttable.trees_size(B.goodBipartitions[i]); j++){ //for each tree in the searchtable
@@ -243,12 +243,12 @@ set<unsigned int> smallest_clade(vector<int> required){
 				int tree = biparttable.get_tree(B.goodBipartitions[i],j);				
 				int bSize = B.size.at(i);
 				if(B.allZeros.at(i)){ //if the clade is all 0s, we have to make sure all the required biparts are in it and adjust the size
-					bSize = bSize + ::biparttable.num_taxa_in_tree(tree) - ::NUM_TAXA;
+					bSize = bSize + ::biparttable.num_taxa_in_tree(tree) - ::biparttable.lm.size();
 					//also check that all the required taxa exist in this tree
-					if(!::biparttable.are_taxa_in_tree(tree, required)){cout << "Taxa not in tree " << tree << endl; bSize = ::NUM_TAXA + 1;} //make it impossible for bSize to be smallest 
+					if(!::biparttable.are_taxa_in_tree(tree, required)){cout << "Taxa not in tree " << tree << endl; bSize = ::biparttable.lm.size() + 1;} //make it impossible for bSize to be smallest 
 					}
 				//now we know the clade size (i.e. bSize) for this tree. We have to make sure bSize isn't 0 or -1, which would mean the required taxa aren't in the tree
-				if(bSize==0 || bSize==-1) {bSize = ::NUM_TAXA + 1;}
+				if(bSize==0 || bSize==-1) {bSize = ::biparttable.lm.size() + 1;}
 				if(bSize == smallest){
 					if(returnTrees.size() <= returnTreesIndex){
 						returnTrees.push_back(tree);
@@ -356,7 +356,7 @@ set<unsigned int> get_trees_without_taxa(vector<int> excluded){
     set<unsigned int> trees;
     //set< int>::iterator it;
 	
-    for ( unsigned int i = 0; i < ::NUM_TREES; i++) {
+    for ( unsigned int i = 0; i < ::biparttable.NumTrees; i++) {
 		int flag = 0;
 		
 		for ( unsigned int j = 0; j < excluded.size(); j++) {
@@ -391,7 +391,7 @@ set<unsigned int> get_trees_by_taxa(vector<string> RequiredTaxa, vector<string> 
 	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
 	vector<int> excluded = ::biparttable.lm.lookUpLabels(ExcludedTaxa);
 	
-    for (unsigned int i = 0; i < ::NUM_TREES; i++) {
+    for (unsigned int i = 0; i < ::biparttable.NumTrees; i++) {
 		int flag = 0;
 
         for (unsigned int j = 0; j < required.size(); j++) {
@@ -705,16 +705,16 @@ bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector<
   if (startNode->Nchildren == 0) { // leaf node
     string temp(startNode->label);
     unsigned int idx = ::biparttable.lm.position(temp);
-    bool * bs = new bool[::NUM_TAXA];
+    bool * bs = new bool[::biparttable.lm.size()];
 	
-    for (unsigned int i = 0; i < ::NUM_TAXA; i++){
+    for (unsigned int i = 0; i < ::biparttable.lm.size(); i++){
       bs[i] = 0;
 	}
     bs[idx] = true;
 	
 	//Error Checking
     int numOnes = 0;
-    for (unsigned int i = 0; i < ::NUM_TAXA; i++){
+    for (unsigned int i = 0; i < ::biparttable.lm.size(); i++){
       numOnes+=bs[i];
 	  if (bs[i] ==  true){
         subtree.push_back(i);
@@ -742,8 +742,8 @@ bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector<
       ebs[i] = dfs_compute_bitstrings(startNode->child[i], startNode, solution);
     }
     
-    bool * bs = new bool[::NUM_TAXA];
-    for (unsigned int i  = 0; i < ::NUM_TAXA; i++)
+    bool * bs = new bool[::biparttable.lm.size()];
+    for (unsigned int i  = 0; i < ::biparttable.lm.size(); i++)
       bs[i] = 0;
 
     //fprintf(stderr, "the bitstrings I'm going to be comparing are:\n");
@@ -755,13 +755,13 @@ bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector<
     for (int i=0; i<startNode->Nchildren; ++i) {
       //cerr << "bitstring: " << *(ebs[i]) << endl;
 	  if (ebs[i]) {
-	    for (unsigned int j = 0; j < ::NUM_TAXA; j++)
+	    for (unsigned int j = 0; j < ::biparttable.lm.size(); j++)
 	      bs[j] |= ebs[i][j];
 	    delete [] ebs[i];
 	    ebs[i] = NULL;
 	  }
 	  else {
-	    if (!HETERO) {
+	    if (!::biparttable.hetero) {
 	      cout << "ERROR: null bitstring\n";
 	      exit(0);
         }
@@ -769,7 +769,7 @@ bool * dfs_compute_bitstrings(NEWICKNODE* startNode, NEWICKNODE* parent, vector<
     }
 
    int numOnes = 0;
-   for (unsigned int i= 0; i < ::NUM_TAXA; i++) {
+   for (unsigned int i= 0; i < ::biparttable.lm.size(); i++) {
      numOnes+=bs[i];
 	 if (bs[i] ==  true) {
        subtree.push_back(i);
@@ -802,7 +802,7 @@ set<unsigned int> search_hashtable_strict(vector<int> leftside, vector<int> righ
 	
 	//Testing features for 0 by, 1 by, and missnamed taxa.
 
-	if(HETERO){
+	if(::biparttable.hetero){
 		if(leftside.size() == 0 && rightside.size() == 0){
 			return ::all_trees;
 		}
@@ -848,7 +848,7 @@ set<unsigned int> search_hashtable_strict(vector<int> leftside, vector<int> righ
 		//However we might only want a subset of those trees thanks to
 		//taxa Heterogenious trees / bipartition truncation and Strict bipartition matching
 		
-		if (::HETERO == true){//if the trees are taxa heterogenious
+		if (::biparttable.hetero == true){//if the trees are taxa heterogenious
 			//cout << "if the trees are taxa heterogenious" << endl;
 			if (side > 0){//if at least one side is strict
 				//cout << "side is > 0" << endl;
@@ -939,7 +939,7 @@ int random_search2(int left, int right, int side, int iterations){
 
 	vector<int> randomVect;
 	
-	for (unsigned int i = 0; i < ::NUM_TAXA; ++i){
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); ++i){
 		randomVect.push_back(i);
 	}
 	
@@ -1035,7 +1035,7 @@ int random_search2(int left, int right, int side, int iterations){
 
 int random_search(int left, int right, int side, int iterations){
 
-	vector<int> treeFreq(::NUM_TREES, 0);
+	vector<int> treeFreq(::biparttable.NumTrees, 0);
 	
 	vector<int>::iterator it;
 
@@ -1053,7 +1053,7 @@ int random_search(int left, int right, int side, int iterations){
 	
 	vector<int> randomVect;
 	
-	for (unsigned int i = 0; i < ::NUM_TAXA; ++i){
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); ++i){
 		randomVect.push_back(i);
 	}
 	
@@ -1142,7 +1142,7 @@ int random_search(int left, int right, int side, int iterations){
 set<unsigned int> search_hashtable_strict_and_timed(vector<int> leftside, vector<int> rightside, int side){
 	cout << "We show the bipartitions found by the search and corresponding trees" << endl;
 	//keep in mind that hashtable and hash_lengths are global variables
-	cout << "hetero = " << ::HETERO << endl;
+	cout << "hetero = " << ::biparttable.hetero << endl;
 	
 	set<unsigned int> trees;
 	vector<unsigned int> matchingtrees;
@@ -1185,7 +1185,7 @@ set<unsigned int> search_hashtable_strict_and_timed(vector<int> leftside, vector
 		//taxa Heterogenious trees / bipartition truncation and Strict bipartition matching
 		
 		//this block returns the trees with the correct number of taxa. The actual taxa are checked later
-		if (::HETERO == true){//if the trees are taxa heterogenious
+		if (::biparttable.hetero == true){//if the trees are taxa heterogenious
 			start_clock();
 			//cout << "if the trees are taxa heterogenious" << endl;
 			if (side > 0){//if at least one side is strict
@@ -1233,13 +1233,13 @@ set<unsigned int> search_hashtable_strict_and_timed(vector<int> leftside, vector
 		::SetTime += stop_clockbp();
 		//cout << "trees.size() = " << trees.size() << endl;
 		
-		if (trees.size() == ::NUM_TREES){
+		if (trees.size() == ::biparttable.NumTrees){
 			break;
 		}
 		
 	}
 	
-	if (::HETERO == true){ // get the set of trees that contain all searched taxa and do a set difference with matches. 
+	if (::biparttable.hetero == true){ // get the set of trees that contain all searched taxa and do a set difference with matches. 
 		start_clock();
 		vector<int> searched_taxa; 
 		searched_taxa.reserve( leftside.size() + rightside.size() ); // preallocate memory

@@ -2,14 +2,14 @@
 #include "ConsensusFunctions.h"
 
 //should really phase out
-void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< bool * > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes){
+void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< boost::dynamic_bitset<> > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes){
 	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //for each bipartition
 		vector<unsigned int> temp = ::biparttable.get_trees(i);
 		set<unsigned int> sinter;
 		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter( sinter, sinter.begin() ) );
 		
 		if (sinter.size() >= threshold){
-			consensus_bs.push_back(::biparttable.get_boolarray(i));
+			consensus_bs.push_back(::biparttable.get_bitstring(i));
 			//consensus_branchs.push_back(::biparttable.get_branchlengths(i));
 			consensus_bs_sizes.push_back(::biparttable.bitstring_size(i));
 			//GRB Do we need a branch length? 
@@ -36,16 +36,12 @@ unsigned int compute_threshold(unsigned int numberofTrees, float threshold){
 string consen(set<unsigned int> inputtrees, float percent){
 	int threshold; 
 	vector<Bipartition> consensus_bipartitions;
-	vector< bool * > consensus_bs;
+	vector< boost::dynamic_bitset<> > consensus_bs;
 	vector< float > consensus_branchs;
 	vector< unsigned int> consensus_bs_sizes;
 	string consensus_tree;
 
 	threshold = compute_threshold(inputtrees.size(), percent);
-
-
-
-	//GRB Need to come in and clean up the boolarrays this spawns
 	
 	bitpartitions_by_frequency(inputtrees, threshold, consensus_bs, consensus_branchs, consensus_bs_sizes);
 
@@ -56,7 +52,7 @@ string consen(set<unsigned int> inputtrees, float percent){
 	//need a function to find return the bitstrings that appear in a certain percent of trees. 
 
 	
-	consensus_tree = compute_tree(::biparttable.lm, consensus_bs, consensus_branchs, 0, false, consensus_bs_sizes); // change false to true to enable branch lengths.
+	consensus_tree = compute_tree(::biparttable.lm, consensus_bs, consensus_branchs, 0, false); // change false to true to enable branch lengths.
 
 	//consensus_tree = compute_tree(::lm, consensus_bs, consensus_branchs, 0, false, consensus_bs_sizes); // change false to true to enable branch lengths.
 	
@@ -93,7 +89,7 @@ float reso_rate(string inputtree){
 	vector< vector <int> > treei = compute_bitstrings_h(inputtree); 	
 	//Only valid because homogeneous treesets, same number of taxa in all trees
 	//vector<string> temp = get_taxa_in_tree(0);
-	float taxa = ::NUM_TAXA;
+	float taxa = ::biparttable.lm.size();
 	//Computes the number of possible bipartitions
 	float total_biparts = taxa - 3;
 	//Computes the number of non-trivial bipartitions
@@ -143,7 +139,7 @@ BipartitionTable least_conflict_bt(set<unsigned int> inputtrees) {
 	      //consen_bt.length_of_bitstrings.insert(consen_bt.length_of_bitstrings.begin()+insert_ind, ::biparttable.bitstring_size(i));
 	      vector<unsigned int> incompat_vect(all_incompat[i].begin(), all_incompat[i].end());
 	      Bipartition tempbipart(::biparttable.get_bitstring(i), incompat_vect, 1.0);
-	      consen_bt.BipartitionTable.insert(consen_bt.BipartitionTable.begin()+insert_ind, tempbipart);
+	      consen_bt.BipartTable.insert(consen_bt.BipartTable.begin()+insert_ind, tempbipart);
 	      //consen_bt.searchtable.insert(consen_bt.searchtable.begin()+insert_ind, incompat_vect);
 	      consen_bt.global_indices.insert(consen_bt.global_indices.begin()+insert_ind, i);
 	    }
@@ -155,15 +151,10 @@ BipartitionTable least_conflict_bt(set<unsigned int> inputtrees) {
 
 string least_conflict(set<unsigned int> inputtrees) {
   BipartitionTable consen_bt = least_conflict_bt(inputtrees);
-  vector<bool *> biparts = consen_bt.get_compute_tree_bipartitions();
-  string consensus_tree = compute_tree(::biparttable.lm, biparts, consen_bt.get_compute_tree_bipartitions_branchlens(), 0, false, consen_bt.get_compute_tree_bipartitions_bitlens());
+  vector<boost::dynamic_bitset<> > biparts = consen_bt.get_compute_tree_bipartitions();
+  string consensus_tree = compute_tree(::biparttable.lm, biparts, consen_bt.get_compute_tree_bipartitions_branchlens(), 0, false);
   consen_bt.print_biparttable();
-  //cleaning up the mess made by using bool *'s
-  while(! biparts.empty()){
-		delete[] biparts.back();
-		biparts.pop_back();
-	}
-  
+ 
   return consensus_tree;
 }
 
@@ -190,7 +181,7 @@ BipartitionTable get_consen_bt(set<unsigned int> inputtrees, float percent) {
       //consen_bt.searchtable.push_back(incompat_indices);
 
       Bipartition tempbipart(::biparttable.get_bitstring(i), incompat_indices, 1.0);
-      consen_bt.BipartitionTable.push_back(tempbipart);
+      consen_bt.BipartTable.push_back(tempbipart);
 
       consen_bt.global_indices.push_back(i);
       
@@ -224,7 +215,7 @@ BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent) {
   vector<unsigned int> all_compat;
   std::set_difference(all_indices.begin(), all_indices.end(), all_incompat.begin(), all_incompat.end(), back_inserter(all_compat));  
 
-  for (unsigned int base_popularity = ::NUM_TREES; base_popularity >= 1; base_popularity--) { 
+  for (unsigned int base_popularity = ::biparttable.NumTrees; base_popularity >= 1; base_popularity--) { 
     unsigned int i = 0; 
     while (i < all_compat.size()) {
       if (::biparttable.trees_size(all_compat[i]) >= base_popularity) {
@@ -242,7 +233,7 @@ BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent) {
 	vector<unsigned int> incompat_indices = find_incompat(::biparttable.get_bitstring(all_compat[i]), inputtrees);
 	//consen_bt.searchtable.insert(consen_bt.searchtable.begin()+insert_ind, incompat_indices);
 	Bipartition tempbipart(::biparttable.get_bitstring(all_compat[i]), incompat_indices, 1.0);
-    consen_bt.BipartitionTable.insert(consen_bt.BipartitionTable.begin()+insert_ind, tempbipart);
+    consen_bt.BipartTable.insert(consen_bt.BipartTable.begin()+insert_ind, tempbipart);
 	consen_bt.global_indices.insert(consen_bt.global_indices.begin()+insert_ind, all_compat[i]);
 	
 	set<unsigned int> compat_set(all_compat.begin(), all_compat.end());
@@ -261,16 +252,10 @@ BipartitionTable greedy_consen_bt(set<unsigned int> inputtrees, float percent) {
 
 string greedy_consen(set<unsigned int> inputtrees, float percent) {
   BipartitionTable consen_bt = greedy_consen_bt(inputtrees, percent);
-  vector<bool *> biparts = consen_bt.get_compute_tree_bipartitions();
+  vector< boost::dynamic_bitset<> > biparts = consen_bt.get_compute_tree_bipartitions();
   
-  string consensus_tree = compute_tree(::biparttable.lm, biparts, consen_bt.get_compute_tree_bipartitions_branchlens(), 0, false, consen_bt.get_compute_tree_bipartitions_bitlens());
+  string consensus_tree = compute_tree(::biparttable.lm, biparts, consen_bt.get_compute_tree_bipartitions_branchlens(), 0, false);
   consen_bt.print_biparttable();
-
-  //cleaning up the mess made by using bool *'s
-  while(! biparts.empty()){
-	delete[] biparts.back();
-	biparts.pop_back();
-  }
   
   return consensus_tree;
  

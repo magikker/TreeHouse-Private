@@ -393,19 +393,19 @@ vector<quartet> generateSameQuartets(int bipartA, int bipartB){
 set<quartet> generateQuartetsFromBipartSet(int b){
   vector<int> ones;
   vector<int> zeros;
-  for(int i = 0; i < biparttable.BipartitionTable.at(b).bitstring_size(); i++){
-	if(biparttable.BipartitionTable.at(b).get_bit(i)==false){
+  for(int i = 0; i < biparttable.BipartTable.at(b).bitstring_size(); i++){
+	if(biparttable.BipartTable.at(b).get_bit(i)==false){
 		zeros.push_back(i);
 		}
 	else{
 		ones.push_back(i);
 		}
 	}
-  if(biparttable.BipartitionTable.at(b).bitstring_size() > ::NUM_TAXA){ //make sure the next for loop terminates
+  if(biparttable.BipartTable.at(b).bitstring_size() > ::biparttable.lm.size()){ //make sure the next for loop terminates
 	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
    	}
   else{
-  	for(int i = biparttable.BipartitionTable.at(b).bitstring_size(); i < ::NUM_TAXA; i++){
+  	for(int i = biparttable.BipartTable.at(b).bitstring_size(); i < ::biparttable.lm.size(); i++){
 		zeros.push_back(i);
 		}
 	}
@@ -428,11 +428,11 @@ vector<quartet> generateQuartetsFromBipart(int b){
 		ones.push_back(i);
 		}
 	}
-  if(biparttable.bitstring_size(b) > ::NUM_TAXA){ //make sure the next for loop terminates
+  if(biparttable.bitstring_size(b) > ::biparttable.lm.size()){ //make sure the next for loop terminates
 	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
    	}
   else{
-  	for(unsigned int i = biparttable.bitstring_size(b); i < ::NUM_TAXA; i++){
+  	for(unsigned int i = biparttable.bitstring_size(b); i < ::biparttable.lm.size(); i++){
 		zeros.push_back(i);
 		}
 	}
@@ -472,19 +472,19 @@ set<quartet> generateQuartetsFromOnesZerosSet(vector<int> ones, vector<int> zero
 void insertQuartetsFromBipart(int b, set<quartet> &setty){
   vector<int> ones;
   vector<int> zeros;
-  for(unsigned int i = 0; i < biparttable.BipartitionTable.at(b).bitstring_size(); i++){
-	if(biparttable.BipartitionTable.at(b).get_bit(i)==false){
+  for(unsigned int i = 0; i < biparttable.BipartTable.at(b).bitstring_size(); i++){
+	if(biparttable.BipartTable.at(b).get_bit(i)==false){
 		zeros.push_back(i);
 		}
 	else{
 		ones.push_back(i);
 		}
 	}
-  if(biparttable.BipartitionTable.at(b).bitstring_size() > ::NUM_TAXA){ //make sure the next for loop terminates
+  if(biparttable.BipartTable.at(b).bitstring_size() > ::biparttable.lm.size()){ //make sure the next for loop terminates
 	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
    	}
   else{
-  	for(unsigned int i = biparttable.BipartitionTable.at(b).bitstring_size(); i < ::NUM_TAXA; i++){
+  	for(unsigned int i = biparttable.BipartTable.at(b).bitstring_size(); i < ::biparttable.lm.size(); i++){
 		zeros.push_back(i);
 		}
 	}
@@ -603,7 +603,7 @@ unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_b
 unsigned int getNumQuartets(int b){
   //takes the index of a bipartition and counts the number of quartets implied by it
   int nOnes = biparttable.number_of_ones(b);
-  int nZeros = biparttable.number_of_zeros(b) + ::NUM_TAXA - biparttable.bitstring_size(b);
+  int nZeros = biparttable.number_of_zeros(b) + ::biparttable.lm.size() - biparttable.bitstring_size(b);
   //quartets = (nOnes choose 2) * (nZeros choose 2) 
 //cout << "num ones is: " << nOnes << ", number of 0s is " << nZeros << endl;
   return(getNumQuartets(nOnes,nZeros));
@@ -678,8 +678,8 @@ set<quartet> generateSameQuartetsFromTrees(int a, int b){
 unsigned int quartet_distance(int tree1, int tree2){
 //first, get set of non-trivial bipartitions which are shared by the trees
 
-  vector<unsigned int> biparts1 = ::inverted_index.at(tree1);
-  vector<unsigned int> biparts2 = ::inverted_index.at(tree2);
+  vector<unsigned int> biparts1 = ::biparttable.inverted_index.at(tree1);
+  vector<unsigned int> biparts2 = ::biparttable.inverted_index.at(tree2);
   
  
  set<unsigned int> b1(biparts1.begin(), biparts1.end());
@@ -816,7 +816,7 @@ void bipartAnalysis(){ //dumps info about quartets in a bipartition
 //the goal is to generate the number of quartets implied by each bipartition, and the similarity/difference matrix with each other
 cout << "DIFFERENT/SIMILAR\n";
 cout << "# qts:";
-for(unsigned int i = 0; i < biparttable.BipartitionTable.size(); i++)
+for(unsigned int i = 0; i < biparttable.BipartTable.size(); i++)
 {
 if(biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.end()) {cout << setw(8) << i;}
 
@@ -824,9 +824,9 @@ if(biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.en
 
 cout << endl;
 
-for(int i = -1; ++i < biparttable.BipartitionTable.size() && biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.end();){
+for(int i = -1; ++i < biparttable.BipartTable.size() && biparttable.trivial_bipartitions.find(i)==biparttable.trivial_bipartitions.end();){
 	cout << setw(6) << getNumQuartets(i);
-	for(int j = 0; j < biparttable.BipartitionTable.size(); j++){	  
+	for(int j = 0; j < biparttable.BipartTable.size(); j++){	  
 		string outty = "";
 		stringstream s;
 		s << getNumDifferentQuartets(i, j) << "/" << getNumSameQuartets(i,j);

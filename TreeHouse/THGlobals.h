@@ -43,13 +43,13 @@ extern vector<Taxon *> taxa_info;
 //These objects are number of total trees long
 //extern vector< bool* > taxa_in_trees;					//Which taxa are in which trees // bitstrings 1's are in the tree. place in the bitsting maps to the Lable map.
 
-extern vector< vector< unsigned int> > inverted_index;	//???
+//extern vector< vector< unsigned int> > inverted_index;	//???
 
 extern set< unsigned int > all_trees;							//stores the number for each tree. This is the world as to be used to determine the result of not operations. // This should be moved to being returned from a function call.
 extern set< unsigned int > original_trees;
 extern int NUM_TREES_INIT;  
 
-extern std::map<int, vector<int> > tree_dups;
+//extern std::map<int, vector<int> > tree_dups;
 
 extern vector< pqlsymbol* > query_results;
 
@@ -100,7 +100,7 @@ vector< Bipartition > get_tree_bipartitions(unsigned int id);
 //vector< bool *> get_tree_bipartitions(unsigned int id);
 vector<unsigned int> get_tree_bs_sizes(unsigned int id);
 vector<float> get_tree_branches(unsigned int id);
-vector<unsigned int> get_tree_data(unsigned int id, vector < bool *>& tree_bipartitions, vector <unsigned int>& tree_bs_sizes, vector<float>& tree_branches);
+vector<unsigned int> get_tree_data(unsigned int id, vector < boost::dynamic_bitset<> >& tree_bipartitions, vector<float>& tree_branches);
 string th_compute_tree(BipartitionTable& bpt, unsigned id, bool branch);
 void recompute_tree_dups();
 
