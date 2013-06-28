@@ -10,10 +10,13 @@
 //#include "global.h"
 #include "THGlobals.h"
 #include "pql.h"
+#include "AnalysisFunctions.h"
 using namespace std;
 
 //I need some work on this one. 
 set <unsigned int> duplicates(int treein);
+
+void mdsTests();
 
 vector<string> to_newick(vector<int> input_from_int);
 

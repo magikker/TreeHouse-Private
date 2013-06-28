@@ -110,59 +110,103 @@ std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsign
 	return result;
 }
 
-/*
-//Returns the difference based on shared bipartitions from each tree to each other (RF distance)
-vector < vector < unsigned int > > compute_rf_distances(vector < vector < unsigned int> > biparts){
-vector < vector < unsigned int> > distances;
-distances.resize(biparts.size(), vector<unsigned int>(biparts.size(),0));
+vector < vector <unsigned int> > compute_bipart_distancesv(vector <unsigned int> treeset, string measure){
+	//Return Value
+	vector < vector < unsigned int > > distances;
+	//Holds bipartitions
+	vector < vector < unsigned int> > biparts;
+	//Resizes to hold the proper number of elements
+	//Arbitrary starting value
+	unsigned int switch_value = 20;
+//	 int m; //# unique biparitions
 
-for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
-for (unsigned int j = 1; j < biparts.size(); j++){//for all others
-vector<unsigned int> temp;
-int diff1;
-int diff2;
-int dist;
-//intersection contain all shared bipartitions
-std::set_intersection(biparts[i].begin(),biparts[i].end(), 
-biparts[j].begin(), biparts[j].end(),
-std::inserter(temp, temp.end()));
-//Stores the differences for each
-diff1 = biparts[i].size() - temp.size();
-diff2 = biparts[j].size() - temp.size();
-//computes the actual distance the stores it
-dist = (diff1 + diff2) / 2;
-distances[i][j] = dist;
-distances[j][i] = dist;
-}
-}
-return distances;
-}
+//	m = unique_biparts(treeset);
 
-vector < vector < unsigned int > > compute_euclidean_distances(vector < vector < unsigned int> > biparts){
-vector < vector <unsigned int > > distances;
-distances.resize(biparts.size(), vector<unsigned int>(biparts.size(),0));
+	//Computes the bipartitions
+	for(unsigned int i = 0; i < treeset.size(); i++){//for each tree
+		biparts.push_back(biparts_in_tree(treeset[i]));
+	}
 
-for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
-for (unsigned int j = 1; j < biparts.size() - 1; i++){//for all others
-vector<unsigned int> temp;
-int diff; 
-int diff2;
-int dist;
-//Intersection contains all shared bipartitions
-std::set_intersection(biparts[i].begin(),biparts[i].end(),
-biparts[j].begin(), biparts[j].end(),
-std::inserter(temp,temp.end()));
-//Stores the differences for each
-diff1 = biparts[i].size() - temp.size();
-diff2 = biparts[j].size() - temp.size();
-//Computes the distnace and stores it
-dist = sqrt(diff1 + diff2);
-distances[i][j] = dist;
-distances[j][i] = dist;
+
+	distances.resize(biparts.size(), vector< unsigned int >(biparts.size(), 0));
+
+	//To set the switch since strings are intuitive to us but not switch statements
+	if (measure == "rf" || measure == "RF" || measure == "Rf"){
+		switch_value = 0;
+	}
+	else if (measure == "eu" || measure == "EU" || measure == "Eu" || measure == "euclidean"
+			|| measure == "Euclidean"){
+		switch_value = 1;
+	}
+	else if (measure == "j-t" || measure == "jaccard-tanimoto"){
+		switch_value = 2;
+	}
+	else if (measure == "dice" || measure == "Dice"){
+		switch_value = 3;
+	}
+//	else if (measure == "r-r" || measure == "russel-rao"){
+//		switch_value = 4;
+//	}	
+
+	for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
+		for (unsigned int j = 1; j < biparts.size(); j++){//for all others
+			//a, b, & c values come from Suzanne Matthews Dissertation
+			//and the method of computing distances from bipartitions found there
+			int a; //Bipartitions in both trees
+			vector<unsigned int> temp;
+			int b; //# Bipartions in first tree but not second
+			int c; //# Bipartitions in second tree but not first
+			int dist;
+			//Intersection contains all shared bipartitions
+			std::set_intersection(biparts[i].begin(),biparts[i].end(),
+					biparts[j].begin(),biparts[j].end(),
+					std::inserter(temp, temp.end()));
+			//Stores the differences for each
+			a = temp.size();
+			b = biparts[i].size() - temp.size();
+			c = biparts[j].size() - temp.size();
+			//Computes the distance and stores it based on multiple distance types
+			switch (switch_value){
+
+				case 0: //RF distance
+				//	cout << "RF distance" << endl;
+					dist = (b + c) / 2;
+					break;
+				case 1: //Euclidean distances
+				//	cout << "EU dist" << endl;
+					dist = sqrt(b + c);
+					break;
+				case 2: //Jaccard-Tanimoto distance
+					//cout << "Jaccard-Tanimoto dist" << endl;
+					dist = a / (a + b + c);
+					break;
+				case 3: //Dice distance
+					dist = (2 * a) / ((2 * a) + b + c);
+					break;
+			//	case 4: //Russel-Rao distance
+		//			dist = (a / m);
+			//		break;
+				default: //No proper distance measure given
+					cout << "Unknown Distance measure given.";
+					break;
+			}
+			distances[i][j] = dist;
+			distances[j][i] = dist;
+		}
+	}
+	//Prints the distances (for various testing purposes)
+	for(unsigned int i = 0; i < distances.size(); i++){//for each tree
+		cout << "Tree : " << std::setw(2) << i << ": ";
+		for (unsigned int k = 0; k < i; k++){//tabs white space
+			cout << "  ";
+		}	
+		for (unsigned int j = i; j < distances.size(); j++){//for each other tree
+			cout << distances[i][j] << " ";
+		}
+		cout << endl;
+	}
+	return distances;
 }
-}
-}
-*/
 
 //Computes various distance measures based on the bipartitions
 vector < vector < unsigned int > > compute_bipart_distances(set <unsigned int> treeset, string measure){
@@ -783,6 +827,12 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	return ret_clusters;
 }
 
+//A function for determining the trees to throw out after a run of a program such as Mr. Bayes (in the works)
+vector < set < unsigned int > > burnin_clust (set <unsigned int> inputtrees, string dist_type){
+return kmeans_clust(inputtrees, 2,  dist_type);
+}
+
+
 //various tests that have been used for clusters
 void TestClust(){
 
@@ -826,7 +876,7 @@ void TestClust(){
 }
 
 
-//Returns the vector of taxa in are present in all of the input trees
+//Returns the vector of taxa which are present in all of the input trees
 std::vector<string> taxa_in_all_trees(set<unsigned int> inputtrees){
 	vector<string> allTaxa = ::biparttable.lm.get_all_taxa_vect();// Vector to return
 	//For each input tree

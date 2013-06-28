@@ -872,6 +872,181 @@ void write_trz(vector<string> nwvect, string filename) {
   system(("../TreeZip/treezip "+filename).c_str());
 }
 
+//Writes a distance matrix to a file to be read by another program
+void write_dmatrix(vector <vector < unsigned int > > dmatrix, string filename){
+	ofstream cfile;
+	cfile.open("./temp/" + filename, ios::out | ios::trunc);
+	cfile << dmatrix.size() << endl; //Adds necessary value to top of file for dredviz
+	for (unsigned int i = 0; i < dmatrix.size(); i++){//for each tree
+		for(unsigned int j = 0; j < dmatrix.size(); j++){//for each other tree
+			if(i == j){
+			       cfile << 0 << " ";
+			}	
+			else{
+				cfile << dmatrix[i][j] << " ";
+			}
+		}
+		cfile << endl;
+	}
+	cfile.close();
+	cout << "created " << filename << endl;
+}
+
+//Computes the multidimensional scaling of the input trees based on the given scaling type (nerv or lmds)
+//takes in a vector for its treeset because order matters
+void compute_mds(vector <unsigned int> treeset, string type, string filename){
+	//computes the distances, function should probably accept a distance type input
+	vector < vector < unsigned int > > distances = compute_bipart_distancesv(treeset, "rf");
+	string dmatrixfile;
+	//Creates a filename for the matrix file that must be written
+	dmatrixfile = filename + "matrix";
+	write_dmatrix(distances, dmatrixfile);
+	//Runs dredviz to compute the multidimensional scaling
+	string cmdstring = "../dredviz/dredviz-1.0.2/" + type + " --inputdist " + "./temp/" + dmatrixfile + " --outputfile " + "./temp/" + filename;
+	cout << cmdstring << endl;
+	system(cmdstring.c_str());
+}
+
+//Displays a multidimensional scaling for a given input vector of trees
+void display_mds(vector <unsigned int> treevect, string type){
+	//Computes the mds
+	compute_mds(treevect, type, "display_mds");
+	//Writes a gnuplot script file for the data
+	ofstream cfile;
+	cfile.open("./temp/graph.p", ios::out | ios::trunc);
+	cfile << "set autoscale" << endl;
+	cfile << "set xtic auto" << endl;
+	cfile << "set ytic auto" << endl;
+	cfile << "set title \" MDS of Input Trees \"" << endl;
+	cfile << "plot \"temp/display_mds\" every ::1 using 1:2" << endl;
+	cfile << "pause -1" << endl;
+	//Runs gnuplot and the script file to display the mds
+	string cmdstring = "gnuplot \"./temp/graph.p\"";
+	cout << cmdstring << endl;
+	system(cmdstring.c_str());
+}
+
+//Helper function to create a vector of trees in the order of their clustering
+vector<unsigned int> trees_by_cluster(vector <set <unsigned int> > clusters){
+	//Return vector
+	vector <unsigned int> clustered_trees;
+
+	for(unsigned int i = 0; i < clusters.size(); i++){//for each cluster
+		for(std::set<unsigned int>::iterator pos = clusters[i].begin(); pos != clusters[i].end(); ++pos){//for each tree in cluster
+			clustered_trees.push_back(*pos);
+		}
+	}
+	return clustered_trees;
+}
+
+//Displays a clustering of trees using MDS and gnuplot
+void display_clusters(string type, vector < set < unsigned int> > clusters){
+	vector<unsigned int> cluster_trees;
+	//Adds the trees to a vector based on clustering
+	cluster_trees = trees_by_cluster(clusters);
+	//Computes MDS to a file
+	compute_mds(cluster_trees, type, "clustersDisplay");
+	
+	ofstream cfile;
+	//Writes a gnuplot script file for the data
+	cfile.open("./temp/clustergraph.p", ios::out | ios::trunc);
+	cfile << "set autoscale" << endl;
+	cfile << "set xtic auto" << endl;
+	cfile << "set ytic auto" << endl;
+	cfile << "set title \" MDS of Input Clusters \"" << endl;
+	unsigned int offset = 1;
+	for(unsigned int i = 0; i < clusters.size(); i++){//For each cluster
+		if(i == 0){
+			//Initial plot command
+			cfile << "plot \"temp/clustersDisplay\" every ::0::";
+			//Ending line
+			cfile << clusters[i].size();
+			//Which columns to use
+			cfile << " using 1:2 ";
+			//increment offset
+			offset += clusters[i].size();
+			//Title the data piece
+			cfile << "title 'Cluster : ";
+			cfile << i;
+			cfile << "' , ";
+
+		}
+		else if(i == clusters.size() -1){
+			cfile << "\"temp/clustersDisplay\"";
+			cfile << "every ::";
+			//Starting line
+			cfile << offset;
+			cfile << "::";
+			cfile << offset + clusters[i].size();
+			cfile << " using 1:2";
+			cfile << "title 'Cluster : ";
+			cfile << i;
+			cfile << "'" << endl;
+		}
+		else{
+			cfile << "\"temp/clustersDisplay\"";
+			cfile << "every ::";
+			cfile << offset;
+			cfile << "::";
+			cfile << offset + clusters[i].size();
+			cfile << " using 1:2 ";
+			offset += clusters[i].size();
+			cfile << "title 'Cluster : ";
+			cfile << i;
+			cfile << "' , ";
+
+		}
+	}
+	//Keeps gnuplot from closing
+	cfile << "pause -1" << endl;
+	//Runs gnuplot and displays the data
+	string cmdstring = "gnuplot \"./temp/clustergraph.p\"";
+	system(cmdstring.c_str());
+}
+
+//Various tests used in setting up cluster display and MDS
+void mdsTests(){
+	vector< vector < unsigned int> > distances;
+	set <unsigned int> treeset;
+	for (unsigned int i = 0; i < 11; i++){
+		treeset.insert(i);
+	}
+//	vector <unsigned int> vect1;
+//	vector<unsigned int> vect2;
+
+//	vect1.push_back(0);
+//	vect1.push_back(1);
+//	vect1.push_back(2);
+//	for(unsigned int i = 0; i < vect1.size(); i++){
+//		cout << vect1[i] <<", ";
+//	}
+//	cout << endl;
+
+//	write_dmatrix(compute_bipart_distancesv(vect1, "rf"), "vect1");
+
+//	vect2.push_back(2);
+//	vect2.push_back(0);
+//	vect2.push_back(1);
+
+//	for(unsigned int i = 0; i < vect2.size(); i++){
+//		cout << vect2[i] <<", ";
+//	}
+//	cout << endl;
+
+
+//	write_dmatrix(compute_bipart_distancesv(vect2, "rf"), "vect2");
+
+	vector < set < unsigned int> > clusters = kmeans_clust(treeset, 4, "rf");
+//	vector < set <unsigned int> > clusters = kmeans_clust(treeset, 2, "eu");
+//	vector <set <unsigned int> > cluster = kmeans_clust(treeset, 2, "rf");
+//	distances = compute_bipart_distances(treeset, "rf");
+//	write_dmatrix(distances, "testwrite");
+//	compute_mds(treeset, "nerv", "test2");
+//	display_mds(treeset, "lmds");
+	silhouette(clusters,"rf");
+	display_clusters("lmds", clusters); 
+}
+
 void write_trz(int tree, string filename) {
   vector<string> nwvect;
   nwvect.push_back(to_newick(tree));
