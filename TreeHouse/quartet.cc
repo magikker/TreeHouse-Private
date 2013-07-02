@@ -1126,10 +1126,11 @@ void ktetAnalysis(int t){
 vector<unsigned int> biparts = ::biparttable.inverted_index.at(t);
 set<set<unsigned int>> bSets; 
 for(int i = 0; i < biparts.size(); i++){
-	if(!biparttable.BipartTable.at(biparts.at(i)).is_trivial()){
+	
+	if(!::biparttable.is_trivial(biparts.at(i))){
 		set<unsigned int> ones, zeros;
-		ones = biparttable.BipartTable.at(biparts.at(i)).getOnes();
-		zeros = biparttable.BipartTable.at(biparts.at(i)).getZeros();
+		ones = biparttable.getOnes(biparts.at(i));
+		zeros = biparttable.getZeros(biparts.at(i));
 		cout << "Bipartition " << biparts.at(i) << ":" << endl;	
 		cout << "ones: "; printSetCompactTwo(ones);
 		cout << "zeros: "; printSetCompactTwo(zeros);

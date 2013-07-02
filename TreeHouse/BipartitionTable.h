@@ -96,6 +96,7 @@ bool is_taxa_homogenious(set<unsigned int> treeset){
 	//}
 	return true;
 }
+
 vector<string> get_taxa_in_tree(unsigned int treeindex){
 	set<string> taxaset;
 	for(unsigned int i = 0; i < lm.size(); i ++ ){
@@ -115,6 +116,7 @@ bool are_taxa_in_tree(int treeindex, vector<int> setoftaxa){
 	}
 	return true;
 }
+
 
 
 int num_taxa_in_tree(int treeindex){
@@ -217,7 +219,6 @@ int num_taxa_in_tree(int treeindex){
 		return BipartTable[bitstringindex].get_bit(bitindex);
 	}
 	
-	
 	bool* get_boolarray (int bitstringindex){
 		bool *boolarray = new bool[bitstring_size(bitstringindex)];
 		for (unsigned int i = 0; i < bitstring_size(bitstringindex); i++){
@@ -237,6 +238,16 @@ int num_taxa_in_tree(int treeindex){
 	vector<unsigned int> get_ones_indices(int index){
 		return BipartTable[index].get_ones_indices();
 	}
+	
+	
+	std::set<unsigned int> getOnes(int index){
+		return BipartTable[index].getOnes();
+	}
+	
+	std::set<unsigned int> getZeros(int index){
+		return BipartTable[index].getZeros();
+	}
+	
 	
 	//I need to return some specific stuff for the compute_tree function
 	vector<boost::dynamic_bitset<> > get_compute_tree_bipartitions(){
@@ -294,7 +305,8 @@ int num_taxa_in_tree(int treeindex){
 		return BipartTable[bitstringindex].number_of_ones();
 	}
 	
-	int number_of_zeros(int bitstringindex){
+	//number of zeros might not be meaningful as bitstring len varies. 
+	int number_of_zeros(int bitstringindex){		
 		return BipartTable[bitstringindex].number_of_zeros();
 	}
 
@@ -429,14 +441,23 @@ int num_taxa_in_tree(int treeindex){
 	    cout << "]";
 	  }
 	}
+	
+	bool is_trivial(int index){
+		cout << "Warning, function called that's not heterogenous safe" << endl;
+		if(number_of_ones(index)==1 || number_of_ones(index)==(lm.size()-1)){
+			return true;
+		}
+		return false;
+	}
 
 	void calculate_trivial_bipartitions(){
-	for(unsigned int i = 0; i < BipartTable.size(); i++){
-	  if(BipartTable.at(i).number_of_ones()<2 || ((BipartTable.at(i).number_of_zeros()+lm.size()-BipartTable.at(i).bitstring_size()) < 2)){
-		trivial_bipartitions.insert(i);
+		cout<< "calculate_trivial_bipartitions: warning function call not hetero safe"<<endl;
+		for(unsigned int i = 0; i < BipartTable.size(); i++){
+			if(number_of_ones(i)<2 || ((number_of_zeros(i)+lm.size()-BipartTable.at(i).bitstring_size()) < 2)){
+				trivial_bipartitions.insert(i);
+			}
 		}
 	}
-}
 	
 //	void homogenize(){	
 //	}

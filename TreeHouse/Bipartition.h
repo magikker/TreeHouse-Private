@@ -58,7 +58,6 @@ public:
 	bool same_bitstring_value(int position1, int position2);
 	bool same_bitstring_value(vector<int> positions);
 	bool is_one(int position);
-	bool is_trivial();
 	//size
 	unsigned int bitstring_size();
 	unsigned int trees_size();

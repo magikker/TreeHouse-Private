@@ -116,6 +116,8 @@ vector<unsigned int> Bipartition::get_ones_indices(){
 	return indices;
 }
 
+
+
 void Bipartition::set(int place, bool val){
 	if(bitstring.size() > (unsigned)place){
 		bitstring[place] = val;
@@ -163,18 +165,6 @@ bool Bipartition::is_zero(int position){
 		return false;
 	}
 }
-//A bipartition can not be aware of it's own triviality, 
-//at least not in all cases... 
-//since it could be trivial in one tree and not in another 
-//because of hetero treesets
-/* 
-bool Bipartition::is_trivial(){
-	if(number_of_ones()==1 || nOnes==(::NUM_TAXA-1)){
-		return true;
-	}
-	return false;
-}
-*/
 
 bool Bipartition::same_bitstring_value(int position1, int position2){	
 	if(is_one(position1)){
@@ -220,9 +210,7 @@ std::set<unsigned int> Bipartition::getOnes(){
 	}
   return retSet;
 }
-//This can't work at the bipartition level. You'd have to do it a level
-//higher in the bipartition table as it can be different tree to tree. 
-/*
+
 std::set<unsigned int> Bipartition::getZeros(){
   std::set<unsigned int> retSet;
   for(unsigned int i = 0; i < bitstring.size(); i++){
@@ -230,12 +218,8 @@ std::set<unsigned int> Bipartition::getZeros(){
 		retSet.insert(i);
 		}
 	}
-  for(unsigned int j = bitstring.size(); j < ::NUM_TAXA; j++){
-	retSet.insert(j);
-	}
   return retSet;
 }
-*/
 
 //size
 unsigned int Bipartition::bitstring_size(){
