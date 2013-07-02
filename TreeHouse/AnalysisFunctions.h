@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <stack>
+#include <iomanip> //Formatting output
 
 //Global Vars like the hashtable.
 #include "THGlobals.h"
@@ -27,16 +28,11 @@ std::vector<string> distinguishing_taxa(set<unsigned int> inputtrees1, set<unsig
 
 std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2);
 
-vector<float> silhouette(vector < set < unsigned int >> inputclusts, string dist_type);
+vector < vector < unsigned int>> compute_bipart_distances(set <unsigned int> treeset, string dist_type);
 
-vector< set < unsigned int > > agglo_clust(set <unsigned int > inputtrees, string dist_type);
-
-vector< set < unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsigned int k, string dist_type);
+vector < vector <unsigned int>> compute_bipart_distancesv(vector <unsigned int> treeset, string dist_type);
 
 void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned int tree, int iterations, string folder);
-
-void TestClust();
-
-void TestDist();
+   
 
 #endif

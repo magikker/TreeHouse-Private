@@ -2,11 +2,11 @@
 #define _BIPARTITION_H
 
 //#include <map>
+#include <set>
 #include <vector>
 //#include <stdexcept>
 //#include <string>
 #include <iostream>
-//#include "global.h"
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -52,10 +52,13 @@ public:
 	bool in_bitstring(int len);
 	int number_of_ones();
 	int number_of_zeros();
+	std::set<unsigned int> getOnes();
+	std::set<unsigned int> getZeros();
 	bool is_zero(int position);
 	bool same_bitstring_value(int position1, int position2);
 	bool same_bitstring_value(vector<int> positions);
 	bool is_one(int position);
+	bool is_trivial();
 	//size
 	unsigned int bitstring_size();
 	unsigned int trees_size();

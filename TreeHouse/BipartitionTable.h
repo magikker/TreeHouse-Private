@@ -27,12 +27,14 @@ public:
 	set<unsigned int> trivial_bipartitions; //keep track of which bipartitions are trivial
 	//not sure why this is being kept. 
 	
+
 	//by trees
 	vector< boost::dynamic_bitset<> > taxa_in_trees; // which taxa are in which trees					NEED
 	//needs to be moved to the treetable. 
 	
 	vector< vector <float> > tree_branches;
 	//needs to be moved to the tree table
+
 
 	//this stuff needs to be phased out. 
 	//for consensus trees

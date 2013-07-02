@@ -1218,6 +1218,19 @@ pqlsymbol * u_set(vector<pqlsymbol * > arglist) {
 	return result;
 }
 
+//User function for display_clusters, opens gnuplot with a graph of the trees color coded by cluster
+pqlsymbol * u_display_clusters(vector<pqlsymbol *> arglist){
+	pqlsymbol * result = new pqlsymbol();
+	if (arglist.size() == 2 && arglist[0]->is_string() && arglist[1]->is_vect()){
+		display_clusters(arglist[0]->get_string(), arglist[1]->get_treeset_vect());
+	}
+	else{
+		cout << "display_clusters expectes a string and a vector of clusters as arguements. Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
+
 pqlsymbol * u_show(vector<pqlsymbol * > arglist) {  
   pqlsymbol * result = new pqlsymbol();
   string mode = "";
@@ -1972,6 +1985,7 @@ void init_the_functs()
 	add_function("help", &u_help, "Prints function description given a function name");
 
 	//visualization
+	add_function("display_clusters", &u_display_clusters, "Displays a gnuplot graph of the trees color coded by cluster");
 	add_function("show", &u_show, "Displays images of the specified tree or trees (Int, IntVect, or Treeset). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
 	add_function("show_newick", &u_show_newick, "Displays images of the specified Newick strings (String or StringVect). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
 	add_function("export", &u_export, "Exports images of the specified tree or trees (Int, IntVect, or Treeset) to the specified folder path (String). Takes an optional String mode argument ('ortho' or 'radial') to export an SVG image. Default mode is text.");

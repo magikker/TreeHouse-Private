@@ -51,13 +51,14 @@
 
 #include "UserFunctions.h"
 #include "BipartitionTable.h"
-#include "TreeParsing.h"
+
 
 // The lexer/parser
-#include  "pql.h"
+#include    "pql.h"
 
 #include "quartet.h"
 #include "distance.h"
+#include "clustering.h"
 
 using namespace std;
 
@@ -1132,6 +1133,7 @@ int main(int argc, char **argv){
 		//TESTSTUFF();
 		//TestClust();
 		//TestDist();
+	//	mdsTests();
 		interactive = true;
 		interactive_log.open("logs/interactive_log.txt");
 		if(interactive_log){

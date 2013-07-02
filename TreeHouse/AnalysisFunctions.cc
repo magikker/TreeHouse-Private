@@ -110,68 +110,25 @@ std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsign
 	return result;
 }
 
-/*
-//Returns the difference based on shared bipartitions from each tree to each other (RF distance)
-vector < vector < unsigned int > > compute_rf_distances(vector < vector < unsigned int> > biparts){
-vector < vector < unsigned int> > distances;
-distances.resize(biparts.size(), vector<unsigned int>(biparts.size(),0));
-
-for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
-for (unsigned int j = 1; j < biparts.size(); j++){//for all others
-vector<unsigned int> temp;
-int diff1;
-int diff2;
-int dist;
-//intersection contain all shared bipartitions
-std::set_intersection(biparts[i].begin(),biparts[i].end(), 
-biparts[j].begin(), biparts[j].end(),
-std::inserter(temp, temp.end()));
-//Stores the differences for each
-diff1 = biparts[i].size() - temp.size();
-diff2 = biparts[j].size() - temp.size();
-//computes the actual distance the stores it
-dist = (diff1 + diff2) / 2;
-distances[i][j] = dist;
-distances[j][i] = dist;
-}
-}
-return distances;
-}
-
-vector < vector < unsigned int > > compute_euclidean_distances(vector < vector < unsigned int> > biparts){
-vector < vector <unsigned int > > distances;
-distances.resize(biparts.size(), vector<unsigned int>(biparts.size(),0));
-
-for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
-for (unsigned int j = 1; j < biparts.size() - 1; i++){//for all others
-vector<unsigned int> temp;
-int diff; 
-int diff2;
-int dist;
-//Intersection contains all shared bipartitions
-std::set_intersection(biparts[i].begin(),biparts[i].end(),
-biparts[j].begin(), biparts[j].end(),
-std::inserter(temp,temp.end()));
-//Stores the differences for each
-diff1 = biparts[i].size() - temp.size();
-diff2 = biparts[j].size() - temp.size();
-//Computes the distnace and stores it
-dist = sqrt(diff1 + diff2);
-distances[i][j] = dist;
-distances[j][i] = dist;
-}
-}
-}
-*/
-
-//Computes various distance measures based on the bipartitions
-vector < vector < unsigned int > > compute_bipart_distances(vector< vector< unsigned int > > biparts, string measure){
+vector < vector <unsigned int> > compute_bipart_distancesv(vector <unsigned int> treeset, string measure){
 	//Return Value
 	vector < vector < unsigned int > > distances;
+	//Holds bipartitions
+	vector < vector < unsigned int> > biparts;
 	//Resizes to hold the proper number of elements
-	distances.resize(biparts.size(), vector< unsigned int >(biparts.size(), 0));
 	//Arbitrary starting value
 	unsigned int switch_value = 20;
+//	 int m; //# unique biparitions
+
+//	m = unique_biparts(treeset);
+
+	//Computes the bipartitions
+	for(unsigned int i = 0; i < treeset.size(); i++){//for each tree
+		biparts.push_back(biparts_in_tree(treeset[i]));
+	}
+
+
+	distances.resize(biparts.size(), vector< unsigned int >(biparts.size(), 0));
 
 	//To set the switch since strings are intuitive to us but not switch statements
 	if (measure == "rf" || measure == "RF" || measure == "Rf"){
@@ -181,33 +138,155 @@ vector < vector < unsigned int > > compute_bipart_distances(vector< vector< unsi
 			|| measure == "Euclidean"){
 		switch_value = 1;
 	}
+	else if (measure == "j-t" || measure == "jaccard-tanimoto"){
+		switch_value = 2;
+	}
+	else if (measure == "dice" || measure == "Dice"){
+		switch_value = 3;
+	}
+//	else if (measure == "r-r" || measure == "russel-rao"){
+//		switch_value = 4;
+//	}	
 
 	for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
 		for (unsigned int j = 1; j < biparts.size(); j++){//for all others
+			//a, b, & c values come from Suzanne Matthews Dissertation
+			//and the method of computing distances from bipartitions found there
+			int a; //Bipartitions in both trees
 			vector<unsigned int> temp;
-			int diff1;
-			int diff2;
+			int b; //# Bipartions in first tree but not second
+			int c; //# Bipartitions in second tree but not first
 			int dist;
 			//Intersection contains all shared bipartitions
 			std::set_intersection(biparts[i].begin(),biparts[i].end(),
 					biparts[j].begin(),biparts[j].end(),
 					std::inserter(temp, temp.end()));
 			//Stores the differences for each
-			diff1 = biparts[i].size() - temp.size();
-			diff2 = biparts[j].size() - temp.size();
+			a = temp.size();
+			b = biparts[i].size() - temp.size();
+			c = biparts[j].size() - temp.size();
 			//Computes the distance and stores it based on multiple distance types
 			switch (switch_value){
 
 				case 0: //RF distance
 				//	cout << "RF distance" << endl;
-					dist = (diff1 + diff2) / 2;
+					dist = (b + c) / 2;
 					break;
 				case 1: //Euclidean distances
 				//	cout << "EU dist" << endl;
-					dist = sqrt(diff1 + diff2);
+					dist = sqrt(b + c);
+					break;
+				case 2: //Jaccard-Tanimoto distance
+					//cout << "Jaccard-Tanimoto dist" << endl;
+					dist = a / (a + b + c);
+					break;
+				case 3: //Dice distance
+					dist = (2 * a) / ((2 * a) + b + c);
+					break;
+			//	case 4: //Russel-Rao distance
+		//			dist = (a / m);
+			//		break;
+				default: //No proper distance measure given
+					cout << "Unknown Distance measure given.";
+					break;
+			}
+			distances[i][j] = dist;
+			distances[j][i] = dist;
+		}
+	}
+	//Prints the distances (for various testing purposes)
+	for(unsigned int i = 0; i < distances.size(); i++){//for each tree
+		cout << "Tree : " << std::setw(2) << i << ": ";
+		for (unsigned int k = 0; k < i; k++){//tabs white space
+			cout << "  ";
+		}	
+		for (unsigned int j = i; j < distances.size(); j++){//for each other tree
+			cout << distances[i][j] << " ";
+		}
+		cout << endl;
+	}
+	return distances;
+}
+
+//Computes various distance measures based on the bipartitions
+vector < vector < unsigned int > > compute_bipart_distances(set <unsigned int> treeset, string measure){
+	//Return Value
+	vector < vector < unsigned int > > distances;
+	//Holds bipartitions
+	vector < vector < unsigned int> > biparts;
+	//Resizes to hold the proper number of elements
+	//Arbitrary starting value
+	unsigned int switch_value = 20;
+	 int m; //# unique biparitions
+
+	m = unique_biparts(treeset);
+
+	//Computes the bipartitions
+	for(std::set<unsigned int>::iterator pos = treeset.begin(); pos!= treeset.end(); ++pos){//for each tree
+		biparts.push_back(biparts_in_tree(*pos));
+	}
+
+
+	distances.resize(biparts.size(), vector< unsigned int >(biparts.size(), 0));
+
+	//To set the switch since strings are intuitive to us but not switch statements
+	if (measure == "rf" || measure == "RF" || measure == "Rf"){
+		switch_value = 0;
+	}
+	else if (measure == "eu" || measure == "EU" || measure == "Eu" || measure == "euclidean"
+			|| measure == "Euclidean"){
+		switch_value = 1;
+	}
+	else if (measure == "j-t" || measure == "jaccard-tanimoto"){
+		switch_value = 2;
+	}
+	else if (measure == "dice" || measure == "Dice"){
+		switch_value = 3;
+	}
+	else if (measure == "r-r" || measure == "russel-rao"){
+		switch_value = 4;
+	}	
+
+	for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
+		for (unsigned int j = 1; j < biparts.size(); j++){//for all others
+			//a, b, & c values come from Suzanne Matthews Dissertation
+			//and the method of computing distances from bipartitions found there
+			int a; //Bipartitions in both trees
+			vector<unsigned int> temp;
+			int b; //# Bipartions in first tree but not second
+			int c; //# Bipartitions in second tree but not first
+			int dist;
+			//Intersection contains all shared bipartitions
+			std::set_intersection(biparts[i].begin(),biparts[i].end(),
+					biparts[j].begin(),biparts[j].end(),
+					std::inserter(temp, temp.end()));
+			//Stores the differences for each
+			a = temp.size();
+			b = biparts[i].size() - temp.size();
+			c = biparts[j].size() - temp.size();
+			//Computes the distance and stores it based on multiple distance types
+			switch (switch_value){
+
+				case 0: //RF distance
+				//	cout << "RF distance" << endl;
+					dist = (b + c) / 2;
+					break;
+				case 1: //Euclidean distances
+				//	cout << "EU dist" << endl;
+					dist = sqrt(b + c);
+					break;
+				case 2: //Jaccard-Tanimoto distance
+					//cout << "Jaccard-Tanimoto dist" << endl;
+					dist = a / (a + b + c);
+					break;
+				case 3: //Dice distance
+					dist = (2 * a) / ((2 * a) + b + c);
+					break;
+				case 4: //Russel-Rao distance
+					dist = (a / m);
 					break;
 				default: //No proper distance measure given
-				//	cout << "Unknown Distance measure given.";
+					cout << "Unknown Distance measure given.";
 					break;
 			}
 			distances[i][j] = dist;
@@ -216,29 +295,26 @@ vector < vector < unsigned int > > compute_bipart_distances(vector< vector< unsi
 	}
 
 	//Prints the distances (for various testing purposes)
-//	for(unsigned int i = 0; i < distances.size(); i++){//for each tree
-//		cout << "Tree : " << i << ": "; 
-//		for (unsigned int j = i + 1; j < distances.size(); j++){//for each other tree
-//			cout << distances[i][j] << " ";
-//		}
-//		cout << endl;
+	//for(unsigned int i = 0; i < distances.size(); i++){//for each tree
+	//	cout << "Tree : " << std::setw(2) << i << ": ";
+	//	for (unsigned int k = 0; k < i; k++){//tabs white space
+	//		cout << "  ";
+	//	}	
+	//	for (unsigned int j = i; j < distances.size(); j++){//for each other tree
+	//		cout << distances[i][j] << " ";
+	//	}
+	//	cout << endl;
 //	}
 	return distances;
 }
 
 //Various tests that have been used for the distance functions
 void TestDist(){
-	vector < vector < unsigned int> > test_biparts;
 	set < unsigned int > test_trees;
 	test_trees.insert(1);
 	test_trees.insert(2);
 	test_trees.insert(3);
 	test_trees.insert(4);
-
-
-	for(std::set<unsigned int>::iterator pos = test_trees.begin(); pos!= test_trees.end(); ++pos){//for each tree
-		test_biparts.push_back(biparts_in_tree(*pos));
-	}
 
 //	cout << "rf distance" << endl;
 //	compute_bipart_distances(test_biparts, "rf");
@@ -246,521 +322,7 @@ void TestDist(){
 //	compute_bipart_distances(test_biparts, "eu");
 }
 
-
-//Returns the average distance for each tree to the cluster containing it
-vector<float> diff_to_own_clusters(vector< set <unsigned int> > inputclusts, vector < vector <unsigned int> > distances){
-	unsigned int offset = 0;
-	vector< float > diff;
-	for(unsigned int i = 0; i < inputclusts.size(); i++){//For each cluster
-		float tempsum = 0;
-		float tempaverage;
-		if(i > 0){
-			//offset used for tracking change from cluster to cluster
-			offset += inputclusts[i-1].size();
-		}
-		for(unsigned int j = 0 + offset; j < offset + 1; j++){//For first tree in the cluster
-			//Temporarily stores sum for computing average
-			for(unsigned int k = 1 + offset; k < inputclusts[i].size() + offset; k++){//For each othe tree in cluster
-				tempsum += distances[j][k];
-			}
-			//average difference from tree to all other trees in cluster
-		}
-
-		tempaverage = tempsum / inputclusts[i].size();
-
-		diff.push_back(tempaverage);
-	}
-	return diff;
-}
-
-
-
-//Returns the average distance for each tree to the cluster with the smallest average distance from the tree
-vector<float> neighboring_cluster_diffs(vector  < set < unsigned int> > inputclusts, vector < vector < unsigned int> > distances){
-	unsigned int offset = 0;
-	vector < float > diffs;
-	diffs.resize(distances[0].size(), 100);
-	for(unsigned int i = 0; i < inputclusts.size(); i++){//For each cluster
-		if(i > 0){
-			//offset used for tracking change from cluster to cluster
-			offset += inputclusts[i-1].size();
-		}
-		for(unsigned int j = offset; j < inputclusts[i].size() + offset; j++){//For each tree in cluster
-			for(unsigned int k = 0; k < inputclusts.size(); k++){//for each cluster
-				//not interested in the cluster containing the tree
-
-				float tempsum = 0;
-				//koffset used for tracking place in second cluster
-				unsigned int koffset;
-
-				if(k==0){
-					koffset = 0;
-				}
-				else{
-					koffset += inputclusts[k-1].size();
-				}
-				if(k == i){
-					continue;
-				}
-				for(unsigned int l = koffset; l < inputclusts[k].size() + koffset; l++){//For each tree in cluster
-					tempsum += distances[j][l];
-				}
-
-				//computes and stores the minimum average distance
-				//to another cluster
-				float tempaverage;
-				tempaverage = tempsum /inputclusts[i].size();
-				if(tempaverage < diffs[j]){
-					diffs.insert(diffs.begin() + (j), tempaverage);
-				}
-			}
-		}
-	}
-	return diffs;
-}
-
-
-
-//Returns the silhouette width of each tree or cluster in the input as a vector of floats
-vector<float> silhouette (vector< set <unsigned int>  > inputclusts, string dist_type){
-	//Return value (by tree)
-	vector<float> swidth;
-	//Return value (by cluster)
-	vector<float> cwidth;
-	//Stores the tree bipartitions
-	vector< vector <unsigned int> > tree_biparts;
-	//Stores the average distance for each tree to its own cluster
-	vector< float > diff_within_cluster;	
-	//Stores the average distance for each tree to its neighboring cluster
-	vector< float > neighboring_cluster;
-	//Stores all of the distances
-	vector < vector < unsigned int > > distances;
-
-
-
-	//Obtains the bipartitions to tree_biparts
-	for(unsigned int i = 0; i < inputclusts.size(); i++){//for each cluster
-		for(std::set<unsigned int>::iterator pos = inputclusts[i].begin(); pos!=inputclusts[i].end(); ++pos){//for each tree
-			tree_biparts.push_back(biparts_in_tree(*pos));
-		}
-	}
-	//Finds and stores the distances
-	distances = compute_bipart_distances(tree_biparts, dist_type);
-	//For checking that silhouette properly computes the silhouette width
-
-	//	for(unsigned int i = 0; i < distances.size(); i++){//for each tree
-	//		cout << "Tree : " << i << ": "; 
-	//		for (unsigned int j = i + 1; j < distances.size(); j++){//for each other tree
-	//			cout << distances[i][j] << " ";
-	//		}
-	//		cout << endl;
-	//	}
-
-	//Computes diff_within_cluster
-	diff_within_cluster = diff_to_own_clusters(inputclusts, distances);
-
-	//	cout <<"diff_within_cluster " << endl;
-	//	for (unsigned int i = 0; i < diff_within_cluster.size(); i++){
-	//		cout << diff_within_cluster[i] << " ";
-	//	}
-
-	//Computes the neighboring_clusters
-	neighboring_cluster = neighboring_cluster_diffs(inputclusts, distances);
-	//	cout <<"neighboring_cluster " << endl;
-	//	for (unsigned int i = 0; i < neighboring_cluster.size(); i++){
-	//		cout << neighboring_cluster[i] << " ";
-	//		}
-	//		cout << endl;
-
-	//Computes the actual silhouette width
-	unsigned int soffset = 0;
-	for(unsigned int i = 0; i < inputclusts.size(); i++){//for each cluster
-		if(i != 0){
-			soffset += inputclusts[i-1].size();
-		}
-		for(unsigned int j = 0 + soffset; j < inputclusts[i].size() + soffset; j++){//for each tree in cluster
-			float ai = diff_within_cluster[i];
-			float bi = neighboring_cluster[j];
-			//			cout << "ai is " << ai << endl;
-			//			cout << "bi is " << bi << endl;
-			float si;
-			//Prevents dividing by zero
-			if(ai == bi){
-				si = 0;
-			}
-			else{
-				si = (bi - ai) /max(ai, bi);
-			}
-			swidth.insert(swidth.begin() + j, si);
-		}
-	}
-	unsigned int ioffset = 0;
-
-	//Stores the cluster average silhouette widths
-	for(unsigned int i = 0; i < inputclusts.size(); i++){//for each cluster
-		if (i !=0){
-			ioffset += inputclusts[i - 1].size();
-		}
-		float caverage = 0;
-		for (unsigned int j = 0 + ioffset; j < inputclusts[i].size() + ioffset; j++){//for each tree in cluster
-			caverage += swidth[j];
-		}
-		cwidth.insert(cwidth.begin() + i, caverage / inputclusts[i].size());
-	}
-
-	//prints the clusters and their silhouette widths (by cluster)
-	for(unsigned int i = 0; i < cwidth.size(); i++){//for each cluster width
-		cout <<"Cluster: " << i << " has a silhouette of " << cwidth[i] << endl;
-	}
-
-	//prints the tree and their silhouette widths (by tree)
-	//	unsigned int offset = 0;
-	//	for(unsigned int i = 0; i < inputclusts.size(); i++){//for each cluster
-	//		if(i != 0){
-	//			offset += inputclusts[i - 1].size();
-	//		}
-	//		unsigned int j = 0;
-	//		for(std::set<unsigned int>::iterator pos = inputclusts[i].begin(); pos!=inputclusts[i].end(); ++pos){//for each tree
-	//			cout << "Tree: " << *pos << " has a silhouette of " << swidth[j + offset] << endl;
-	//			j++;
-	//		}
-	//	}
-
-	//	return swidth;
-
-	return cwidth;
-}
-
-
-//Returns a pair representing the closest neighbor of a cluster, and the distances between the two clusters
-pair<unsigned int, float> closest_neighbor(unsigned int clustid, set <unsigned int> checkset, vector <vector <unsigned int> > distances){
-	//neighbor to clustid to be returned
-	pair<unsigned int, float> retneighbor;
-
-	float bestdist = 100;
-	unsigned int best_neighbor;
-	for(std::set<unsigned int>::iterator pos = checkset.begin(); pos != checkset.end(); pos++){//for each cluster in checkset
-		float tempdist;
-
-		tempdist = distances[*pos][clustid];
-		if (tempdist < bestdist){
-			bestdist = tempdist;
-			best_neighbor = *pos;
-		}
-	}
-	retneighbor = make_pair(best_neighbor, bestdist);
-
-	return retneighbor;
-}
-
-//Returns a map of clusters with the two input clusters merged into a single cluster 
-void  merge(unsigned int clust1, unsigned int clust2, 
-		map <unsigned int, set <unsigned int > > &clusters){
-	//Take the elements from clust2's set and insert them into clust1
-	clusters[clust1].insert(clusters[clust2].begin(),clusters[clust2].end());
-	//Remove clust2
-	clusters.erase(clust2);
-}
-
-//Returns a distance matrix where the distances are recomputed for merged clusters
-void recompute_distances(vector < vector < unsigned int > > &distances, map < unsigned int, set < unsigned int > > clusters, unsigned int clustid, unsigned int clustid2){
-
-	typedef std::map < unsigned int, set <unsigned int> >::iterator it_map;
-	for (it_map iterator = clusters.begin(); iterator != clusters.end(); iterator++){//for each cluster
-		unsigned int current = iterator->first;
-		//Average distance calculated
-		float tempdist = (distances[current][clustid] + distances[current][clustid2]) / 2;
-
-		//Stores the tempdist
-		distances[current][clustid] = tempdist;
-		distances[clustid][current] = tempdist;
-	}
-}
-
-
-
-
-//Returns clusters of the input trees based on an agglomerative hierarchical method 
-//(current implementation computes own distances
-//could eventually take in a distance matrix or some other method)
-vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, string dist_type){
-	//The return set
-	vector < set < unsigned int > > ret_clusters;
-	//The map which will contain the clusters
-	map <unsigned int, set < unsigned int > > clusters;
-	//Clusters remaining to be compared
-	set <unsigned int> remaining;
-	//Contains the biparts (for computing distance)
-	vector< vector <unsigned int> > tree_biparts;
-	//Contains the distances (distance matrix)	
-	vector < vector < unsigned int > > distances;
-	//Is used to handle finding pairs to merge more quickly (supposedly)
-	//the first value of the pair is its cluster id, the second is its
-	//distance/similarity measure to its parent in neighbor_stack
-	stack<pair<unsigned int, float>> neighbor_stack;
-	//Number of clusters we desire to end with
-	unsigned int fin_num = 4;
-
-	//Stores each tree
-	unsigned int id = 0;
-	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos!=inputtrees.end(); ++pos){//for each tree
-		set < unsigned int > temp;
-		temp.clear();
-		temp.insert(*pos);
-		clusters.insert(std::make_pair(id,temp));//Creates a cluster for each tree
-		remaining.insert(id);//Inserts the cluster ids into remaining
-		tree_biparts.push_back(biparts_in_tree(*pos));//Collects the bipartitions for each tree (for computing distances)
-		id++;
-	}
-
-
-	//Computes the distances
-	distances = compute_bipart_distances(tree_biparts, dist_type);
-
-
-	//Initialize neighbor_stack with an arbitrary element of remaining (the first one here) ((100 is arbitrary, 
-	//it's meant to represent a very large distance, as there is no parent to the first element.))
-	neighbor_stack.push(std::make_pair(*remaining.begin(), 100));
-	remaining.erase(remaining.begin());
-
-
-	//Form clusters while number of clusters is larger than the number of desired clusters
-	while(clusters.size() > fin_num){
-		//Find the closest neighbor of the top cluster on the stack in remaining
-		pair<unsigned int, float> temp_neighbor;
-		temp_neighbor = closest_neighbor(neighbor_stack.top().first,remaining,distances);
-
-
-		//if temp neighbor is more similar to the current cluster than the current cluster's parent
-		//then place temp neighbor on the stack and move on.
-		if(temp_neighbor.second < neighbor_stack.top().second){
-			neighbor_stack.push(temp_neighbor);
-			remaining.erase(temp_neighbor.first);
-		}
-		//Else than the current cluster and it's parent on the stack are as closely related as possible
-		//merge them immediately
-		else{
-			pair<unsigned int, float> tempcluster;
-			pair<unsigned int, float> tempparent;
-
-			tempcluster = neighbor_stack.top();
-			neighbor_stack.pop();
-			tempparent = neighbor_stack.top();
-			neighbor_stack.pop();
-
-			//Merges the two clusters into a single cluster
-			merge(tempcluster.first, tempparent.first, clusters);
-			//Adds the new cluster to the set of remaining elements
-			remaining.insert(tempcluster.first);
-
-			//Then recompute the distances matrix for the newly added cluster (recompute_distances currently unwritten)
-			recompute_distances(distances, clusters, tempcluster.first, tempparent.first);
-		}
-
-		//If this has emptied the neighbor stack, add another element to start again.
-		if (neighbor_stack.empty()){
-			neighbor_stack.push(std::make_pair(*remaining.begin(),100));
-			remaining.erase(remaining.begin());
-		}
-	}
-
-	//Fills the ret_clusters set
-	typedef std::map < unsigned int, set <unsigned int> >::iterator it_map;
-	for(it_map iterator = clusters.begin(); iterator != clusters.end(); iterator++){//for each cluster
-		set<unsigned int> tempset;
-		tempset.clear();
-		for(std::set<unsigned int>::iterator pos = iterator->second.begin(); pos != iterator->second.end(); ++pos){
-			tempset.insert(*pos);
-		}
-		ret_clusters.push_back(tempset); //add to the return set
-	}
-
-
-	//Prints out the clusters map
-	typedef std::map< unsigned int, set < unsigned int >>::iterator it_map;
-	for(it_map iterator = clusters.begin(); iterator != clusters.end(); iterator++){
-		cout << "Cluster : " << iterator->first << " Trees : " ;
-		for(std::set<unsigned int>::iterator  pos = iterator->second.begin(); pos != iterator->second.end(); ++pos){
-			cout << *pos << " " ;
-		}
-		cout << endl;
-	}
-
-
-
-	return ret_clusters;
-}
-
-//Returns the distacnes for each centroid to each tree (probably not the most efficient method)
-void recompute_centroid_distances(vector < vector <unsigned int> > &centroid_distances, 
-		vector< vector< unsigned int> > distances,
-	       	unsigned int numtrees, 
-		map <unsigned int, set <unsigned int> > centroidcluster){
-	
-	for(unsigned int i = 0; i < centroidcluster.size(); i++){//for each centroid
-		set <unsigned int> tempset = centroidcluster[i];
-		for(unsigned int j = 0; j < numtrees; j++){//for each tree	
-			float tempsum = 0;
-			float dist = 0;
-			for(std::set<unsigned int>::iterator pos = tempset.begin(); pos != tempset.end(); ++pos){//for each tree in the centroid
-				tempsum += distances[j][*pos];
-			}
-			dist = tempsum / tempset.size();
-			centroid_distances[i][j] = dist;
-
-		}
-	}
-}
-
-
-//Returns clusters of the input trees clustered based on a k-means method
-vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsigned int k, string dist_type){
-	//The return set
-	vector < set < unsigned int > > ret_clusters;
-	//The map which will contain the clusters from the previous loop
-	map <unsigned int, set < unsigned int > > oclusters;
-	//The map which will contain the clusters from the new loop
-	map <unsigned int, set < unsigned int > > nclusters;
-	//Clusters remaining to be compared
-	set <unsigned int> centroids;
-	//Contains the biparts (for computing distance)
-	vector< vector <unsigned int> > tree_biparts;
-	//Contains the distances (distance matrix)	
-	vector < vector < unsigned int > > tree_distances;
-	//Contains the distance from each tree to each centroid
-	vector < vector < unsigned int > > centroid_distances;
-
-	//Fills the tree_distance matrix
-
-	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos!=inputtrees.end(); ++pos){//for each tree
-		tree_biparts.push_back(biparts_in_tree(*pos));//Collects the bipartitions for each tree (for computing distances)
-	}
-
-	//Computes the tree-distances matrix
-	tree_distances = compute_bipart_distances(tree_biparts, dist_type);
-
-	//Arbitrarily assign original centroids
-
-	vector < unsigned int > shuffled;
-	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos){//for each tree
-		shuffled.push_back(*pos);
-	}
-	random_shuffle(shuffled.begin(), shuffled.end());
-	for(unsigned int i = 0; i < k; i++){//while we do not have k clusters
-		set<unsigned int> temp;
-		temp.clear();
-		temp.insert(shuffled[i]);
-		cout << "shuffled[i] = " << shuffled[i] << endl;
-		oclusters.insert(std::make_pair(i,temp));
-		centroids.insert(i);
-	}
-
-	centroid_distances.resize(centroids.size(), vector <unsigned int>(inputtrees.size(), 0));
-
-	//Initializes the centroid_distance matrix
-	for(unsigned int i = 0; i < centroid_distances.size(); i++){//for each centroid
-		for(unsigned int j = 0; j < inputtrees.size(); j++){//for each tree
-			centroid_distances[i].insert(centroid_distances[i].begin() + j, tree_distances[i][j]);
-		}
-	}
-
-	//While there is a change in a loop
-	while(nclusters != oclusters){
-		oclusters = nclusters;
-		nclusters.clear();
-
-		//fill nclusters with the centroids
-		for(std::set<unsigned int>::iterator pos = centroids.begin(); pos!= centroids.end(); ++pos){//for each centroid
-			set <unsigned int> temp;
-			nclusters.insert(make_pair(*pos, temp));
-		}
-
-		//Find the nearest neighbor in centroids of each tree
-		unsigned int count = 0;
-		for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos){//for each tree
-				unsigned int closest_centroid;
-				closest_centroid = closest_neighbor(count,centroids,centroid_distances).first;
-				//Add the tree to it's closest centroid
-				nclusters[closest_centroid].insert(count);
-				count++;
-		}
-		//Recompute the centroid distance matrix
-		recompute_centroid_distances(centroid_distances, tree_distances, inputtrees.size(), nclusters);
-	}
-
-	//Adds the cluster information to the return set
-	typedef std::map < unsigned int, set <unsigned int> >::iterator it_map;
-	for(it_map iterator = nclusters.begin(); iterator != nclusters.end(); iterator++){//for each cluster
-		set<unsigned int> tempset;
-		tempset.clear();
-		for(std::set<unsigned int>::iterator pos = iterator->second.begin(); pos != iterator->second.end(); ++pos){// for each tree in the cluster
-			set<unsigned int>::iterator it = inputtrees.begin();
-			std::advance(it, *pos);
-			tempset.insert(*it);
-		}
-		ret_clusters.push_back(tempset); //add to the return set
-	}
-
-	//Prints out the clusters map
-	typedef std::map< unsigned int, set < unsigned int >>::iterator it_map;
-	for(it_map iterator = nclusters.begin(); iterator != nclusters.end(); iterator++){//for each cluster
-		cout << "Cluster : " << iterator->first << " Trees : " ;
-		for(std::set<unsigned int>::iterator  pos = iterator->second.begin(); pos != iterator->second.end(); ++pos){//for each tree in the cluster
-			set<unsigned int>::iterator it = inputtrees.begin();
-			std::advance(it, *pos);
-			cout << *it << " " ;
-		}
-		cout << endl;
-	}
-
-
-	return ret_clusters;
-}
-
-//various tests that have been used for clusters
-void TestClust(){
-
-	set <unsigned int> testset;
-	for(unsigned int i = 0; i < 10; i++){
-		testset.insert(i);
-	}
-	silhouette(kmeans_clust(testset, 3, "rf"), "rf");
-	silhouette(agglo_clust(testset, "rf"), "rf");
-
-	set <unsigned int> testset2;
-	for(unsigned int i = 3; i < 10; i++){
-		testset2.insert(i);
-	}
-	kmeans_clust(testset2, 3, "rf");
-	cout << endl;
-	agglo_clust(testset2, "rf");
-
-	//Tests silhouette
-	//Uncommenting print statements (in silhouette) will show the data being used
-	//to calculate the silhouette
-	//
-	//Based on manual calculations cluster silhouettes should be
-	//Cluster 1: -.15
-	//Cluster 2: .6333(repeating)
-	//Cluster 3: -.2
-	//set <unsigned int> testset3;
-	//testset3.insert(1);
-	//testset3.insert(4);
-	//set <unsigned int> testset4;
-	//testset4.insert(3);
-	//testset4.insert(8);
-	//set <unsigned int> testset5;
-	//testset5.insert(10);
-	//testset5.insert(6);
-	//vector <set < unsigned int > > test_tree_vect;
-	//test_tree_vect.push_back(testset3);
-	//test_tree_vect.push_back(testset4);
-	//test_tree_vect.push_back(testset5);
-	//silhouette(test_tree_vect);
-}
-
-
-//Returns the vector of taxa in are present in all of the input trees
+//Returns the vector of taxa which are present in all of the input trees
 std::vector<string> taxa_in_all_trees(set<unsigned int> inputtrees){
 	vector<string> allTaxa = ::biparttable.lm.get_all_taxa_vect();// Vector to return
 	//For each input tree

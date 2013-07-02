@@ -899,7 +899,7 @@ set <unsigned int> unique(set< unsigned int> treesin){
 //GRB we don't need to pass around vectors of bool * to get a number, we can use bipartition ids
 //we can also just use the inverted index to get the bipartition ids directly. 
 int unique_biparts(set< unsigned int > treesin){
-	cout << "unique biparts has been called" << endl;
+//	cout << "unique biparts has been called" << endl;
 	//returns the unique bipartitions contained in a set of trees
 	set<unsigned int> retSet; //the set we are going to return
 
@@ -1287,5 +1287,10 @@ unsigned int factorial(int n){
 	return (n<=1) ? 1 : (n * factorial(n-1));
 	}
 	
+void printSetCompactTwo(set<unsigned int> in){
+  for(set<unsigned int>::iterator it = in.begin(); it!=in.end(); it++){
+	cout << *it << ", ";}
+	cout << endl;
+}
 
 

@@ -15,6 +15,7 @@
 #include "InterfaceFunctions.h"
 #include "quartet.h"
 #include "ConsensusFunctions.h"
+#include "clustering.h"
 
 void init_the_functs();
 

@@ -18,6 +18,11 @@ using namespace std;
 void calculateTrivialBipartitions();
 
 typedef pair<int, int> iPair;
+typedef pair< set<iPair>, set<iPair> > qPair;
+
+void printQPair(qPair a);
+qPair mergeQPair(qPair a, qPair b);
+bool isQPairEmpty(qPair a);
 
 class quartet{ //a class to store quartets. I'm open to ideas about how to make this better...
 	private:	
@@ -72,6 +77,10 @@ class bPair{ //holds all relevant info about quartets on a pair of bipartitions
 	
 };
 
+
+char isQuartetImplied(quartet x, unsigned int bipart);
+char isQuartetImplied(quartet x, set<unsigned int> biparts);
+
 void printQuartets(vector<quartet>);
 vector<quartet> generateQuartetsFromBipart(int);
 set<quartet> generateQuartetsFromBipartSet(int);
@@ -92,6 +101,13 @@ void addMatchedPairs(vector<iPair> p1, vector<iPair> p2, vector<quartet> &retVec
 vector<quartet> generateDifferentQuartets(int bipartA, int bipartB);
 vector<quartet> generateSameQuartets(int bipartA, int bipartB);
 
+
+set<quartet> generateConflictingQuartets(int bipart1, int bipart2);
+set<quartet> generateConflictingQuartets2(int bipart1, int bipart2);
+qPair generateConflictingQuartets3(int bipart1, int bipart2);
+unsigned int numConflictingQuartets(int bipart1, int bipart2);
+set<quartet> generateConflictingQuartetsGroup(int bipart1, set<unsigned int> bipart2);
+
 unsigned int getNumQuartets(int);
 unsigned int getNumQuartets(vector<bool> bipart);
 unsigned int getNumQuartets(boost::dynamic_bitset<> bipart);
@@ -103,18 +119,26 @@ unsigned int getNumSameQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset
 unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b);
 
 set<quartet> generateDifferentQuartetsFromTrees(int a, int b);
+set<quartet> generateDifferentQuartetsFromTrees2(int a, int b);
+set<quartet> generateDifferentQuartetsFromTrees3(int a, int b);
+set<quartet> generateDifferentQuartetsFromTrees4(int a, int b);
 set<quartet> generateSameQuartetsFromTrees(int a, int b);
 set<quartet> generateQuartetsFromTree(int t);
+set<quartet> generateQuartetsFromBiparts(set<unsigned int> s);
 
 unsigned int quartet_distance(int tree1, int tree2);
 
 void shared_quartets_strict(set<unsigned int> trees);
 void shared_quartets_majority(set<unsigned int> trees);
 
-void bipartAnalysis(); //not implemented
+void ktetAnalysis(int t);
 void quartetAnalysis(int, int); //not fully implemented
 void printSet(set<quartet> s);
 void TESTSTUFF();
+void testGenerateConflictingQuartets();
+void testNumConflictingQuartets();
+void testGenerateDifferentQuartets();
 void testOperatorsForQuartets();
+void testGeenerateDifferentQuartetsFromTrees();
 
 #endif
