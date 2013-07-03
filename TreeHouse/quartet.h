@@ -12,6 +12,9 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+#include <fstream>
 using namespace std;
 
 
@@ -23,6 +26,34 @@ typedef pair< set<iPair>, set<iPair> > qPair;
 void printQPair(qPair a);
 qPair mergeQPair(qPair a, qPair b);
 bool isQPairEmpty(qPair a);
+
+class bipartDistances{
+  private:
+
+  public:
+    vector <vector <unsigned int> > D;
+    bipartDistances();
+    void calculate();
+};
+
+
+class CQS{ //stands for conflicting quartet set
+  private:
+    set<unsigned int> a;
+    set<unsigned int> b;
+    set<unsigned int> c;
+    set<unsigned int> d;
+  public:
+    set<unsigned int> getSet(int whichOne);
+    void setSet(int whichOne, set<unsigned int> x);
+    void print();
+    CQS();
+    CQS(set<unsigned int>,set<unsigned int>,set<unsigned int>,set<unsigned int>);
+};
+void printCSQSet(set<int> a);
+void setIntersect(set<int> a, set<int> b, set<int> &result);
+unsigned int numIntersecting(CQS x, CQS y);
+//CQS intersect(CQS x, CQS y);
 
 class quartet{ //a class to store quartets. I'm open to ideas about how to make this better...
 	private:	
@@ -105,7 +136,11 @@ vector<quartet> generateSameQuartets(int bipartA, int bipartB);
 set<quartet> generateConflictingQuartets(int bipart1, int bipart2);
 set<quartet> generateConflictingQuartets2(int bipart1, int bipart2);
 qPair generateConflictingQuartets3(int bipart1, int bipart2);
+CQS generateConflictingQuartets4(int bipart1, int bipart2);
 unsigned int numConflictingQuartets(int bipart1, int bipart2);
+unsigned long conflictingQuartetDistance(int tree1, int tree2);
+unsigned long conflictingQuartetDistance(int tree1, int tree2, bipartDistances b);
+unsigned int rfDistance(int tree1, int tree2);
 set<quartet> generateConflictingQuartetsGroup(int bipart1, set<unsigned int> bipart2);
 
 unsigned int getNumQuartets(int);
@@ -118,10 +153,10 @@ unsigned int getNumSameQuartets(int a, int b);
 unsigned int getNumSameQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b);
 unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b);
 
-set<quartet> generateDifferentQuartetsFromTrees(int a, int b);
+set<quartet> generateDifferentQuartetsFromTrees(int a, int b); //ALL TO ALL
 set<quartet> generateDifferentQuartetsFromTrees2(int a, int b);
-set<quartet> generateDifferentQuartetsFromTrees3(int a, int b);
-set<quartet> generateDifferentQuartetsFromTrees4(int a, int b);
+set<quartet> generateDifferentQuartetsFromTrees3(int a, int b); //UNIQUE TO ALL
+set<quartet> generateDifferentQuartetsFromTrees4(int a, int b); //UNIQUE TO UNIQUE
 set<quartet> generateSameQuartetsFromTrees(int a, int b);
 set<quartet> generateQuartetsFromTree(int t);
 set<quartet> generateQuartetsFromBiparts(set<unsigned int> s);
@@ -135,10 +170,15 @@ void ktetAnalysis(int t);
 void quartetAnalysis(int, int); //not fully implemented
 void printSet(set<quartet> s);
 void TESTSTUFF();
+void testConflictingQuartetDistance();
+void testCQS();
+void testGenerateBipartitionConflicts();
 void testGenerateConflictingQuartets();
 void testNumConflictingQuartets();
 void testGenerateDifferentQuartets();
 void testOperatorsForQuartets();
 void testGeenerateDifferentQuartetsFromTrees();
+void readOutty();
+void testConflictingQuartetsBigDemo();
 
 #endif

@@ -166,8 +166,8 @@ void printVector(vector<T> in){
 
 template <class T> //this might not work- needs to be tested
 void printSet(set<T> in){
-  for(int i = 0; i < in.size(); i++){
-	cout << i+1 << ". " << in.at(i) << endl;
+  for(typename set<T>::iterator it = in.begin(); it!=in.end(); it++){
+	cout << *it << ", ";
 	}
   cout << endl;
 }
