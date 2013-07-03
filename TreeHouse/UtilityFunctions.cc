@@ -7,16 +7,16 @@ set <unsigned int> duplicates(int treein){
 	//Returns the unique trees in a tree set. 
 	set<unsigned int> duplicatelist;
 	
-	if (::tree_dups[treein].size() > 0 ){
-		if(::tree_dups[treein][0] < treein){
-			vector<int> tempvect = ::tree_dups[::tree_dups[treein][0]];
+	if (::biparttable.tree_dups[treein].size() > 0 ){
+		if(::biparttable.tree_dups[treein][0] < treein){
+			vector<int> tempvect = ::biparttable.tree_dups[::biparttable.tree_dups[treein][0]];
 			copy(tempvect.begin(), tempvect.end(), inserter(duplicatelist, duplicatelist.end()));
 			//duplicatelist = ::dups[dups[treein][0]];
-			duplicatelist.insert(::tree_dups[treein][0]);
+			duplicatelist.insert(::biparttable.tree_dups[treein][0]);
 		}
 		
 		else{
-			vector<int> tempvect = ::tree_dups[treein];
+			vector<int> tempvect = ::biparttable.tree_dups[treein];
 			copy(tempvect.begin(), tempvect.end(), inserter(duplicatelist, duplicatelist.end()));
 			//duplicatelist = ::dups[treein];
 		}

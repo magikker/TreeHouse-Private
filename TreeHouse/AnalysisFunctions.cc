@@ -129,7 +129,7 @@ vector < vector <unsigned int> > compute_bipart_distancesv(vector <unsigned int>
 	}
 	*/
 	for(unsigned int i = 0; i < treeset.size(); i++){//for each tree
-		biparts.push_back(::inverted_index[treeset[i]]);
+		biparts.push_back(::biparttable.inverted_index.at(treeset[i]));
 	}
 
 
