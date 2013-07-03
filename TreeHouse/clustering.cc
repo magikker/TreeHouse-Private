@@ -389,7 +389,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	vector < vector < unsigned int > > centroid_distances;
 
 	//Computes the tree-distances matrix
-	tree_distances = compute_bipart_distances(inputtrees, dist_type);
+//	tree_distances = compute_bipart_distancesv(inputtrees, dist_type);
 
 	//Creates a history of centroids
 //	for(unsigned int i = 0; i < k; i++){//k times
@@ -404,6 +404,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos){//for each tree
 		shuffled.push_back(*pos);
 	}
+	tree_distances = compute_bipart_distancesv(shuffled, dist_type);
 	random_shuffle(shuffled.begin(), shuffled.end());
 	for(unsigned int i = 0; i < k; i++){//while we do not have k clusters
 		set<unsigned int> temp;
@@ -675,9 +676,9 @@ void display_clusters(string type, vector < set < unsigned int> > clusters){
 //Various tests used in setting up cluster display and MDS
 void mdsTests(){
 	vector< vector < unsigned int> > distances;
-	set <unsigned int> treeset;
+	vector <unsigned int> treeset;
 	for (unsigned int i = 0; i < 11; i++){
-		treeset.insert(i);
+		treeset.push_back(i);
 	}
 //	vector <unsigned int> vect1;
 //	vector<unsigned int> vect2;
@@ -703,14 +704,17 @@ void mdsTests(){
 
 
 //	write_dmatrix(compute_bipart_distancesv(vect2, "rf"), "vect2");
-
-	vector < set < unsigned int> > clusters = kmeans_clust(treeset, 2, "rf");
+	write_dmatrix(compute_bipart_distancesv(treeset, "rf"), "demo");
+//	vector < set < unsigned int> > clusters = kmeans_clust(treeset, 2, "rf");
+//	cout << "clusters defined" << endl;
 //	vector < set <unsigned int> > clusters = kmeans_clust(treeset, 2, "eu");
 //	vector <set <unsigned int> > cluster = kmeans_clust(treeset, 2, "rf");
 //	distances = compute_bipart_distances(treeset, "rf");
 //	write_dmatrix(distances, "testwrite");
 //	compute_mds(treeset, "nerv", "test2");
 //	display_mds(treeset, "lmds");
-	silhouette(clusters,"rf");
-	display_clusters("lmds", clusters); 
+//	silhouette(clusters,"rf");
+//	cout << "silhouette run" << endl;
+//	display_clusters("lmds", clusters);
+//	cout << "Display clusters fin" << endl;	
 }

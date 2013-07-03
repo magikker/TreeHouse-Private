@@ -249,7 +249,7 @@ void printQuartets(vector<quartet> input){
 }
 
 void getOnesZerosFromBipart(int bipart, vector<unsigned int> &ones, vector<unsigned int> &zeros){
-  boost::dynamic_bitset<> b = biparttable.BipartitionTable.at(bipart).get_bitstring();
+  boost::dynamic_bitset<> b = biparttable.BipartTable.at(bipart).get_bitstring();
 
 
 
@@ -260,7 +260,7 @@ char isQuartetImplied(quartet x, unsigned int bipart){
 //0- quartet is DISPROVEN
 //1- quartet is PROVEN
 //2- we don't know (e.g. we're looking for a quartet and we find three 0s and a 1
-  boost::dynamic_bitset<> b = biparttable.BipartitionTable.at(bipart).get_bitstring();
+  boost::dynamic_bitset<> b = biparttable.BipartTable.at(bipart).get_bitstring();
   iPair A = x.getA();
   iPair B = x.getB();
   int numOnes = (int)b[A.first] + (int)b[A.second] + (int)b[B.first] + (int)b[B.second];
@@ -525,10 +525,10 @@ set<quartet> generateConflictingQuartetsGroup(int bipart1, set<unsigned int> bip
 set<quartet> generateConflictingQuartets2(int bipart1, int bipart2){
 	set<quartet> retSet;
 	boost::dynamic_bitset<> a, b;
-	a = biparttable.BipartitionTable.at(bipart1).get_bitstring();
-	b = biparttable.BipartitionTable.at(bipart2).get_bitstring();
-	a.resize(::NUM_TAXA); //restore trailing 0s in bipartitions
-	b.resize(::NUM_TAXA);
+	a = biparttable.BipartTable.at(bipart1).get_bitstring();
+	b = biparttable.BipartTable.at(bipart2).get_bitstring();
+	a.resize(::biparttable.lm.size()); //restore trailing 0s in bipartitions
+	b.resize(::biparttable.lm.size());
 	vector<unsigned int> sharedOnes, sharedZeros, unsharedOnes, unsharedZeros;
 	for(int i = 0; i < a.size(); i++){
 	if(a[i]==1){
@@ -597,10 +597,10 @@ bool isQPairEmpty(qPair a){
 qPair generateConflictingQuartets3(int bipart1, int bipart2){
 	  qPair retPair;
 	  boost::dynamic_bitset<> a, b;
-	  a = biparttable.BipartitionTable.at(bipart1).get_bitstring();
-	  b = biparttable.BipartitionTable.at(bipart2).get_bitstring();
-	  a.resize(::NUM_TAXA); //restore trailing 0s in bipartitions
-	  b.resize(::NUM_TAXA);
+	  a = biparttable.BipartTable.at(bipart1).get_bitstring();
+	  b = biparttable.BipartTable.at(bipart2).get_bitstring();
+	  a.resize(::biparttable.lm.size()); //restore trailing 0s in bipartitions
+	  b.resize(::biparttable.lm.size());
 	  vector<unsigned int> sharedOnes, sharedZeros, unsharedOnes, unsharedZeros;
 	  for(int i = 0; i < a.size(); i++){
 		if(a[i]==1){
@@ -673,10 +673,10 @@ qPair generateConflictingQuartetsGroup2(int bipart1, set<unsigned int> biparts){
 
 unsigned int numConflictingQuartets(int bipart1, int bipart2){
   boost::dynamic_bitset<> a, b;
-  a = biparttable.BipartitionTable.at(bipart1).get_bitstring();
-  b = biparttable.BipartitionTable.at(bipart2).get_bitstring();
-  a.resize(::NUM_TAXA); //restore trailing 0s in bipartitions
-  b.resize(::NUM_TAXA);
+  a = biparttable.BipartTable.at(bipart1).get_bitstring();
+  b = biparttable.BipartTable.at(bipart2).get_bitstring();
+  a.resize(::biparttable.lm.size()); //restore trailing 0s in bipartitions
+  b.resize(::biparttable.lm.size());
   unsigned int sharedOnes, sharedZeros, unsharedOnes, unsharedZeros;
   sharedOnes = sharedZeros = unsharedOnes = unsharedZeros = 0;
   for(int i = 0; i < a.size(); i++){
@@ -809,19 +809,19 @@ vector<quartet> generateSameQuartets(int bipartA, int bipartB){
 set<quartet> generateQuartetsFromBipartSet(int b){
   vector<int> ones;
   vector<int> zeros;
-  for(int i = 0; i < biparttable.BipartitionTable.at(b).bitstring_size(); i++){
-	if(biparttable.BipartitionTable.at(b).get_bit(i)==false){
+  for(int i = 0; i < biparttable.BipartTable.at(b).bitstring_size(); i++){
+	if(biparttable.BipartTable.at(b).get_bit(i)==false){
 		zeros.push_back(i);
 		}
 	else{
 		ones.push_back(i);
 		}
 	}
-  if(biparttable.BipartitionTable.at(b).bitstring_size() > ::NUM_TAXA){ //make sure the next for loop terminates
+  if(biparttable.BipartTable.at(b).bitstring_size() > ::biparttable.lm.size()){ //make sure the next for loop terminates
 	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
    	}
   else{
-  	for(int i = biparttable.BipartitionTable.at(b).bitstring_size(); i < ::NUM_TAXA; i++){
+  	for(int i = biparttable.BipartTable.at(b).bitstring_size(); i < ::biparttable.lm.size(); i++){
 		zeros.push_back(i);
 		}
 	}
@@ -844,11 +844,11 @@ vector<quartet> generateQuartetsFromBipart(int b){
 		ones.push_back(i);
 		}
 	}
-  if(biparttable.bitstring_size(b) > ::NUM_TAXA){ //make sure the next for loop terminates
+  if(biparttable.bitstring_size(b) > ::biparttable.lm.size()){ //make sure the next for loop terminates
 	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
    	}
   else{
-  	for(unsigned int i = biparttable.bitstring_size(b); i < ::NUM_TAXA; i++){
+  	for(unsigned int i = biparttable.bitstring_size(b); i < ::biparttable.lm.size(); i++){
 		zeros.push_back(i);
 		}
 	}
@@ -888,19 +888,19 @@ set<quartet> generateQuartetsFromOnesZerosSet(vector<int> ones, vector<int> zero
 void insertQuartetsFromBipart(int b, set<quartet> &setty){
   vector<int> ones;
   vector<int> zeros;
-  for(unsigned int i = 0; i < biparttable.BipartitionTable.at(b).bitstring_size(); i++){
-	if(biparttable.BipartitionTable.at(b).get_bit(i)==false){
+  for(unsigned int i = 0; i < biparttable.BipartTable.at(b).bitstring_size(); i++){
+	if(biparttable.BipartTable.at(b).get_bit(i)==false){
 		zeros.push_back(i);
 		}
 	else{
 		ones.push_back(i);
 		}
 	}
-  if(biparttable.BipartitionTable.at(b).bitstring_size() > ::NUM_TAXA){ //make sure the next for loop terminates
+  if(biparttable.BipartTable.at(b).bitstring_size() > ::biparttable.lm.size()){ //make sure the next for loop terminates
 	cerr << "generateQuartetsFromBipart error: Length of bitstring is greater than NUM_TAXA! This should never happen\n";
    	}
   else{
-  	for(unsigned int i = biparttable.BipartitionTable.at(b).bitstring_size(); i < ::NUM_TAXA; i++){
+  	for(unsigned int i = biparttable.BipartTable.at(b).bitstring_size(); i < ::biparttable.lm.size(); i++){
 		zeros.push_back(i);
 		}
 	}
@@ -1019,7 +1019,7 @@ unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_b
 unsigned int getNumQuartets(int b){
   //takes the index of a bipartition and counts the number of quartets implied by it
   int nOnes = biparttable.number_of_ones(b);
-  int nZeros = biparttable.number_of_zeros(b) + ::NUM_TAXA - biparttable.bitstring_size(b);
+  int nZeros = biparttable.number_of_zeros(b) + ::biparttable.lm.size() - biparttable.bitstring_size(b);
   //quartets = (nOnes choose 2) * (nZeros choose 2) 
 //cout << "num ones is: " << nOnes << ", number of 0s is " << nZeros << endl;
   return(getNumQuartets(nOnes,nZeros));
@@ -1094,8 +1094,8 @@ set<quartet> generateDifferentQuartetsFromTrees(int a, int b){
 
 set<quartet> generateDifferentQuartetsFromTrees2(int a, int b){
 //first, take all bipartitions from each tree and add them into sets
- set<unsigned int> t1Biparts(::inverted_index.at(a).begin(), ::inverted_index.at(a).end());
- set<unsigned int> t2Biparts(::inverted_index.at(b).begin(), ::inverted_index.at(b).end());
+ set<unsigned int> t1Biparts(::biparttable.inverted_index.at(a).begin(), ::biparttable.inverted_index.at(a).end());
+ set<unsigned int> t2Biparts(::biparttable.inverted_index.at(b).begin(), ::biparttable.inverted_index.at(b).end());
  set<unsigned int> unique;
  set_difference(t1Biparts.begin(), t1Biparts.end(), t2Biparts.begin(), t2Biparts.end(), inserter(unique, unique.end()));
 //now we have unique, a set of all bipartitions that are unique to tree 1 (note that this set_difference ISNT symmetric)
@@ -1113,8 +1113,8 @@ set<quartet> generateDifferentQuartetsFromTrees2(int a, int b){
 
 set<quartet> generateDifferentQuartetsFromTrees3(int a, int b){
  //COMPARISON OF ALL UNIQUE-TREE1 TO ALL OF TREE2
- set<unsigned int> t1Biparts(::inverted_index.at(a).begin(), ::inverted_index.at(a).end());
- set<unsigned int> t2Biparts(::inverted_index.at(b).begin(), ::inverted_index.at(b).end());
+ set<unsigned int> t1Biparts(::biparttable.inverted_index.at(a).begin(), ::biparttable.inverted_index.at(a).end());
+ set<unsigned int> t2Biparts(::biparttable.inverted_index.at(b).begin(), ::biparttable.inverted_index.at(b).end());
  set<unsigned int> unique;
  set_difference(t1Biparts.begin(), t1Biparts.end(), t2Biparts.begin(), t2Biparts.end(), inserter(unique, unique.end()));
  set<quartet> retSet, qUnique, qb;
@@ -1127,8 +1127,8 @@ set<quartet> generateDifferentQuartetsFromTrees3(int a, int b){
 
 set<quartet> generateDifferentQuartetsFromTrees4(int a, int b){
  //COMPARISON OF UNIQUE-TREE1 TO UNIQUE-TREE2
- set<unsigned int> t1Biparts(::inverted_index.at(a).begin(), ::inverted_index.at(a).end());
- set<unsigned int> t2Biparts(::inverted_index.at(b).begin(), ::inverted_index.at(b).end());
+ set<unsigned int> t1Biparts(::biparttable.inverted_index.at(a).begin(), ::biparttable.inverted_index.at(a).end());
+ set<unsigned int> t2Biparts(::biparttable.inverted_index.at(b).begin(), ::biparttable.inverted_index.at(b).end());
  set<unsigned int> unique, unique2;
  set_difference(t1Biparts.begin(), t1Biparts.end(), t2Biparts.begin(), t2Biparts.end(), inserter(unique, unique.end()));
  set_difference(t2Biparts.begin(), t2Biparts.end(), t1Biparts.begin(), t1Biparts.end(), inserter(unique2, unique2.end()));
@@ -1152,8 +1152,8 @@ set<quartet> generateSameQuartetsFromTrees(int a, int b){
 unsigned int quartet_distance(int tree1, int tree2){
 //first, get set of non-trivial bipartitions which are shared by the trees
 
-  vector<unsigned int> biparts1 = ::inverted_index.at(tree1);
-  vector<unsigned int> biparts2 = ::inverted_index.at(tree2);
+  vector<unsigned int> biparts1 = ::biparttable.inverted_index.at(tree1);
+  vector<unsigned int> biparts2 = ::biparttable.inverted_index.at(tree2);
   
  
  set<unsigned int> b1(biparts1.begin(), biparts1.end());
@@ -1284,6 +1284,7 @@ void testOperatorsForQuartets(){
 // set<quartet> Qset = generateQuartetsFromTree(0);
  //printSet(Qset);
 
+
 }
 
 void quartetAnalysis(int tree1, int tree2){ //info dump of quartet stuff from both trees
@@ -1312,13 +1313,14 @@ void quartetAnalysis(int tree1, int tree2){ //info dump of quartet stuff from bo
 
 void ktetAnalysis(int t){
 //gets all the bipartitions of a tree and gets the ones and zero sets
-vector<unsigned int> biparts = ::inverted_index.at(t);
+vector<unsigned int> biparts = ::biparttable.inverted_index.at(t);
 set<set<unsigned int>> bSets; 
 for(int i = 0; i < biparts.size(); i++){
-	if(!biparttable.BipartitionTable.at(biparts.at(i)).is_trivial()){
+	
+	if(!::biparttable.is_trivial(biparts.at(i))){
 		set<unsigned int> ones, zeros;
-		ones = biparttable.BipartitionTable.at(biparts.at(i)).getOnes();
-		zeros = biparttable.BipartitionTable.at(biparts.at(i)).getZeros();
+		ones = biparttable.getOnes(biparts.at(i));
+		zeros = biparttable.getZeros(biparts.at(i));
 		cout << "Bipartition " << biparts.at(i) << ":" << endl;	
 		cout << "ones: "; printSetCompactTwo(ones);
 		cout << "zeros: "; printSetCompactTwo(zeros);
@@ -1373,6 +1375,7 @@ void testConflictingQuartetDistance(){
 	rangeTwo.insert(rand() % ::NUM_TREES);
 	}
 
+
   unsigned long CQD = 0;
   unsigned int qDist = 0; 
   unsigned int rf = 0;
@@ -1411,6 +1414,94 @@ void readOutty(){
 		xVals += tempx; xVals += ",";
 		yVals += tempy; yVals += ",";
 		}	
+/*
+  vector<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = ::biparttable.inverted_index.at(258);
+  vector<unsigned int> t2 = ::biparttable.inverted_index.at(561);
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+  set<unsigned int> group;
+  for(int r = 0; r < rf2.size(); r++){
+	group.insert(rf2.at(r));
+	}
+
+  for(int k = 0; k < rf.size(); k++){
+	set<quartet> conflict = generateConflictingQuartetsGroup(k, group);
+	if(conflict.size() > 0){
+		for(int i = 0; i < rf2.size(); i++){
+		cout << "conflicting quartets between bipartitions " << rf.at(k) << " and " << rf2.at(i) << " are:\n";
+		printQPair(generateConflictingQuartets3(rf.at(k), rf2.at(i)));
+		group.insert(rf2.at(i));
+		cout << endl;
+		}
+		cout << "conflicting quartets between " << rf.at(k) << " and group:\n";
+		printSet(generateConflictingQuartetsGroup(rf.at(k), group));
+		//return;
+		}
+	else{
+		cout << "bipartition " << rf.at(k) << " created no conflict!\n";
+		}
+	}  
+*/
+/*
+  int a, g1, g2, g3, g4;
+  a = 9;
+  g1 =3; g2 = 10; g3 = 11; g4 = 12;
+  set<unsigned int> group;
+  group.insert(g1); group.insert(g2); group.insert(g3); group.insert(g4); 
+  cout << "conflicting quartets between " << a << " and " << g1 << ":\n";
+  printQPair(generateConflictingQuartets3(a, g1));
+
+  cout << "conflicting quartets between " << a << " and " << g2 << ":\n";
+  printQPair(generateConflictingQuartets3(a, g2));
+
+  cout << "conflicting quartets between " << a << " and " << g3 << ":\n";
+  printQPair(generateConflictingQuartets3(a, g3));
+
+  cout << "conflicting quartets between " << a << " and " << g4 << ":\n";
+  printQPair(generateConflictingQuartets3(a, g4));
+
+  cout << "conflicting quartets between " << a << " and group:\n";
+  printSet(generateConflictingQuartetsGroup(a, group));
+  //qPair x = generateConflictingQuartets3(2,4);
+  //printQPair(x);
+  */
+
+
+  //cout << "quartet distance is:\n";
+ // printSet(generateDifferentQuartetsFromTrees(1, 8));
+
+/*  set<quartet> conflictingQuartets;
+  set<unsigned int> group;
+  group.insert(4); group.insert(13);
+
+  cout << "conflicting quartets between 2 and 4:\n";
+  printSet(generateConflictingQuartets(2,4));
+  cout << "conflicting quartets between 2 and 13:\n";
+  printSet(generateConflictingQuartets(2,13));
+  cout << "conflicting quartets between 2 and group:\n";
+  printSet(generateConflictingQuartetsGroup(2, group));
+  cout << "conflicting quartets between 6 and 4:\n";
+  printSet(generateConflictingQuartets(6,4));
+  cout << "conflicting quartets between 6 and 13:\n";
+  printSet(generateConflictingQuartets(6,13));
+  cout << "conflicting quartets between 6 and group:\n";
+  printSet(generateConflictingQuartetsGroup(6, group));
+
+
+  cout << "quartet distance is:\n";
+  printSet(generateDifferentQuartetsFromTrees(0, 1));
+*/
+ /*
+ vector<unsigned int> rf;
+ for(int i = 0; i < 10; i++){
+ 	for(int j = 2000; j < 2050; j++){
+	 vector<unsigned int> t1 = ::biparttable.inverted_index.at(i);
+	 vector<unsigned int> t2 = ::biparttable.inverted_index.at(j);
+	 set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+	 cout << "rf distance between " << i << " and " << j << " is: " << rf.size() << endl;
+	 rf.clear();
 	}
 	cout << xVals << endl;
 	cout << yVals << endl;
@@ -1564,7 +1655,7 @@ void testNumConflictingQuartets(){
 	//TO TEST NUMCONFLICTINGQUARTETS ON LARGE DATA SETS
 	unsigned long numBipartsLookedAt = 0;
 	unsigned long nonZero = 0;
-	if(::NUM_TAXA>500){
+	if(::biparttable.lm.size()>500){
 	for(int i = 0; i < 3000; i++){
 		for(int j = 0; j < 3000; j++){
 			//cout << "conflicting quartets between bipartition " << i << " and " << j << ":";

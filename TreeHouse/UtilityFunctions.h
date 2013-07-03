@@ -9,12 +9,16 @@
 
 //#include "global.h"
 #include "THGlobals.h"
+#include "TreeParsing.h"
 #include "pql.h"
 #include "AnalysisFunctions.h"
 using namespace std;
 
 //I need some work on this one. 
-set <unsigned int> duplicates(int treein);
+//set <unsigned int> duplicates(int treein);
+
+//Returns a random sampling of the input treeset of the size requested
+set <unsigned int> sample_trees(set<unsigned int> treeset, unsigned int numtrees);
 
 vector<string> to_newick(vector<int> input_from_int);
 
@@ -120,9 +124,9 @@ int num_labels_in_newick(string newick);
 
 set <unsigned int> unique(set<unsigned int> treesin);
 
-vector <unsigned int> unique(vector<unsigned int> treesin);
+//vector <unsigned int> unique(vector<unsigned int> treesin);
 
-vector <int> unique(vector<int> treesin);
+//vector <int> unique(vector<int> treesin);
 
 int unique_biparts(set< unsigned int > treesin);
 

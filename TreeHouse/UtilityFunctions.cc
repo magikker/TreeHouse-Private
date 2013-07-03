@@ -24,6 +24,23 @@ set <unsigned int> duplicates(int treein){
 	return duplicatelist;
 }
 
+//Returns a random sampling of the trees in input set of the size requested
+set <unsigned int> sample_trees (set <unsigned int> treeset, unsigned int numtrees){
+	set <unsigned int> retset;
+	//Used for randomizing the set
+	vector<unsigned int> shuffled;
+	for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){
+		shuffled.push_back(*pos);
+	}
+	//Shuffles the shuffled vector and then adds the first numtrees elements to the return set
+	random_shuffle(shuffled.begin(), shuffled.end());
+	for(unsigned int i = 0; i < numtrees; i++){//While we do still need trees
+		retset.insert(shuffled[i]);
+	}
+
+	return retset;
+}
+
 
 vector<string> to_newick(vector<int> input_from_int) 
 {
@@ -497,59 +514,61 @@ int show_only_taxa(string group, vector<string> taxa, int tree, string mode) {
   for (unsigned int i = 0; i < ::biparttable.lm.size(); i++) {
     all_positions.insert(i);
   }
+  
   set<int> in_positions;
   for (unsigned int i = 0; i < taxa.size(); i++) {
     in_positions.insert(::biparttable.lm.position(taxa[i]));
   }
+  
   vector<int> out_positions;
   std::set_difference(all_positions.begin(), all_positions.end(), in_positions.begin(), in_positions.end(), std::back_inserter(out_positions));
-  vector<unsigned int> bs_sizes;
+
   vector<float> branches;
-  vector<bool *> tree_bipartitions;
-  ::get_tree_data(tree, tree_bipartitions, bs_sizes, branches);
-  vector<bool *> bipartitions;
+  vector<boost::dynamic_bitset<> > tree_bipartitions;
+  ::get_tree_data(tree, tree_bipartitions, branches);
+  vector<boost::dynamic_bitset<> > bipartitions;
+
   for (unsigned int i = 0; i < tree_bipartitions.size(); i++) {
     // copy bipartition from treetable into new bool array; push onto bipartitions vector
-    bool * bitstring  = new bool [bs_sizes[i]];
-    for (unsigned int j = 0; j < bs_sizes[i]; j++) {
+    boost::dynamic_bitset<> bitstring(tree_bipartitions[i].size());
+    for (unsigned int j = 0; j < tree_bipartitions[i].size(); j++) {
       bitstring[j] = tree_bipartitions[i][j];
     }
     bipartitions.push_back(bitstring);
     // mark non-group taxa with 0 in all bipartitions
     for (unsigned int j = 0; j < out_positions.size(); j++) {
-      if (out_positions[j] < bs_sizes[i])
+      if (out_positions[j] < bipartitions[i].size())
 	bipartitions[i][out_positions[j]] = 0;
     }
   }
   //remove bipartitions that are now all zeroes or duplicates
   set<string> bipartset;
-  vector<unsigned int>::reverse_iterator bs_size = bs_sizes.rbegin();
+  //vector<unsigned int>::reverse_iterator bs_size = bs_sizes.rbegin();
   vector<float>::reverse_iterator branch = branches.rbegin();
-  for (vector<bool *>::reverse_iterator bipart = bipartitions.rbegin();
+  for (vector< boost::dynamic_bitset<> >::reverse_iterator bipart = bipartitions.rbegin();
        bipart < bipartitions.rend();
-       bipart++, bs_size++, branch++) {
+       bipart++, branch++) {
     string bitstring;
     bool has_one = false;
-    for (unsigned int j = 0; j < *bs_size; j++) {
+    for (unsigned int j = 0; j < (*bipart).size(); j++) {
       bitstring += to_string((*bipart)[j]);
       if ((*bipart)[j] == 1) {
-	has_one = true;
+	     has_one = true;
       }
     }
     if (has_one) { //remove trailing zeroes
       while (bitstring[bitstring.size() - 1] == '0') {
-	bitstring.resize(bitstring.size() - 1);
-	(*bs_size)--;
+    	bitstring.resize(bitstring.size() - 1);
       }
     }
     if (!has_one || !(bipartset.insert(bitstring)).second) {
       bipartitions.erase(bipart.base() - 1);
-      bs_sizes.erase(bs_size.base() - 1);
       if (branches.size() > 0)
 	branches.erase(branch.base() - 1);
     }
   }
-  string nwstr = compute_tree(::biparttable.lm, bipartitions, branches, tree, 0, bs_sizes);
+  
+  string nwstr = compute_tree(::biparttable.lm, bipartitions, branches, tree, 0);
   cout << nwstr << endl;
   show_newick(nwstr, (group+" in Tree "+to_string(tree)), "", mode);
   return 0;
@@ -707,6 +726,81 @@ void taxa_filter (vector<string> taxa, unsigned int tree) {
   }
   ::NUM_TREES++;
   for (unsigned int i = 0; i < ::biparttable.bipartitions.size(); i++) {
+      taxa_in_tree[i] = 0;
+  }
+  ::taxa_in_trees.push_back(taxa_in_tree);
+  //recalculate tree_dups
+  vector<int> new_dups;
+  for (unsigned int i = 0; i < ::NUM_TREES - 1; i++) {
+    bool is_dup = true;
+    for (unsigned int j = 0; j < ::biparttable.bipartitions.size(); j++) {
+      is_dup = !(::biparttable.treetable[j][i] ^ ::biparttable.treetable[j][new_tree_id]);
+      if (!is_dup)
+	break;
+    }
+    if (is_dup) {
+      new_dups.push_back(i);
+      ::tree_dups[i].push_back(new_tree_id);
+    }
+  }
+  ::tree_dups[new_tree_id] = new_dups;
+  ::all_trees.insert(new_tree_id);
+  symbol_table["trees"] = new pqlsymbol(all_trees, (unsigned int)::NUM_TREES);
+  cout << "Created Tree " << new_tree_id << "." << endl;
+}
+
+void taxa_filter (vector<string> taxa, set<unsigned int> treeset) {
+  for (set<unsigned int>::const_iterator pos = treeset.begin(); pos != treeset.end(); pos++)
+    taxa_filter(taxa, *pos);
+}
+
+void taxa_filter(vector<string> taxa, vector<int> treevect) {
+  for (unsigned int i = 0; i < treevect.size(); i++)
+    taxa_filter(taxa, treevect[i]);
+}
+
+void group_filter(vector<string> groups, unsigned int tree) {
+  set<string> all_taxa_set;
+  for (unsigned int i = 0; i < groups.size(); i++) {
+    vector<string> taxa = taxa_in_group(groups[i]);
+    if (taxa.size() == 0)
+      cerr << "Warning: no taxa found in group '"+groups[i]+"'." << endl;
+    for (unsigned int j = 0; j < taxa.size(); j++) {
+      all_taxa_set.insert(taxa[j]);
+    }
+  }
+  vector<string> all_taxa(all_taxa_set.begin(), all_taxa_set.end());
+  taxa_filter(all_taxa, tree);
+}
+
+void group_filter (vector<string> groups, set<unsigned int> treeset) {
+  for (set<unsigned int>::const_iterator pos = treeset.begin(); pos != treeset.end(); pos++)
+    group_filter(groups, *pos);
+}
+
+void group_filter(vector<string> groups, vector<int> treevect) {
+  for (unsigned int i = 0; i < treevect.size(); i++)
+    group_filter(groups, treevect[i]);
+}
+
+void delete_tree(unsigned int tree) {
+  delete[] ::taxa_in_trees[tree];
+  ::taxa_in_trees.erase(::taxa_in_trees.begin() + tree);
+  ::biparttable.tree_branches.erase(::biparttable.tree_branches.begin() + tree);
+  ::tree_dups.erase(tree);
+  for (map<int, vector<int> >::iterator pos = ::tree_dups.begin(); pos != tree_dups.end(); pos++) {
+    for (unsigned int i = 0; i < (*pos).second.size(); i++) {
+      if ((*pos).second[i] == tree)
+	(*pos).second.erase((*pos).second.begin() + i);
+    }
+  }
+  for (unsigned int i = 0; i < ::biparttable.bipartitions.size(); i++) {
+    bool increment = true;
+    for (unsigned int j = tree; j+1 < ::NUM_TREES; j++) {
+      ::biparttable.treetable[i][j] = ::biparttable.treetable[i][j+1];
+    }
+    for (unsigned int j = 0; j < ::biparttable.searchtable[i].size(); j++) {
+      if (::biparttable.searchtable[i][j] == tree) { //if this tree had bipartition i
     delete[] ::biparttable.treetable[i];
     bool * treestr = new bool [::NUM_TREES];
     for (unsigned int j = 0; j < ::NUM_TREES; j++) {
@@ -892,20 +986,19 @@ void write_trz(set<unsigned int> treeset, string filename) {
   write_trz(nwvect, filename);
 }
 
-    
 set <unsigned int> unique(set< unsigned int> treesin){
 	//cout << "unique has been called" <<endl;
 	//Returns the unique trees in a tree set. 
 	set<unsigned int> uniquetrees = treesin;
 	
 	for(set<unsigned int>::const_iterator pos = treesin.begin(); pos != treesin.end(); ++pos){
-		for (unsigned int j = 0; j < ::tree_dups[*pos].size(); j++){
-			if (*pos < ::tree_dups[*pos][j]){ // if the dup is greater in id number than the tree we are on delete it
-				uniquetrees.erase(::tree_dups[*pos][j]);
+		for (unsigned int j = 0; j < ::biparttable.tree_dups[*pos].size(); j++){
+			if (*pos < ::biparttable.tree_dups[*pos][j]){ // if the dup is greater in id number than the tree we are on delete it
+				uniquetrees.erase(::biparttable.tree_dups[*pos][j]);
 			}
-			else if (*pos > ::tree_dups[*pos][j]){ // if the dup is less than the tree we are on the we need to do some special ops... we get a new list based on the lowest number and we delete only those that are greater than the current value. 
+			else if (*pos > ::biparttable.tree_dups[*pos][j]){ // if the dup is less than the tree we are on the we need to do some special ops... we get a new list based on the lowest number and we delete only those that are greater than the current value. 
 				//cout << "in the else if" << endl;
-				vector<int> tempvect = ::tree_dups[::tree_dups[*pos][j]];
+				vector<int> tempvect = ::biparttable.tree_dups[::biparttable.tree_dups[*pos][j]];
 				for (unsigned int k = 0; k < tempvect.size(); k++){
 					if (*pos < tempvect[k]){ // if the dup is greater in id number than the tree we are on delete it
 						uniquetrees.erase(tempvect[k]);
@@ -914,7 +1007,6 @@ set <unsigned int> unique(set< unsigned int> treesin){
 			}			
 		}
 	}
-
 	return uniquetrees;
 }
 
@@ -926,30 +1018,31 @@ int unique_biparts(set< unsigned int > treesin){
 	set<unsigned int> retSet; //the set we are going to return
 
 	for(int i = 0; i < treesin.size(); i++){ //iterate through all of the input trees
-		vector<unsigned int> tree_biparts = ::inverted_index[i];
+		vector<unsigned int> tree_biparts = ::biparttable.inverted_index[i];
 		for(int j = 0; j < tree_biparts.size(); j++){			
 			retSet.insert(tree_biparts[j]);	  
 		}
 	}
 	return retSet.size();
 }
-
+//when returning trees, I'm going to try to return sets in general. So lets phase the vector versions
+/*
 vector <unsigned int> unique(vector<unsigned int> treesin){
 	//Returns the unique trees in a tree set. 
 	vector<unsigned int> uniquetrees = treesin;
 		
 	for (unsigned int i = 0; i < treesin.size(); i++){ // for each tree in the input set
-		for (unsigned int j = 0; j < ::tree_dups[treesin[i]].size(); j++){ // check to see if it has dups. 
+		for (unsigned int j = 0; j < ::biparttable.tree_dups[treesin[i]].size(); j++){ // check to see if it has dups. 
 			//cout << "treesin[i] = " << treesin[i] << endl;
 			//cout << "::dups[treesin[i]][j] = " << ::dups[treesin[i]][j] << endl;
 
-			if (treesin[i] < ::tree_dups[treesin[i]][j]){ // if the dup is greater in id number than the tree we are on delete it
-				uniquetrees.erase(std::remove(uniquetrees.begin(), uniquetrees.end(), ::tree_dups[treesin[i]][j]), uniquetrees.end());
+			if (treesin[i] < ::biparttable.tree_dups[treesin[i]][j]){ // if the dup is greater in id number than the tree we are on delete it
+				uniquetrees.erase(std::remove(uniquetrees.begin(), uniquetrees.end(), ::biparttable.tree_dups[treesin[i]][j]), uniquetrees.end());
 			}
 			
-			else if (treesin[i] > ::tree_dups[treesin[i]][j]){ // if the dup is less than the tree we are on the we need to do some special ops... we get a new list based on the lowest number and we delete only those that are greater than the current value. 
+			else if (treesin[i] > ::biparttable.tree_dups[treesin[i]][j]){ // if the dup is less than the tree we are on the we need to do some special ops... we get a new list based on the lowest number and we delete only those that are greater than the current value. 
 				//cout << "in the else if" << endl;
-				vector<int> tempvect = ::tree_dups[::tree_dups[treesin[i]][j]];
+				vector<int> tempvect = ::biparttable.tree_dups[::biparttable.tree_dups[treesin[i]][j]];
 				for (unsigned int k = 0; k < tempvect.size(); k++){
 					if (treesin[i] < tempvect[k]){ // if the dup is greater in id number than the tree we are on delete it
 						uniquetrees.erase(std::remove(uniquetrees.begin(), uniquetrees.end(), tempvect[k]), uniquetrees.end());
@@ -966,7 +1059,8 @@ vector <unsigned int> unique(vector<unsigned int> treesin){
 
 	return uniquetrees;
 }
-
+*/
+/*
 vector <int> unique(vector<int> treesin){
 	//cout << "unique has been called" <<endl;
 	//Returns the unique trees in a tree set. 
@@ -998,7 +1092,7 @@ vector <int> unique(vector<int> treesin){
 	//~ cout << endl;
 	return uniquetrees;
 }
-
+*/
 
 vector<string> split(const char *str, char c = ' '){
     vector<string> result;
@@ -1097,7 +1191,7 @@ void printBipartTier(int tier){
 			//cout << "Number of ones = "<< ::biparttable.number_of_ones(j) << endl;
 			::biparttable.print_bitstring(j);
 		}
-		if ( tier == ::NUM_TAXA - ::biparttable.number_of_ones(j)){
+		if ( tier == ::biparttable.lm.size() - ::biparttable.number_of_ones(j)){
 			::biparttable.print_bitstring(j);			
 		}
 	}
@@ -1109,7 +1203,7 @@ void printTaxaTierTuples(int tier, int taxa){
 			//cout << "Number of ones = "<< ::biparttable.number_of_ones(j) << endl;
 			::biparttable.print_bitstring(j);
 		}
-		if ( tier == ::NUM_TAXA - ::biparttable.number_of_ones(j) && ::biparttable.is_zero(j, taxa) ){
+		if ( tier == ::biparttable.lm.size() - ::biparttable.number_of_ones(j) && ::biparttable.is_zero(j, taxa) ){
 			::biparttable.print_bitstring(j);
 		}
 	}
@@ -1124,7 +1218,7 @@ int TaxaTierTuplesCount(int tier, int taxa){
 			//::biparttable.print_bitstring(j);
 			count += 1;
 		}
-		if ( tier == ::NUM_TAXA - ::biparttable.number_of_ones(j) && ::biparttable.is_zero(j, taxa) ){
+		if ( tier == ::biparttable.lm.size() - ::biparttable.number_of_ones(j) && ::biparttable.is_zero(j, taxa) ){
 			count += 1;
 			//::biparttable.print_bitstring(j);
 		}
@@ -1147,7 +1241,7 @@ float TaxaTierEntropy(vector<int> counts){
 }
 
 void rateTierRogueness(int tier){
-	for (unsigned int i = 0; i < ::NUM_TAXA; i++){
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); i++){
 		cout << "taxa " << i << " has  " << TaxaTierTuplesCount(tier, i) << " permutations of tier " << tier << endl;
 	}
 }
@@ -1203,7 +1297,7 @@ void printBipartition(vector<unsigned int> leftside, vector<unsigned int> rights
 //testing
 void printBipartition(int bipartID){
 	cout << "[";
-	for (unsigned int i = 0; i < ::NUM_TAXA; i++){
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); i++){
 		if (::biparttable.is_one(bipartID, i)){
 			cout << ::biparttable.lm.name(i) << " ";
 		}
@@ -1240,17 +1334,18 @@ void printVector(vector<T> in){
 	}  
 }
 */
+/*
 void print_list_bs(vector< bool * > list_bs){
   cout << "We show bitstring reps of the bipartitions:" << endl << endl;
   //keep in mind that hashtable and hash_lengths are global variables
   for (unsigned int i = 0; i < NUMBIPART; i++){
-    for (unsigned int j = 0; j < ::NUM_TAXA; j++){
+    for (unsigned int j = 0; j < ::biparttable.lm.size(); j++){
       cout << list_bs[i][j];
     }
     cout << endl;
   }
 }
-
+*/
 
 //~ void print_hashtable(){
   //~ cout << "We show the hash table below, with the corresponding bitstring reps of the bipartitions:" << endl << endl;

@@ -1087,13 +1087,28 @@ pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist)
 	pqlsymbol * result;
 
 	if (arglist.size() == 1 && arglist[0]->is_int() &&  arglist[0]->is_atom()){
-		result = new pqlsymbol(duplicates(arglist[0]->get_int() ) );
+		result = new pqlsymbol(biparttable.duplicates(arglist[0]->get_int() ) );
 	}
 	else{
 		cout << "unique expects 1 Int argument. " << "Found " << get_arg_types(arglist) << endl;
 		result = new pqlsymbol(ERROR, "Type Error");
 	}
 
+	return result;
+}
+
+pqlsymbol * u_sample_trees(vector<pqlsymbol *> arglist)
+{
+	pqlsymbol * result;
+	
+	if (arglist.size() == 2 && arglist[0]->is_treeset() && arglist[1]->is_int()){
+		result = new pqlsymbol(sample_trees(arglist[0]->get_treeset(), arglist[1]->get_int()));
+	}
+
+	else{
+		cout << "sample_trees expects a treeset and an int as arguements." << "Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
 	return result;
 }
 
@@ -1713,11 +1728,11 @@ pqlsymbol * u_set_hetero(vector<pqlsymbol * > arglist) {
 	if (arglist.size() == 1 && arglist[0]->is_bool() ){
 		
         if (arglist[0]->get_bool()){
-			::HETERO = true;
+			::biparttable.hetero = true;
 			result = new pqlsymbol("HETERO set to true");
 		}
 		else{
-			::HETERO = false;
+			::biparttable.hetero = false;
 			result = new pqlsymbol("HETERO set to false");
 		}		
 	}
@@ -1950,11 +1965,14 @@ void init_the_functs()
 	add_function("count", &u_count, "Returns the number of objects in the treeset or list");
 	add_function("unique", &u_unique, "Returns the a subset of trees from a given treeset each with a unique topology.");
 	add_function("unique_biparts", &u_unique_biparts, "Returns the number of all unique bipartitions given a treeset");
+	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
+
+	add_function("sample_trees", &u_sample_trees, "Returns a random sampling of the input treeset of the requested size");
+
+	//clustering
 	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees");
 	add_function("agglo_clust", &u_agglo_clust, "Returns the agglomerative clustering of the given input set of trees.");
 	add_function("kmeans_clust", &u_kmeans_clust, "returns the k means clustering of the given input set of trees.");
-	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.");
-
 
 	//quartets
 	add_function("shared_quartets_strict", &u_shared_quartets_strict, "Returns quartets present in every tree of treeset");

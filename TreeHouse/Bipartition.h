@@ -7,9 +7,6 @@
 //#include <stdexcept>
 //#include <string>
 #include <iostream>
-#include "global.h"
-//note- global.h was previously commented out, but I uncommented for the use of ::NUM_TAXA in the is_trivial function
-//if there is a reason to not include global.h, I can work around it!
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -61,7 +58,6 @@ public:
 	bool same_bitstring_value(int position1, int position2);
 	bool same_bitstring_value(vector<int> positions);
 	bool is_one(int position);
-	bool is_trivial();
 	//size
 	unsigned int bitstring_size();
 	unsigned int trees_size();

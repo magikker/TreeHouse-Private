@@ -39,20 +39,19 @@
 #include <libxml++/parsers/textreader.h>
 
 //Global Vars like the hashtable.
-//#include "global.h"
 #include "THGlobals.h"
+
+//pasrsing stuff moved to here.
+#include "TreeParsing.h"
 
 //The label map class. 
 #include "label-map.hh"
 
 //#include "HashTableSearch.h"
 
-//#include "compressfunc.h"
-//#include "bmerge.h"
-#include "buildtree.h"
-
 #include "UserFunctions.h"
 #include "BipartitionTable.h"
+
 
 // The lexer/parser
 #include    "pql.h"
@@ -130,8 +129,7 @@ static char** my_completion( const char * text , int start,  int end){ //this is
 
 
 /* Read a string, and return a pointer to it.  Returns NULL on EOF. */
-char * do_gets ()
-{
+char * do_gets (){
   /* If the buffer has already been allocated, return the memory
      to the free pool. */
   if (line_read != (char *)NULL)
@@ -158,340 +156,7 @@ void differentLengthsOr(const bool * first, const unsigned int firstsize, bool *
 	}
 }
 */
-void differentLengthsOr(const bool * first, const unsigned int firstsize, bool * second){
-	for(unsigned int i = 0; i < firstsize; i++){
-		if (first[i] == 1){
-			second[i] = 1;
-		}
-	}
-}
-
-void populate_integrals(unsigned int * hold_integrals, string branches_int, unsigned int encode_size){
-  unsigned int integral_size = branches_int.size();
-  unsigned int intpos = 0;
-  unsigned int treeloc, m;
-  int treeval, n;
-  unsigned char v;
-  treeloc = 0;
-  treeval = 0;
-  m = 0;
-  for (unsigned int i  =0; i < NUM_TREES; i++)
-    hold_integrals[i] = 0;
-  while (intpos < integral_size){
-    while (m < encode_size){ //while we're less than the encoded size
-      v = branches_int[intpos];
-      treeloc+= v;
-      treeloc-=33;
-      m++;
-      if (m < encode_size)
-	treeloc *= 100;
-      intpos++;
-    }
-    treeval = branches_int[intpos]; //next, get the tree value
-    treeval-=48;
-    intpos++;
-    if (treeval < 0){
-      n = 0;
-      treeval = 0;
-      while ( (n <= 9) && (n >= 0)){
-	treeval*=10;
-	n = branches_int[intpos];
-	n-=48;
-	treeval+= n;
-	intpos++;
-	n = branches_int[intpos];
-	n-=48;
-      }
-      intpos++;
-    }
-    hold_integrals[treeloc] = treeval;
-    m = 0;
-    treeloc = 0;
-    treeval = 0;
-  }
-}
-
-void decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_set_of_ids, Bipartition &B, string branches_frac){
-  unsigned int myplace = 0;
-  unsigned int numer = 0;
-  unsigned int denom = 100;
-  float weight = 0;
-  unsigned char v;
-  unsigned int val;
-  unsigned int count = my_set_of_ids.size();
-  if (count < NUM_TREES){
-    for (unsigned int i = 0; i < count; ++i){
-      unsigned int temp = my_set_of_ids[i];
-      while (numer != 3){
-	    v = branches_frac[myplace];
-	    val = v;
-	    val -= 33;
-	    weight += (float)val/denom;
-	    denom*=100;
-	    myplace++;
-	    numer++;
-      }
-      weight+=hold_integrals[temp];
-      //printf("%f\n", weight);
-      hold_integrals[temp] = 0;
-      //bitstrings_branches.push_back(weight);
-      B.add_tree(temp, weight);
-      ::biparttable.tree_branches[temp].push_back(weight);
-      numer = 0;
-      denom = 100;
-      weight = 0;
-    }
-  }
-  else{
-    for (unsigned int i = 0; i < NUM_TREES; ++i){
-      while (numer != 3){
-	    v = branches_frac[myplace];
-	    val = v;
-	    val -= 33;
-	    weight += (float)val/denom;
-	    denom*=100;
-	    myplace++;
-	    numer++;
-      }
-      weight+=hold_integrals[i];
-      //printf("%f\n", weight);
-      hold_integrals[i] = 0;
-      //bitstrings_branches.push_back(weight);
-      B.add_tree(i, weight);
-      ::biparttable.tree_branches[i].push_back(weight);
-      numer = 0;
-      denom = 100;
-      weight = 0;
-    }
-  }
-}
-
-
-unsigned int get_bitstring_length(string bitstring){ //determines the size of the bitstring 
-  short bitstring_size = bitstring.size();
-  int x = 0;
-  int ypos = 0;
-  int y = 0;
-  unsigned int count = 0;
-  int val;
-  while ( x < bitstring_size ) {
-    char type = bitstring[x];
-    if ((type == 'A') || (type == 'B')) //if it is either A or B, just increment by one
-      count++;
-    else if ((type == 'K') || (type == 'L')){ //
-      ypos = x + 1;
-      val = -1;
-      y = 0;
-      while (val < 0) { 
-        val = bitstring[ypos];
-        val-=65;
-        if (val < 0) { 
-          ++ypos;
-          ++y;
-        }
-        else{
-          ypos--;
-        }
-        if (ypos == bitstring_size)
-          break;
-      }
-      assert(ypos > -1);
-      
-      string amt = bitstring.substr((x+1),y);
-      x = ypos;
-      int iamt = atoi(amt.c_str());
-      count += iamt;
-    }
-    x++;
-  } //end go through bitstring
-  return count;
-} 
-
-//parses the ntrees line of the TRZ file
-unsigned int get_ntrees(string str){
-  unsigned int trees = 0;
-  int pos = str.find_first_of(" ");
-  string line_type = str.substr(0, pos);
-  if (line_type != "NTREES"){
-    cerr << "Error! Number of trees field not found. Exiting..\n";
-    exit(2);
-  }
-  str = str.substr(pos+1);
-  pos = str.find_first_of("\n");
-  str = str.substr(0, pos);
-  pos = str.find_first_of(" ");
-  if (pos != -1){
-    string ntrees = str.substr(0, pos);
-    str = str.substr(pos+1);
-    if ( (str == "H") && (!HETERO) ){
-      cerr << "Warning! Detected Heterogeneous collection of trees!" << endl;
-      HETERO = true;
-    }
-    trees = atoi(ntrees.c_str());
-  }
-  else
-    trees = atoi(str.c_str()); //this is the total number of trees
-  return trees;
-} 
-
-//parses the unique line of the TRZ file
-unsigned int get_unique(string str, unsigned int ntrees){
-  int pos = str.find_first_of(" ");
-  string line_type = str.substr(0, pos);
-  unsigned int num_unique = ntrees;
-  assert(num_unique != 0);
-  if (line_type != "UNIQUE_T"){
-    cerr << "Error! Unique trees line not found! Exiting...\n";
-    exit(2);
-  }
-  str = str.substr(pos+1);
-  pos = str.find_first_of("\n");
-  str = str.substr(0, pos);
-  if (str != "all")
-    num_unique = atoi(str.c_str());
-  return num_unique;
-}
-
-//used for parsing nbipartitions and duplicates lines
-void parse_and_get(string str, string check, unsigned int & var){
-  int pos;
-  pos = str.find_first_of(" ");
-  string type =str.substr(0, pos);
-  if (type != check){
-    cerr << "Error! " << check << " field not found!" << endl;
-    cout << str << endl;
-    exit(1);
-  }
-  str = str.substr(pos+1);
-  pos = str.find_first_of("\n");
-  str = str.substr(0, pos);
-  var = atoi(str.c_str());
-}
-
-
-unsigned int decode(string encoded, unsigned int * found){
-  //transform string into another string that is "intermediary"
-  //cout << "string to decode is: " << encoded << endl;
-  unsigned int ids_length = encoded.size();
-  char *tmp = new char[std::numeric_limits <int>::digits10 + 2];
-  string myids;
-
-  for (unsigned int a = 0; a < encoded.size()-1; ++a) {
-    int trueval = encoded[a];
-    int trueval2 = encoded[a+1];
-    trueval -= 65;
-    trueval2 -= 65;
-    if (trueval >= 0) { //we have a number!
-      if (trueval < 10) { 
-	sprintf(tmp, "%d", trueval);
-	myids+=tmp;         
-      }
-      else{
-	myids+="1:";
-      }
-    }
-    else{
-      myids+=encoded[a];
-    }
-    if (trueval2 >=0){ 
-      myids+=" ";
-    }
-  }
-  int trueval = encoded[ids_length-1];
-  trueval-=65;
-  if (trueval >= 0){
-    sprintf(tmp, "%d", trueval);
-    myids+=tmp;
-  }
-  else{
-    myids+=encoded[ids_length-1];
-  }
-  delete[] tmp;
-
-
-  //decode the string my ids:
-  stringstream splitarray(myids);
-  int pos;
-
-  unsigned place = 0;
-  string myid;
-  unsigned int current = 0;
-  while(splitarray >> myid) { 
-    pos = myid.find_first_of(":");
-    if (pos == -1){ 
-      unsigned int temp = atoi(myid.c_str()); 
-      temp += current;            
-      found[place] = temp;
-      place++;
-      current = temp;
-    }
-    else{
-      string id_str = myid.substr(0,pos);
-      unsigned int id = atoi(id_str.c_str());
-      myid = myid.substr(pos+1);
-      unsigned int times = atoi(myid.c_str());
-      for (unsigned int i = 0; i < times; ++i) {
-	found[place] = current+id;
-	current+=id;
-	place++;
-      }
-    }
-  }
-  return place;
-}
-void decode_bitstring(string bitstring, boost::dynamic_bitset<> &bs, unsigned int maxLength){
-  short bitstring_size = bitstring.size();
-  unsigned int j = 0;
-  int x = 0;
-  bool typeb = false;
-  int ypos = 0;
-  int y = 0;
-  while ( x < bitstring_size ) {
-    int val = bitstring[x];
-    val-= 65;
-    if (val < 2) { 
-      bs[j] = (bool)val;
-      ++j;
-    }
-    else{
-      char type = bitstring[x];
-      if (type == 'K')
-	typeb = true;
-      if (type == 'L')
-	typeb = false;
-      
-      ypos = x + 1;
-      val = -1;
-      y = 0;
-      
-      while (val < 0) { 
-	val = bitstring[ypos];
-	val-=65;
-	if (val < 0) { 
-	  ++ypos;
-	  ++y;
-	}
-	else{
-	  ypos--;
-	}
-	if (ypos == bitstring_size)
-	  break;
-      }
-      assert(ypos > -1);
-      
-      string amt = bitstring.substr((x+1),y);
-      x = ypos;
-      int iamt = atoi(amt.c_str());
-      for (short z = 0; z < iamt; ++z) { 
-	bs[j] = typeb;
-	++j;
-      }
-    }
-    ++x;
-  }
-  assert(j == maxLength);
-} 
-
+/*
 void load_data_from_trz_file(string file){  
   
 	string mycount, ids, bipartition, line_type, str, taxa, treeline, bitstring, branches_int, branches_frac;
@@ -545,7 +210,7 @@ void load_data_from_trz_file(string file){
 	//resize data structures
 	::biparttable.tree_branches.resize(NUM_TREES);
 	
-	::inverted_index.resize(NUM_TREES);
+	::biparttable.inverted_index.resize(NUM_TREES);
 
 	check.resize(NUM_TREES);
 	true_ids.resize(num_unique);
@@ -586,7 +251,7 @@ void load_data_from_trz_file(string file){
     dec_loc = found[0];
     for (unsigned int j = 1; j < decode_size; j++){
       dec_val = found[j];
-      ::tree_dups[dec_loc].push_back(dec_val);
+      ::biparttable.tree_dups[dec_loc].push_back(dec_val);
       //dups[dec_loc].push_back(dec_val); //add the elements of the array to the associated dup structure
       is_dup[dec_val] = 1; //also set those locations in our bool structure to a 1
     }
@@ -853,7 +518,7 @@ void load_data_from_trz_file(string file){
    
 	debugstatement("Hey! you got to the end of the parsing from file function. Nice.");
    
-} 
+} */
 
 void load_classification(string filename) {
   xmlpp::TextReader reader(filename);
@@ -1330,14 +995,14 @@ int free_things(){
 }
 
 void init_the_constants(){
-  ::NUM_TREES_INIT = ::NUM_TREES;
-	for(unsigned int i = 0; i < NUM_TREES; i++){
+  ::NUM_TREES_INIT = ::biparttable.NumTrees;
+	for(unsigned int i = 0; i < ::biparttable.NumTrees; i++){
 		::all_trees.insert(i);
 	        ::original_trees.insert(i);
 	}
 
 	//initialize a Taxon object in taxa_info for each taxon
-	for (unsigned int i = 0; i < ::NUM_TAXA; i++) {
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); i++) {
 	  ::taxa_info.push_back(new Taxon);
 	  ::taxa_info[i]->label = ::biparttable.lm.name(i);
 	}
@@ -1433,7 +1098,7 @@ int main(int argc, char **argv){
 	string trzfilename = argv[1];
 	//std::clock_t start1 = std::clock();
 	// Unpack the trees into the hash table
-	load_data_from_trz_file(trzfilename);
+	load_data_from_trz_file(trzfilename, ::biparttable);
   
 	cout << "ParsingTime = " << stop_clockbp() << endl;
 
@@ -1465,10 +1130,10 @@ int main(int argc, char **argv){
 	//start_clock();
 	if (strcmp(argv[cmdind],"-i") == 0) {
 		//testDistance();
-		TESTSTUFF();
-//		TestClust();
-		//TestDist();
-	//	mdsTests();
+	//	TESTSTUFF();
+	//	TestClust();
+	//	TestDist();
+		//mdsTests();
 		interactive = true;
 		interactive_log.open("logs/interactive_log.txt");
 		if(interactive_log){
@@ -1573,7 +1238,7 @@ int main(int argc, char **argv){
 		//std::cout<< "list_bs = " << ::list_bs.size() << endl;
 		//std::cout<< "list_branches = " << ::list_branches.size() << endl;
 		//std::cout<< "all_bs = " << ::all_bs.size() << endl;
-		std::cout<< "inverted_index = " << ::inverted_index.size() << endl;
+		std::cout<< "inverted_index = " << ::biparttable.inverted_index.size() << endl;
 
 		//::biparttable.print_searchtable();
 		::biparttable.print_biparttable();

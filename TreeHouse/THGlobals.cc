@@ -28,7 +28,7 @@ argFuncts argFunctMap;
 std::vector<std::string> functionKeys;
 std::map<std::string, std::string> helpRef;
 
-vector< vector<unsigned int> > inverted_index;	
+//ector< vector<unsigned int> > inverted_index;	
 //vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
 
 
@@ -38,7 +38,7 @@ set< unsigned int > all_trees;
 set< unsigned int > original_trees;
 int NUM_TREES_INIT;
 
-std::map<int, vector<int> > tree_dups;
+//std::map<int, vector<int> > tree_dups;
  
 vector< pqlsymbol * > query_results;			// the most recent 
 
@@ -260,9 +260,9 @@ string to_lower(string str) {
 
 vector< Bipartition > get_tree_bipartitions(unsigned int id) {
   vector < Bipartition > tree_bipartitions;
-  for (unsigned int i = 0; i < ::biparttable.BipartitionTable.size(); i++) {
+  for (unsigned int i = 0; i < ::biparttable.BipartTable.size(); i++) {
     if (::biparttable.treetable[i][id])
-      tree_bipartitions.push_back(::biparttable.BipartitionTable[i]);
+      tree_bipartitions.push_back(::biparttable.BipartTable[i]);
   }
   return tree_bipartitions;
 }
@@ -280,7 +280,7 @@ vector< bool *> get_tree_bipartitions(unsigned int id) {
 
 vector<unsigned int> get_tree_bs_sizes(unsigned int id) {
   vector <unsigned int> tree_bs_sizes;
-  for (unsigned int i = 0; i < ::biparttable.BipartitionTable.size(); i++) {
+  for (unsigned int i = 0; i < ::biparttable.BipartTable.size(); i++) {
     if (::biparttable.treetable[i][id])
       tree_bs_sizes.push_back(::biparttable.bitstring_size(i));
   }
@@ -303,13 +303,12 @@ vector<float> get_tree_branches(unsigned int id) {
 }
 
 //This needs to be remaned. Way to general. 
-vector<unsigned int> get_tree_data(unsigned int tree_id, vector<bool *>& tree_bipartitions, vector <unsigned int>& tree_bs_sizes, vector<float>& tree_branches) {
+vector<unsigned int> get_tree_data(unsigned int tree_id, vector<boost::dynamic_bitset<> >& tree_bipartitions, vector<float>& tree_branches) {
 	//cout<< "welcome to get_tree_data" <<endl;
 	vector <unsigned int> bipart_indices; //which bipartitions we're returning
-	for (unsigned int i = 0; i < ::biparttable.BipartitionTable.size(); i++) {
+	for (unsigned int i = 0; i < ::biparttable.BipartTable.size(); i++) {
 		if (::biparttable.treetable[i][tree_id]) { //if the bipartitin is in the tree_id
-			tree_bipartitions.push_back(::biparttable.get_boolarray(i));
-			tree_bs_sizes.push_back(::biparttable.bitstring_size(i));
+			tree_bipartitions.push_back(::biparttable.get_bitstring(i));
 		}
 	}
 	tree_branches = ::biparttable.tree_branches[tree_id];
@@ -331,10 +330,9 @@ vector<unsigned int> get_tree_data(unsigned int tree_id, vector<bool *>& tree_bi
 
 string th_compute_tree(BipartitionTable& bpt, unsigned id, bool branch) {
 	//cout << "welcome to th_compute_tree in THGLOBALS" <<endl;
-	vector< bool * > my_bs;
+	vector< boost::dynamic_bitset<> > my_bs;
 	vector< float > my_branches;
-	vector< unsigned int> bs_sizes;
-	get_tree_data(id, my_bs, bs_sizes, my_branches);
+	get_tree_data(id, my_bs, my_branches);
 	//cout << "got the tree data from get_tree_data" <<endl;
 	
 	//cout << "my_branches.size() = "<< my_branches.size() << endl;
@@ -349,7 +347,7 @@ string th_compute_tree(BipartitionTable& bpt, unsigned id, bool branch) {
 	//	
 	//	cout << endl;
 	//}
-	return compute_tree(::biparttable.lm, my_bs, my_branches, id, branch, bs_sizes);
+	return compute_tree(::biparttable.lm, my_bs, my_branches, id, branch);
 	
 }
 
@@ -396,7 +394,7 @@ vector<unsigned int> which_trees_double_strict(int bitstringindex, int numTaxaSe
 //new and needs testing
 vector<unsigned int> which_trees_double_strict(int bitstringindex, int numTaxaSearched){
 	vector<unsigned int> v;
-	for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+	for(vector<unsigned int >::iterator it = biparttable.BipartTable[bitstringindex].trees_begin(); it != biparttable.BipartTable[bitstringindex].trees_end(); it++){
 		if (biparttable.num_taxa_in_tree(*it) == numTaxaSearched){
 			v.push_back(*it);
 		}
@@ -439,7 +437,7 @@ vector<unsigned int> which_trees_single_strict(int bitstringindex, vector<int> p
 		}
 	}
 	else{
-		for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+		for(vector<unsigned int >::iterator it = biparttable.BipartTable[bitstringindex].trees_begin(); it != biparttable.BipartTable[bitstringindex].trees_end(); it++){
 			if (biparttable.num_taxa_in_tree(*it)- mycount == positions.size()){
 				v.push_back(*it); 
 			}
@@ -468,7 +466,7 @@ vector<unsigned int> which_strict_hetero(int bitstringindex, vector<int> positio
 	//where taxa in vector<int> positions1 and vector<int> positions2
 	//are the only taxa in the trees 
 	vector<unsigned int> v;	
-	for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+	for(vector<unsigned int >::iterator it = biparttable.BipartTable[bitstringindex].trees_begin(); it != biparttable.BipartTable[bitstringindex].trees_end(); it++){
 		if (biparttable.num_taxa_in_tree(*it) == (positions1.size() + positions2.size()) ){
 			v.push_back(*it);
 		}
@@ -509,7 +507,7 @@ vector<unsigned int> which_strict_hetero(int bitstringindex, vector<int> positio
 		}
 	}
 	else{
-		for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+		for(vector<unsigned int >::iterator it = biparttable.BipartTable[bitstringindex].trees_begin(); it != biparttable.BipartTable[bitstringindex].trees_end(); it++){
 			if (biparttable.num_taxa_in_tree(*it)-mycount == positions.size()){
 				v.push_back(*it);
 			}
@@ -543,7 +541,7 @@ vector<unsigned int> which_hetero(int bitstringindex, vector<int> positions){
 		return biparttable.get_trees(bitstringindex);
 	}
 	else{
-		for(vector<unsigned int >::iterator it = biparttable.BipartitionTable[bitstringindex].trees_begin(); it != biparttable.BipartitionTable[bitstringindex].trees_end(); it++){
+		for(vector<unsigned int >::iterator it = biparttable.BipartTable[bitstringindex].trees_begin(); it != biparttable.BipartTable[bitstringindex].trees_end(); it++){
 			if ( biparttable.are_taxa_in_tree(*it, positions) ){
 				v.push_back(*it);
 			}
@@ -562,7 +560,7 @@ bool is_strict_homog(int bitstringindex, vector<int> positions){
 	}
 		
 	else{
-		if(positions.size() == ::NUM_TAXA-mycount){
+		if(positions.size() == ::biparttable.lm.size()-mycount){
 			return true;
 		}
 	}
@@ -648,7 +646,7 @@ vector<unsigned int> find_incompat(bool *bitstring, int length, set<unsigned int
 vector<unsigned int> find_incompat(boost::dynamic_bitset<> bitstring, set<unsigned int> inputtrees) {
   vector<unsigned int> incompat_indices;
   for (unsigned int i = 0; i < biparttable.biparttable_size(); i++) {
-    set<unsigned int> trees_with_bipart(biparttable.BipartitionTable[i].trees_begin(), biparttable.BipartitionTable[i].trees_end());
+    set<unsigned int> trees_with_bipart(biparttable.BipartTable[i].trees_begin(), biparttable.BipartTable[i].trees_end());
     set<unsigned int> isect;
     std::set_intersection(inputtrees.begin(), inputtrees.end(), trees_with_bipart.begin(), trees_with_bipart.end(), std::inserter(isect, isect.begin()));
     if (!isect.empty() && !is_compat(bitstring, i)) {

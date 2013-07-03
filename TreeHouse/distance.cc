@@ -31,19 +31,19 @@ int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int
 double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2){
   //only homogeneous?
 
-  if(!::HETERO){
+  if(!::biparttable.hetero){
 //  cout << "we have a homogeneous data set!" << endl;
   //takes the average distance between taxa for every tree.
   //first, we need to look at every bipartition and indicate whether the taxa are on a different side of the edge
   //each edge where the taxa differ adds 1 to the distance
   
-  unsigned int numBiparts = biparttable.BipartitionTable.size();
+  unsigned int numBiparts = biparttable.BipartTable.size();
   unsigned long int total = 0;
 
-  for(int i = 0; i < numBiparts; i++){
-	if(!biparttable.BipartitionTable[i].same_bitstring_value(taxon1, taxon2)){
+  for(unsigned int i = 0; i < numBiparts; i++){
+	if(!biparttable.BipartTable[i].same_bitstring_value(taxon1, taxon2)){
  	 	//cout << "tree size for bipartition " << i << " is " << biparttable.BipartitionTable[i].trees_size() << endl;
-		total+=biparttable.BipartitionTable[i].trees_size();
+		total+=biparttable.BipartTable[i].trees_size();
 		}
 	}
 
@@ -57,7 +57,7 @@ double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2){
   cout << "total is: " << total << ", total 2 is " << total2 << endl;
 */
 
-  return total/(double)::NUM_TREES;
+  return total/(double)::biparttable.NumTrees;
   
  }
   else{
@@ -71,7 +71,7 @@ return 0;
 
 double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2){
   set<unsigned int> allTrees;
-  for(int i = 0; i < ::NUM_TREES; i++){
+  for(unsigned int i = 0; i < ::biparttable.NumTrees; i++){
 	allTrees.insert(i);
 	}
   return average_ancestral_distance(taxon1, taxon2, allTrees);
@@ -82,7 +82,7 @@ double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2, set<
 //because we have to look at rooted trees, we need to get the newick strings for all trees
 //for that reason, we can't take any shortcuts by just looking at the bipartition table
   unsigned int total = 0;
-  for(int i = 0; i < treeSet.size(); i++){
+  for(unsigned int i = 0; i < treeSet.size(); i++){
 	total+=distance_to_common_ancestor(taxon1, taxon2, i);
 	}
 
@@ -105,9 +105,9 @@ int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsign
   //cout << "printing clade_parsed..." << endl;
   //printVector(clade_parsed);
   int depth = 0;
-  int i = 0;
+  unsigned int i = 0;
   //count depth from left side of string
-  for (i; i<clade_parsed.size(); i++) {
+  for (; i<clade_parsed.size(); i++) {
     if (clade_parsed[i] == "(")
       depth++;
     else if (clade_parsed[i] == ")")
@@ -118,13 +118,13 @@ int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsign
       break;
   }
   //taxon2 found before taxon1. Locate taxon1.
-  for (i; i<clade_parsed.size(); i++) {
+  for (; i<clade_parsed.size(); i++) {
     if (clade_parsed[i] == taxon1name)
       break;
   }
   depth = 0;
   //count depth to right side of string
-  for (i; i<clade_parsed.size(); i++) {
+  for (; i<clade_parsed.size(); i++) {
     if (clade_parsed[i] == "(")
       depth--;
     else if (clade_parsed[i] == ")")
@@ -224,16 +224,16 @@ return totalDepth/(double)biparttable.num_taxa_in_tree(tree);
 
 vector<unsigned int> checkForDuplicateBitstrings(){
   vector<unsigned int> retVec;
-  for(unsigned int x = 0; x < biparttable.BipartitionTable.size()-1; x++){
-	boost::dynamic_bitset<> b = biparttable.BipartitionTable[x].get_bitstring();
+  for(unsigned int x = 0; x < biparttable.BipartTable.size()-1; x++){
+	boost::dynamic_bitset<> b = biparttable.BipartTable[x].get_bitstring();
 	//pad b with 0s
-	while(b.size() < ::NUM_TAXA){
+	while(b.size() < ::biparttable.lm.size()){
 		b.push_back(0);
 		}
 	b.flip();
-		for(unsigned int j = x+1; j < biparttable.BipartitionTable.size(); j++){
-			boost::dynamic_bitset<> z = biparttable.BipartitionTable.at(j).get_bitstring();
-				while(z.size() < ::NUM_TAXA){
+		for(unsigned int j = x+1; j < biparttable.BipartTable.size(); j++){
+			boost::dynamic_bitset<> z = biparttable.BipartTable.at(j).get_bitstring();
+				while(z.size() < ::biparttable.lm.size()){
 				z.push_back(0);
 				}		
 			if(z==b){

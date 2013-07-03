@@ -49,9 +49,9 @@ treehouse_SOURCES += ${randir}/RandomType.hpp
 # common sources: Tree Building
 treehouse_SOURCES += ${comdir}/SCNode.h ${comdir}/SCNode.cc
 treehouse_SOURCES += ${comdir}/SCTree.h ${comdir}/SCTree.cc
-treehouse_SOURCES += ${comdir}/buildtree.h ${comdir}/buildtree.cc
-treehouse_SOURCES += ${comdir}/global.h ${comdir}/global.cc
-treehouse_SOURCES += ${comdir}/parsing.h ${comdir}/parsing.cc
+#treehouse_SOURCES += ${comdir}/buildtree.h ${comdir}/buildtree.cc
+#treehouse_SOURCES += ${comdir}/global.h ${comdir}/global.cc
+#treehouse_SOURCES += ${comdir}/parsing.h ${comdir}/parsing.cc
 
 # TreeZip Files
 #treehouse_SOURCES += ${treezipdir}/normalizer.h ${treezipdir}/normalizer.cpp
@@ -65,6 +65,7 @@ treehouse_SOURCES += ${comdir}/parsing.h ${comdir}/parsing.cc
 
 treehouse_SOURCES += pql.h
 treehouse_SOURCES += pqlsymbol.h
+treehouse_SOURCES += TreeParsing.h TreeParsing.cc
 treehouse_SOURCES += BipartitionTable.h
 treehouse_SOURCES += Taxon.h
 treehouse_SOURCES += pqlLexer.h pqlLexer.c
