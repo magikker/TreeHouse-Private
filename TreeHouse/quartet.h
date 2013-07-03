@@ -177,8 +177,7 @@ void testGenerateConflictingQuartets();
 void testNumConflictingQuartets();
 void testGenerateDifferentQuartets();
 void testOperatorsForQuartets();
-void testGeenerateDifferentQuartetsFromTrees();
-void readOutty();
+void testGenerateDifferentQuartetsFromTrees();
 void testConflictingQuartetsBigDemo();
 
 #endif
