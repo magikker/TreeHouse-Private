@@ -2,6 +2,45 @@
 
 using namespace std;
 
+//I need some work on this one. 
+set <unsigned int> duplicates(int treein){
+	//Returns the unique trees in a tree set. 
+	set<unsigned int> duplicatelist;
+	
+	if (::tree_dups[treein].size() > 0 ){
+		if(::tree_dups[treein][0] < treein){
+			vector<int> tempvect = ::tree_dups[::tree_dups[treein][0]];
+			copy(tempvect.begin(), tempvect.end(), inserter(duplicatelist, duplicatelist.end()));
+			//duplicatelist = ::dups[dups[treein][0]];
+			duplicatelist.insert(::tree_dups[treein][0]);
+		}
+		
+		else{
+			vector<int> tempvect = ::tree_dups[treein];
+			copy(tempvect.begin(), tempvect.end(), inserter(duplicatelist, duplicatelist.end()));
+			//duplicatelist = ::dups[treein];
+		}
+	}
+	return duplicatelist;
+}
+
+//Returns a random sampling of the trees in input set of the size requested
+set <unsigned int> sample_trees (set <unsigned int> treeset, unsigned int numtrees){
+	set <unsigned int> retset;
+	//Used for randomizing the set
+	vector<unsigned int> shuffled;
+	for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){
+		shuffled.push_back(*pos);
+	}
+	//Shuffles the shuffled vector and then adds the first numtrees elements to the return set
+	random_shuffle(shuffled.begin(), shuffled.end());
+	for(unsigned int i = 0; i < numtrees; i++){//While we do still need trees
+		retset.insert(shuffled[i]);
+	}
+
+	return retset;
+}
+
 
 vector<string> to_newick(vector<int> input_from_int) 
 {
@@ -687,6 +726,81 @@ void taxa_filter (vector<string> taxa, unsigned int tree) {
   }
   ::NUM_TREES++;
   for (unsigned int i = 0; i < ::biparttable.bipartitions.size(); i++) {
+      taxa_in_tree[i] = 0;
+  }
+  ::taxa_in_trees.push_back(taxa_in_tree);
+  //recalculate tree_dups
+  vector<int> new_dups;
+  for (unsigned int i = 0; i < ::NUM_TREES - 1; i++) {
+    bool is_dup = true;
+    for (unsigned int j = 0; j < ::biparttable.bipartitions.size(); j++) {
+      is_dup = !(::biparttable.treetable[j][i] ^ ::biparttable.treetable[j][new_tree_id]);
+      if (!is_dup)
+	break;
+    }
+    if (is_dup) {
+      new_dups.push_back(i);
+      ::tree_dups[i].push_back(new_tree_id);
+    }
+  }
+  ::tree_dups[new_tree_id] = new_dups;
+  ::all_trees.insert(new_tree_id);
+  symbol_table["trees"] = new pqlsymbol(all_trees, (unsigned int)::NUM_TREES);
+  cout << "Created Tree " << new_tree_id << "." << endl;
+}
+
+void taxa_filter (vector<string> taxa, set<unsigned int> treeset) {
+  for (set<unsigned int>::const_iterator pos = treeset.begin(); pos != treeset.end(); pos++)
+    taxa_filter(taxa, *pos);
+}
+
+void taxa_filter(vector<string> taxa, vector<int> treevect) {
+  for (unsigned int i = 0; i < treevect.size(); i++)
+    taxa_filter(taxa, treevect[i]);
+}
+
+void group_filter(vector<string> groups, unsigned int tree) {
+  set<string> all_taxa_set;
+  for (unsigned int i = 0; i < groups.size(); i++) {
+    vector<string> taxa = taxa_in_group(groups[i]);
+    if (taxa.size() == 0)
+      cerr << "Warning: no taxa found in group '"+groups[i]+"'." << endl;
+    for (unsigned int j = 0; j < taxa.size(); j++) {
+      all_taxa_set.insert(taxa[j]);
+    }
+  }
+  vector<string> all_taxa(all_taxa_set.begin(), all_taxa_set.end());
+  taxa_filter(all_taxa, tree);
+}
+
+void group_filter (vector<string> groups, set<unsigned int> treeset) {
+  for (set<unsigned int>::const_iterator pos = treeset.begin(); pos != treeset.end(); pos++)
+    group_filter(groups, *pos);
+}
+
+void group_filter(vector<string> groups, vector<int> treevect) {
+  for (unsigned int i = 0; i < treevect.size(); i++)
+    group_filter(groups, treevect[i]);
+}
+
+void delete_tree(unsigned int tree) {
+  delete[] ::taxa_in_trees[tree];
+  ::taxa_in_trees.erase(::taxa_in_trees.begin() + tree);
+  ::biparttable.tree_branches.erase(::biparttable.tree_branches.begin() + tree);
+  ::tree_dups.erase(tree);
+  for (map<int, vector<int> >::iterator pos = ::tree_dups.begin(); pos != tree_dups.end(); pos++) {
+    for (unsigned int i = 0; i < (*pos).second.size(); i++) {
+      if ((*pos).second[i] == tree)
+	(*pos).second.erase((*pos).second.begin() + i);
+    }
+  }
+  for (unsigned int i = 0; i < ::biparttable.bipartitions.size(); i++) {
+    bool increment = true;
+    for (unsigned int j = tree; j+1 < ::NUM_TREES; j++) {
+      ::biparttable.treetable[i][j] = ::biparttable.treetable[i][j+1];
+    }
+    for (unsigned int j = 0; j < ::biparttable.searchtable[i].size(); j++) {
+      if (::biparttable.searchtable[i][j] == tree) { //if this tree had bipartition i
     delete[] ::biparttable.treetable[i];
     bool * treestr = new bool [::NUM_TREES];
     for (unsigned int j = 0; j < ::NUM_TREES; j++) {

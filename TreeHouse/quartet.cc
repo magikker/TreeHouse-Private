@@ -2,6 +2,117 @@
 
 using namespace std;
 
+bipartDistances::bipartDistances(){
+
+cout << "new bipartDistances created!";
+}
+ 
+
+void bipartDistances::calculate(){
+  for(unsigned int i = 0; i < biparttable.BipartitionTable.size(); i++){
+	vector<unsigned int> distances;
+	for(unsigned int j = i+1; j < biparttable.BipartitionTable.size(); j++){
+		distances.push_back(numConflictingQuartets(i,j));
+		}
+	D.push_back(distances);	
+//	cout << "bipartDistances::calculate- finished with " << i << endl;	
+	}
+}
+
+set<unsigned int> CQS::getSet(int whichOne){
+  if(whichOne==1){ return a;}
+  else if(whichOne==2){ return b;}
+  else if(whichOne==3){ return c;}
+  else if(whichOne==4){ return d;}
+  else{ cout << "CQS::getSet error- invalid index. Please give a number between 1 and 4";
+	return a;}
+
+}
+
+void CQS::setSet(int whichOne, set<unsigned int> x){
+  if(whichOne==1){ a = x;}
+  else if(whichOne==2){ b = x;}
+  else if(whichOne==3){ c = x;}
+  else if(whichOne==4){ d = x;}
+  else{ cout << "CQS::setSet error- invalid index. Please give a number between 1 and 4";}
+}
+
+void printCQSSet(set<unsigned int> a){
+  cout << "{";
+  for(set<unsigned int>::iterator it = a.begin(); it!=a.end(); it++){
+	cout << *it << ", ";
+	}
+  cout << "}\n";
+}
+
+void CQS::print(){
+  printCQSSet(a);
+  printCQSSet(b);
+  printCQSSet(c);
+  printCQSSet(d);
+}
+
+void setIntersect(set<unsigned int> a, set<unsigned int> b, set<unsigned int> &result){
+  set_intersection(a.begin(), a.end(), b.begin(), b.end(), inserter(result, result.begin()));
+}
+
+unsigned int numIntersecting(CQS x, CQS y){
+  set<unsigned int> s1, s2, s3, s4, cross1, cross2, cross3, cross4;
+     set<unsigned int> one[4], two[4];
+  for(int i = 1; i < 5; i++){
+     one[i-1] = x.getSet(i); two[i-1] = y.getSet(i);
+	}
+     setIntersect(one[0], two[0], s1);
+     setIntersect(one[1], two[1], s2);
+     setIntersect(one[2], two[2], s3);
+     setIntersect(one[3], two[3], s4);
+
+     setIntersect(one[0], two[1], cross1);
+     setIntersect(one[1], two[0], cross2);
+     setIntersect(one[2], two[3], cross3);
+     setIntersect(one[3], two[2], cross4);
+ /*
+  cout << "s1 is: "; printSet(s1);
+  cout << "s2 is: "; printSet(s2);
+  cout << "s3 is: "; printSet(s3);
+  cout << "s4 is: "; printSet(s4);
+  cout << "cross1 is: "; printSet(cross1);
+  cout << "cross2 is: "; printSet(cross2);
+  cout << "cross3 is: "; printSet(cross3);
+  cout << "cross4 is: "; printSet(cross4);
+*/
+  unsigned int retVal = ((s1.size() * s2.size()) + (cross1.size() * cross2.size())) *  ((s3.size() * s4.size()) + (cross3.size() * cross4.size()));
+  return retVal;
+
+}
+
+/*
+CQS intersect(CQS x, CQS y){
+  //note- we have to also account for when a b of CQS x intersects with b a of CQS y
+  //for instance, if x was {1,4} {7,8} | {0,3} {5,6} and y was {7,8}  {1,4} |  {5,6} {0,3}, that should be full intersection
+  set<unsigned int> S[4];
+  for(int i = 1; i < 5; i++){
+     set<unsigned int> one, two;
+     one = x.getSet(i); two = y.getSet(i);
+     setIntersect(one, two, S[i-1]);
+	}
+  return CQS(S[0], S[1], S[2], S[3]);
+}
+
+  //NOTE- CQS intersect cannot work for the following reason:
+  //suppose a and b for x and y were {1,5} {7,9} and {1,7} {5,9}. The only intersection pairs are  19 and 57. This cannot be expressed as some a,b
+
+*/
+CQS::CQS(){
+//nothing to do- all sets are empty
+}
+
+CQS::CQS(set<unsigned int> A,set<unsigned int> B,set<unsigned int> C,set<unsigned int> D){
+  a = A;
+  b = B;
+  c = C;
+  d = D;
+}
 
 
 quartet::quartet(int a0, int a1, int b0, int b1){
@@ -454,10 +565,10 @@ set<quartet> generateConflictingQuartets2(int bipart1, int bipart2){
 void printQPair(qPair a){
 	  set<iPair> one = a.first;
 	  set<iPair> two = a.second;
-	  if(one.size()==0 || two.size()==0){
-		cout << "empty!\n";
-		}
-	  else{
+	//  if(one.size()==0 || two.size()==0){
+//		cout << "empty!\n";
+//		}
+//	  else{
 	  cout << "{ ";
 	  for(set<iPair>::iterator i = one.begin(); i!=one.end(); i++){ //for each iPair in first
 		cout << (*i).first << "," << (*i).second << "  ";
@@ -467,7 +578,7 @@ void printQPair(qPair a){
 		cout << (*j).first << "," << (*j).second << "  ";
 		}
 	 cout << "}\n";
-	}
+//	}
 }
 
 qPair mergeQPair(qPair a, qPair b){
@@ -524,6 +635,34 @@ qPair generateConflictingQuartets3(int bipart1, int bipart2){
 	  return retPair;
 }
 
+CQS generateConflictingQuartets4(int bipart1, int bipart2){
+	  boost::dynamic_bitset<> a, b;
+	  a = biparttable.BipartitionTable.at(bipart1).get_bitstring();
+	  b = biparttable.BipartitionTable.at(bipart2).get_bitstring();
+	  a.resize(::NUM_TAXA); //restore trailing 0s in bipartitions
+	  b.resize(::NUM_TAXA);
+	  set<unsigned int> sharedOnes, sharedZeros, unsharedOnes, unsharedZeros;
+	  for(int i = 0; i < a.size(); i++){
+		if(a[i]==1){
+			if(b[i]==1){
+				sharedOnes.insert(i);
+				}
+			else{
+				unsharedOnes.insert(i);
+				}
+			}
+		else{
+			if(b[i]==0){
+				sharedZeros.insert(i);
+				}
+			else{
+				unsharedZeros.insert(i);
+				}
+			}
+		}
+	return CQS(sharedOnes, unsharedOnes, sharedZeros, unsharedZeros);
+}
+
 qPair generateConflictingQuartetsGroup2(int bipart1, set<unsigned int> biparts){
   qPair retPair;
   for(set<unsigned int>::iterator it = biparts.begin(); it!=biparts.end(); it++){
@@ -562,6 +701,57 @@ unsigned int numConflictingQuartets(int bipart1, int bipart2){
   return (sharedOnes*unsharedOnes) * (sharedZeros*unsharedZeros);
 }
 
+unsigned long conflictingQuartetDistance(int tree1, int tree2){
+  unsigned long total = 0;
+  vector<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = ::inverted_index.at(tree1);
+  vector<unsigned int> t2 = ::inverted_index.at(tree2);
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+  for(vector<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){
+	for(vector<unsigned int>::iterator j = rf2.begin(); j != rf2.end(); j++){
+		total += numConflictingQuartets(*i, *j);
+		}
+	}
+  return total;
+}
+
+unsigned long conflictingQuartetDistance(int tree1, int tree2, bipartDistances b){
+  unsigned long total = 0;
+  vector<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = ::inverted_index.at(tree1);
+  vector<unsigned int> t2 = ::inverted_index.at(tree2);
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+  for(vector<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){
+	for(vector<unsigned int>::iterator j = rf2.begin(); j != rf2.end(); j++){
+		if((*i) < (*j)){
+		//cout << "looking at index " << *i << ", size of vector in b is " << b.D.at(*i - *j).size() << ", j is " << *j << endl;		
+			total+=b.D.at(*i).at(*j - *i);
+			}
+		else{
+		//cout << "looking at index " << *j << ", size of vector in b is " << b.D.at(*j - *i).size() << ", i is " << *i << endl;		
+			total+=b.D.at(*j).at(*i - *j);
+			}
+		}
+	}
+  return total;
+}
+
+unsigned int rfDistance(int tree1, int tree2){
+
+  unsigned long total = 0;
+  vector<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = ::inverted_index.at(tree1);
+  vector<unsigned int> t2 = ::inverted_index.at(tree2);
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+  return (rf.size() + rf2.size()) / 2;
+
+}
 
 //Doesn't always return a value
 vector<iPair> nChooseTwo(vector<int> in){
@@ -1147,31 +1337,83 @@ for(int i = 2; i < 26; i++){
 }
 
 void TESTSTUFF(){
-testGenerateConflictingQuartets();
-//testNumConflictingQuartets();
-//testGenerateDifferentQuartets();
-//testGeenerateDifferentQuartetsFromTrees(){
+
+//readOutty();
+	//testConflictingQuartetDistance();
+	testConflictingQuartetsBigDemo();
+	//testCQS();
+	//testGenerateConflictingQuartets();
+	//testNumConflictingQuartets();
+	//testGenerateDifferentQuartets();
+	//testGeenerateDifferentQuartetsFromTrees();
 }
 
-void testGenerateConflictingQuartets(){
-  
- 
-unsigned int numNonEmpty = 0;
-unsigned int total = 0;
+void testConflictingQuartetsBigDemo(){
 
-for(int i = 0; i < 100; i++){
-	for(int k = i + 1; k < 100; k++){
-		total++;
-		if(!isQPairEmpty(generateConflictingQuartets3(i, k))){
-			numNonEmpty++;
-			//cout << i << "," << k << " is nonempty\n";
-			}
+	bipartDistances d;
+	d.calculate();
+	cout << "done calculating d!";
+
+
+  for (int i = 0; i < 200; i++){
+	for(int j = 0; j < 10; j++){ 
+	//cout << i << endl;
+	conflictingQuartetDistance(j, i, d);
 		}
-	}
-	cout << "total: " << total << endl;
-	cout << "nonEmpty: " << numNonEmpty << endl;
-	cout << "ratio: " << (double)numNonEmpty/(double)total << endl;
+ 	}
 
+cout << "ALL DONE";
+
+
+}
+
+void testConflictingQuartetDistance(){
+  srand (time(NULL)); //initialize random seed
+  set<int> rangeOne, rangeTwo;
+  for(int i = 0; i <1 ; i++){
+	rangeOne.insert(rand() % ::NUM_TREES);
+	rangeTwo.insert(rand() % ::NUM_TREES);
+	}
+
+
+  unsigned long CQD = 0;
+  unsigned int qDist = 0; 
+  unsigned int rf = 0;
+	//	ofstream myfile;
+	//	myfile.open("outty.txt");
+  for(set<int>::iterator i = rangeOne.begin(); i!=rangeOne.end(); i++){
+	for(set<int>::iterator j = rangeTwo.begin(); j!=rangeTwo.end(); j++){
+		CQD = conflictingQuartetDistance(*i, *j);
+		cout << CQD << endl;
+	//	qDist = generateDifferentQuartetsFromTrees3(*i,*j).size();
+	//	rf = rfDistance(*i, *j);	  
+	//	cout << "Trees " << *i << " and " << *j << ": qDist is " << qDist << ", CQ distance is " << CQD << ", rf is: " << rf << ", ratio is: " << (double)CQD/(double)qDist << endl;
+		//write the CQ distance and ratio to a file
+
+		//myfile << CQD << " " << (double)CQD/(double)qDist << "\n";
+		  }
+	}
+	//myfile.close();
+	
+
+}
+
+void readOutty(){
+  string yVals, xVals, temp, tempx, tempy;
+  xVals = ""; yVals = "";
+  ifstream reader("outty.txt");
+  while(reader.good()){
+	getline(reader, temp);
+	size_t space = temp.find(" ");
+	if(space==string::npos){
+		cout << "space not found!\n";
+	}
+	else{
+		tempx = temp.substr(0, space);
+		tempy = temp.substr(space, temp.size()-space);
+		xVals += tempx; xVals += ",";
+		yVals += tempy; yVals += ",";
+		}	
 /*
   vector<unsigned int> rf, rf2;
   //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
@@ -1261,13 +1503,153 @@ for(int i = 0; i < 100; i++){
 	 cout << "rf distance between " << i << " and " << j << " is: " << rf.size() << endl;
 	 rf.clear();
 	}
+	cout << xVals << endl;
+	cout << yVals << endl;
+
+
 }
-*/
 
 
+void testCQS(){
+  vector<unsigned int> sOne = {1,5};
+  vector<unsigned int> sTwo = {7,9};
+  vector<unsigned int> sThree = {1, 0, 4, 10, 12};
+  vector<unsigned int> sFour = {2};
+  vector<unsigned int> sFive = {1};
+  vector<unsigned int> sSix = {1, 7};
+  vector<unsigned int> sSeven = {5,9};
+  set<unsigned int> One(sOne.begin(), sOne.end());
+  set<unsigned int> Two(sTwo.begin(), sTwo.end());
+  set<unsigned int> Three(sThree.begin(), sThree.end());
+  set<unsigned int> Four(sFour.begin(), sFour.end());
+  set<unsigned int> Five(sFive.begin(), sFive.end());
+  set<unsigned int> Six(sSix.begin(), sSix.end());
+  set<unsigned int> Seven(sSeven.begin(), sSeven.end());
+
+  CQS a = CQS(One, Two, Five, Four);
+  CQS b = CQS(Six, Seven, Five, Four);
+  cout << "intersection between a and b is: " << numIntersecting(a,b) << endl;
 
 }
 
+void testGenerateConflictingQuartets(){
+	/*
+	  vector<unsigned int> rf, rf2;
+	  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+	  vector<unsigned int> t1 = ::inverted_index.at(258);
+	  vector<unsigned int> t2 = ::inverted_index.at(561);
+	  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+	  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+	  set<unsigned int> group;
+	  for(int r = 0; r < rf2.size(); r++){
+		group.insert(rf2.at(r));
+		}
+
+	  for(int k = 0; k < rf.size(); k++){
+		set<quartet> conflict = generateConflictingQuartetsGroup(k, group);
+		if(conflict.size() > 0){
+			for(int i = 0; i < rf2.size(); i++){
+			cout << "conflicting quartets between bipartitions " << rf.at(k) << " and " << rf2.at(i) << " are:\n";
+			printQPair(generateConflictingQuartets3(rf.at(k), rf2.at(i)));
+			group.insert(rf2.at(i));
+			cout << endl;
+			}
+			cout << "conflicting quartets between " << rf.at(k) << " and group:\n";
+			printSet(generateConflictingQuartetsGroup(rf.at(k), group));
+			//return;
+			}
+		else{
+			cout << "bipartition " << rf.at(k) << " created no conflict!\n";
+			}
+		}  
+	*/
+
+	  int a, g1, g2, g3, g4;
+	  a = 4;
+	  g1 =3; g2 = 10; g3 = 11; g4 = 12;
+	  set<unsigned int> group;
+	  group.insert(g1); group.insert(g2); group.insert(g3); group.insert(g4); 
+	  cout << "conflicting quartets between " << a << " and " << g1 << ":\n";
+	  printQPair(generateConflictingQuartets3(a, g1));
+
+	  cout << "conflicting quartets between " << a << " and " << g2 << ":\n";
+	  printQPair(generateConflictingQuartets3(a, g2));
+
+	  cout << "conflicting quartets between " << a << " and " << g3 << ":\n";
+	  printQPair(generateConflictingQuartets3(a, g3));
+
+	  cout << "conflicting quartets between " << a << " and " << g4 << ":\n";
+	  printQPair(generateConflictingQuartets3(a, g4));
+
+	  cout << "conflicting quartets between " << a << " and group:\n";
+	  printSet(generateConflictingQuartetsGroup(a, group));
+	int b = 15;
+	  cout << "conflicting quartets between " << b << " and group:\n";
+	  printSet(generateConflictingQuartetsGroup(b, group));
+
+	  //qPair x = generateConflictingQuartets3(2,4);
+	  //printQPair(x);
+	  
+
+
+	  //cout << "quartet distance is:\n";
+	 // printSet(generateDifferentQuartetsFromTrees(1, 8));
+
+	/*  set<quartet> conflictingQuartets;
+	  set<unsigned int> group;
+	  group.insert(4); group.insert(13);
+
+	  cout << "conflicting quartets between 2 and 4:\n";
+	  printSet(generateConflictingQuartets(2,4));
+	  cout << "conflicting quartets between 2 and 13:\n";
+	  printSet(generateConflictingQuartets(2,13));
+	  cout << "conflicting quartets between 2 and group:\n";
+	  printSet(generateConflictingQuartetsGroup(2, group));
+	  cout << "conflicting quartets between 6 and 4:\n";
+	  printSet(generateConflictingQuartets(6,4));
+	  cout << "conflicting quartets between 6 and 13:\n";
+	  printSet(generateConflictingQuartets(6,13));
+	  cout << "conflicting quartets between 6 and group:\n";
+	  printSet(generateConflictingQuartetsGroup(6, group));
+
+
+	  cout << "quartet distance is:\n";
+	  printSet(generateDifferentQuartetsFromTrees(0, 1));
+	*/
+	 /*
+	 vector<unsigned int> rf;
+	 for(int i = 0; i < 10; i++){
+	 	for(int j = 2000; j < 2050; j++){
+		 vector<unsigned int> t1 = ::inverted_index.at(i);
+		 vector<unsigned int> t2 = ::inverted_index.at(j);
+		 set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+		 cout << "rf distance between " << i << " and " << j << " is: " << rf.size() << endl;
+		 rf.clear();
+		}
+	}
+	*/
+
+}
+
+
+void testGenerateBipartitionConflicts(){
+	unsigned int numNonEmpty = 0;
+	unsigned int total = 0;
+
+	for(int i = 0; i < 100; i++){
+		for(int k = i + 1; k < 100; k++){
+			total++;
+			if(!isQPairEmpty(generateConflictingQuartets3(i, k))){
+				numNonEmpty++;
+				//cout << i << "," << k << " is nonempty\n";
+				}
+			}
+		}
+	cout << "total: " << total << endl;
+	cout << "nonEmpty: " << numNonEmpty << endl;
+	cout << "ratio: " << (double)numNonEmpty/(double)total << endl;
+
+}
 
 void testNumConflictingQuartets(){
 	//TO TEST NUMCONFLICTINGQUARTETS ON LARGE DATA SETS
@@ -1335,31 +1717,34 @@ void testGenerateDifferentQuartets(){
 	
 
 
-	
-
-
 }
 
 void testGeenerateDifferentQuartetsFromTrees(){
 	
-	cout << "generate different quartets from trees VERSION 0:\n";
-	for(int i = 0; i < 9; i++){
-		set<quartet> qs = generateDifferentQuartetsFromTrees(0,i);
-		cout << "qs size for trees 0 and " << i << " is: " << qs.size() << endl << endl;
+	cout << "generate different quartets from trees VERSION 0, all to all:\n";
+	for(int i = 0; i < 3; i++){
+		for(int j = 6; j < 9; j++){
+		set<quartet> qs = generateDifferentQuartetsFromTrees(j,i);
+		cout << "qs size for trees " << j << " and " << i << " is: " << qs.size() << endl << endl;
+			}
 
 	}
 
-	cout << "generate different quartets from trees VERSION 1:\n";
-	for(int i = 0; i < 9; i++){
-		set<quartet> qs = generateDifferentQuartetsFromTrees3(0,i);
-		cout << "qs size for trees 0 and " << i << " is: " << qs.size() << endl << endl;
+	cout << "generate different quartets from trees VERSION 1, all to part:\n";
+	for(int i = 0; i < 3; i++){
+		for(int j = 6; j < 9; j++){
+		set<quartet> qs = generateDifferentQuartetsFromTrees3(j,i);
+		cout << "qs size for trees " << j << " and " << i << " is: " << qs.size() << endl << endl;
+			}
 
 	}
 
-	cout << "generate different quartets from trees VERSION 2:\n";
-	for(int i = 0; i < 9; i++){
-		set<quartet> qs = generateDifferentQuartetsFromTrees4(0,i);
-		cout << "qs size for trees 0 and " << i << " is: " << qs.size() << endl << endl;
+	cout << "generate different quartets from trees VERSION 2- :\n";
+	for(int i = 0; i < 3; i++){
+		for(int j = 6; j < 9; j++){
+		set<quartet> qs = generateDifferentQuartetsFromTrees4(j,i);
+		cout << "qs size for trees " << j << " and " << i << " is: " << qs.size() << endl << endl;
+			}
 
 	}
 }
