@@ -1129,11 +1129,11 @@ int main(int argc, char **argv){
 
 	//start_clock();
 	if (strcmp(argv[cmdind],"-i") == 0) {
-		testDistance();
-		//TESTSTUFF();
-		//TestClust();
-		//TestDist();
-	//	mdsTests();
+		//testDistance();
+	//	TESTSTUFF();
+	//	TestClust();
+	//	TestDist();
+		//mdsTests();
 		interactive = true;
 		interactive_log.open("logs/interactive_log.txt");
 		if(interactive_log){

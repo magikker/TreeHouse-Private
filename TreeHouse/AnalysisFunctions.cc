@@ -122,9 +122,14 @@ vector < vector <unsigned int> > compute_bipart_distancesv(vector <unsigned int>
 
 //	m = unique_biparts(treeset);
 
+	/*
 	//Computes the bipartitions
 	for(unsigned int i = 0; i < treeset.size(); i++){//for each tree
 		biparts.push_back(biparts_in_tree(treeset[i]));
+	}
+	*/
+	for(unsigned int i = 0; i < treeset.size(); i++){//for each tree
+		biparts.push_back(::inverted_index[treeset[i]]);
 	}
 
 
@@ -146,7 +151,7 @@ vector < vector <unsigned int> > compute_bipart_distancesv(vector <unsigned int>
 	}
 //	else if (measure == "r-r" || measure == "russel-rao"){
 //		switch_value = 4;
-//	}	
+//	}
 
 	for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
 		for (unsigned int j = 1; j < biparts.size(); j++){//for all others
@@ -186,7 +191,7 @@ vector < vector <unsigned int> > compute_bipart_distancesv(vector <unsigned int>
 			//	case 4: //Russel-Rao distance
 		//			dist = (a / m);
 			//		break;
-				default: //No proper distance measure given
+					default: //No proper distance measure given
 					cout << "Unknown Distance measure given.";
 					break;
 			}
@@ -194,7 +199,7 @@ vector < vector <unsigned int> > compute_bipart_distancesv(vector <unsigned int>
 			distances[j][i] = dist;
 		}
 	}
-	//Prints the distances (for various testing purposes)
+	/*Prints the distances (for various testing purposes)
 	for(unsigned int i = 0; i < distances.size(); i++){//for each tree
 		cout << "Tree : " << std::setw(2) << i << ": ";
 		for (unsigned int k = 0; k < i; k++){//tabs white space
@@ -204,7 +209,7 @@ vector < vector <unsigned int> > compute_bipart_distancesv(vector <unsigned int>
 			cout << distances[i][j] << " ";
 		}
 		cout << endl;
-	}
+	}*/
 	return distances;
 }
 
