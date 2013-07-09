@@ -1341,7 +1341,7 @@ void TESTSTUFF(){
 
 
 void testHungarian(){
-
+/*
 // int r[4*3] =  {   100, 100, 1, 100, 2, 21512, 1, 4, 9852, 6, 30252, 400 };
 //  std::vector< std::vector<int> > m = array_to_matrix(r,4,3);
 //  Hungarian hungarian(m,4,3, HUNGARIAN_MODE_MINIMIZE_COST);
@@ -1353,18 +1353,17 @@ void testHungarian(){
   cout << "cost matrix:\n";
   hungarian.print_cost();
 
-  /* solve the assignement problem */
   hungarian.solve();
  
   cout << "cost after solving:\n";
   hungarian.print_cost();
 
-  /* some output */
+
   cout << "assignment:\n";
   hungarian.print_assignment();
 
   cout << "cost is: " << hungarian.cost() << endl;
-
+*/
 }
 
 void testConflictingQuartetsBigDemo(){
