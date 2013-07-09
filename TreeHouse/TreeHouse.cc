@@ -1135,7 +1135,6 @@ int main(int argc, char **argv){
 	//	testDistance();
 		//mdsTests();
 	//	TestDist();
-
 		interactive = true;
 		interactive_log.open("logs/interactive_log.txt");
 		if(interactive_log){
