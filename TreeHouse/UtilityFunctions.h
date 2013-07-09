@@ -213,5 +213,8 @@ void print_vector_of_strings(vector< string > bitstrings);
 //use find instead. 
 //bool isInVector(vector<int> toSearch, int x);
 
+
+std::vector< std::vector<int> > array_to_matrix(int* m, int rows, int cols);
+
 unsigned int factorial(int);
 #endif

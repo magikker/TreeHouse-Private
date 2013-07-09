@@ -5,6 +5,7 @@
 #include "THGlobals.h"
 #include "pql.h"
 #include "AnalysisFunctions.h"
+#include "UtilityFunctions.h"
 #include <unordered_set>
 #include <set>
 #include <algorithm>
@@ -15,6 +16,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include <fstream>
+#include "hungarian.h"
 using namespace std;
 
 
@@ -140,7 +142,6 @@ CQS generateConflictingQuartets4(int bipart1, int bipart2);
 unsigned int numConflictingQuartets(int bipart1, int bipart2);
 unsigned long conflictingQuartetDistance(int tree1, int tree2);
 unsigned long conflictingQuartetDistance(int tree1, int tree2, bipartDistances b);
-unsigned int rfDistance(int tree1, int tree2);
 set<quartet> generateConflictingQuartetsGroup(int bipart1, set<unsigned int> bipart2);
 
 unsigned int getNumQuartets(int);
@@ -179,5 +180,6 @@ void testGenerateDifferentQuartets();
 void testOperatorsForQuartets();
 void testGenerateDifferentQuartetsFromTrees();
 void testConflictingQuartetsBigDemo();
+void testHungarian();
 
 #endif

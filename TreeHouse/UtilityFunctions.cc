@@ -1407,4 +1407,16 @@ void printSetCompactTwo(set<unsigned int> in){
 	cout << endl;
 }
 
+std::vector< std::vector<int> > array_to_matrix(int* m, int rows, int cols) {
+  int i,j;
+  std::vector< std::vector<int> > r;
+  r.resize(rows, std::vector<int>(cols, 0));
+
+  for(i=0;i<rows;i++)
+  {
+    for(j=0;j<cols;j++)
+      r[i][j] = m[i*cols+j];
+  }
+  return r;
+}
 

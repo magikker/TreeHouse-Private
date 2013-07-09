@@ -221,7 +221,7 @@ void recompute_distances(vector < vector < unsigned int > > &distances, map < un
 
 
 //Returns clusters of the input trees based on an agglomerative hierarchical method 
-vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, string dist_type){
+vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, unsigned int numclusts, string dist_type){
 	//The return set
 	vector < set < unsigned int > > ret_clusters;
 	//The map which will contain the clusters
@@ -235,7 +235,7 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, stri
 	//distance/similarity measure to its parent in neighbor_stack
 	stack<pair<unsigned int, float>> neighbor_stack;
 	//Number of clusters we desire to end with
-	unsigned int fin_num = 4;
+	unsigned int fin_num = numclusts;
 
 	//Stores each tree
 	unsigned int id = 0;
@@ -459,29 +459,25 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 		//Recompute the centroid distance matrix
 		recompute_centroid_distances(centroid_distances, tree_distances, inputtrees.size(), nclusters, oclusters);
 	}
+
 	//Adds the cluster information to the return set
-//	typedef std::map < unsigned int, set <unsigned int> >::iterator it_map;
-//	for(it_map iterator = nclusters.begin(); iterator != nclusters.end(); iterator++){//for each cluster
-//		set<unsigned int> tempset;
-//		tempset.clear();
-//		for(std::set<unsigned int>::iterator pos = iterator->second.begin(); pos != iterator->second.end(); ++pos){// for each tree in the cluster
-//			set<unsigned int>::iterator it = inputtrees.begin();
-//			std::advance(it, *pos);
-//			tempset.insert(*it);
-//		}
-//		ret_clusters.push_back(tempset); //add to the return set
-//	}
+	for(unsigned int i = 0; i < nclusters.size(); i++){//for eachc luster
+		set<unsigned int> tempset;
+		tempset.clear();
+		for(std::set<unsigned int>::iterator pos = nclusters[i].begin(); pos != nclusters[i].end(); ++pos){//for each tree in cluster
+		       set<unsigned int>::iterator it = inputtrees.begin();
+		       std::advance(it, *pos);
+		       tempset.insert(*it);
+		}
+		ret_clusters.push_back(tempset); //add to the return set
+	}
 
-	ret_clusters = nclusters;
+	//Prints out the clusters (maybe less than useful on very large datasets)
 
-	//Prints out the clusters map (maybe less than useful on very large datasets)
-//	typedef std::map< unsigned int, set < unsigned int >>::iterator it_map;
 	for(unsigned int i = 0; i < ret_clusters.size(); i++){//for each cluster
 		cout << "Cluster : " << i << " Trees : " ;
 		for(std::set<unsigned int>::iterator  pos = ret_clusters[i].begin(); pos != ret_clusters[i].end(); ++pos){//for each tree in the cluster
-			set<unsigned int>::iterator it = inputtrees.begin();
-			std::advance(it, *pos);
-			cout << *it << " " ;
+			cout << *pos << " " ;
 		}
 		cout << endl;
 	}
@@ -495,7 +491,7 @@ vector < set < unsigned int > > burnin_clust (set <unsigned int> inputtrees, str
 return kmeans_clust(inputtrees, 2,  dist_type);
 }
 
-
+/*
 //various tests that have been used for clusters
 void TestClust(){
 
@@ -537,6 +533,7 @@ void TestClust(){
 	//test_tree_vect.push_back(testset5);
 	//silhouette(test_tree_vect);
 }
+*/
 
 //-------------------Visualizing Trees and Clusters----------------------------
 
@@ -562,9 +559,9 @@ void write_dmatrix(vector <vector < unsigned int > > dmatrix, string filename){
 
 //Computes the multidimensional scaling of the input trees based on the given scaling type (nerv or lmds)
 //takes in a vector for its treeset because order matters
-void compute_mds(vector <unsigned int> treeset, string type, string filename){
+void compute_mds(vector <unsigned int> treeset, string type, string filename, string dist_type){
 	//computes the distances, function should probably accept a distance type input
-	vector < vector < unsigned int > > distances = compute_bipart_distancesv(treeset, "rf");
+	vector < vector < unsigned int > > distances = compute_bipart_distancesv(treeset, dist_type);
 	string dmatrixfile;
 	//Creates a filename for the matrix file that must be written
 	dmatrixfile = filename + "matrix";
@@ -576,9 +573,9 @@ void compute_mds(vector <unsigned int> treeset, string type, string filename){
 }
 
 //Displays a multidimensional scaling for a given input vector of trees
-void display_mds(vector <unsigned int> treevect, string type){
+void display_mds(vector <unsigned int> treevect, string type, string dist_type){
 	//Computes the mds
-	compute_mds(treevect, type, "display_mds");
+	compute_mds(treevect, type, "display_mds", dist_type);
 	//Writes a gnuplot script file for the data
 	ofstream cfile;
 	cfile.open("./temp/graph.p", ios::out | ios::trunc);
@@ -609,12 +606,12 @@ vector<unsigned int> trees_by_cluster(vector <set <unsigned int> > clusters){
 
 
 //Displays a clustering of trees using MDS and gnuplot
-void display_clusters(string type, vector < set < unsigned int> > clusters){
+void display_clusters(string type, string dist_type, vector < set < unsigned int> > clusters){
 	vector<unsigned int> cluster_trees;
 	//Adds the trees to a vector based on clustering
 	cluster_trees = trees_by_cluster(clusters);
 	//Computes MDS to a file
-	compute_mds(cluster_trees, type, "clustersDisplay");
+	compute_mds(cluster_trees, type, "clustersDisplay", "rf");
 	
 	ofstream cfile;
 	//Writes a gnuplot script file for the data
@@ -637,24 +634,25 @@ void display_clusters(string type, vector < set < unsigned int> > clusters){
 			//Title the data piece
 			cfile << "title 'Cluster : ";
 			cfile << i;
-			cfile << "' , ";
+			cfile << "'";
+			cfile << " , ";
 
 		}
 		else if(i == clusters.size() -1){
-			cfile << "\"temp/clustersDisplay\"";
-			cfile << "every ::";
+			cfile << " \"temp/clustersDisplay\"";
+			cfile << " every ::";
 			//Starting line
 			cfile << offset;
 			cfile << "::";
 			cfile << offset + clusters[i].size();
 			cfile << " using 1:2";
-			cfile << "title 'Cluster : ";
+			cfile << " title 'Cluster : ";
 			cfile << i;
-			cfile << "'" << endl;
+			cfile << "'";
 		}
 		else{
-			cfile << "\"temp/clustersDisplay\"";
-			cfile << "every ::";
+			cfile << " \"temp/clustersDisplay\"";
+			cfile << " every ::";
 			cfile << offset;
 			cfile << "::";
 			cfile << offset + clusters[i].size();
@@ -662,11 +660,13 @@ void display_clusters(string type, vector < set < unsigned int> > clusters){
 			offset += clusters[i].size();
 			cfile << "title 'Cluster : ";
 			cfile << i;
-			cfile << "' , ";
+			cfile << "'";
+			cfile << " , ";
 
 		}
 	}
 	//Keeps gnuplot from closing
+	cfile << endl;
 	cfile << "pause -1" << endl;
 	//Runs gnuplot and displays the data
 	string cmdstring = "gnuplot \"./temp/clustergraph.p\"";
@@ -691,7 +691,7 @@ void mdsTests(){
 //	}
 //	cout << endl;
 
-//	write_dmatrix(compute_bipart_distancesv(vect1, "rf"), "vect1");
+	write_dmatrix(compute_bipart_distancesv(treeset, "rf"), "heatmaptest");
 
 //	vect2.push_back(2);
 //	vect2.push_back(0);
@@ -704,7 +704,7 @@ void mdsTests(){
 
 
 //	write_dmatrix(compute_bipart_distancesv(vect2, "rf"), "vect2");
-	write_dmatrix(compute_bipart_distancesv(treeset, "rf"), "demo");
+//	write_dmatrix(compute_bipart_distancesv(treeset, "rf"), "demo");
 //	vector < set < unsigned int> > clusters = kmeans_clust(treeset, 2, "rf");
 //	cout << "clusters defined" << endl;
 //	vector < set <unsigned int> > clusters = kmeans_clust(treeset, 2, "eu");

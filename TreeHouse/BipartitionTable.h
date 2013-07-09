@@ -364,6 +364,7 @@ int num_taxa_in_tree(int treeindex){
 	
 	void print_biparttable(){
 		for (unsigned int i = 0; i < BipartTable.size(); i++){
+			cout << i << ". ";
 			BipartTable[i].print_line();
 		}
 	}

@@ -1064,11 +1064,11 @@ pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
 
 pqlsymbol * u_agglo_clust(vector<pqlsymbol * > arglist){
 	pqlsymbol * result = new pqlsymbol();
-	if (arglist.size() == 2 && arglist[0]->is_treeset() && arglist[1]->is_string()){
-		result = new pqlsymbol(agglo_clust(arglist[0]->get_treeset(), arglist[1]->get_string()));
+	if (arglist.size() == 3 && arglist[0]->is_treeset() && arglist[1]->is_int() && arglist[2]->is_string()){
+		result = new pqlsymbol(agglo_clust(arglist[0]->get_treeset(), arglist[1]->get_int(), arglist[2]->get_string()));
 	}
 	else{
-		cout << "agglo_clust expects a treeset and a string dist_type as input " << " Found " << get_arg_types(arglist) << endl;
+		cout << "agglo_clust expects a treeset, an int number of clusters,  and a string dist_type as input " << " Found " << get_arg_types(arglist) << endl;
 		result = new pqlsymbol(ERROR, "Type Error");
 	}
 
@@ -1243,11 +1243,11 @@ pqlsymbol * u_set(vector<pqlsymbol * > arglist) {
 //User function for display_clusters, opens gnuplot with a graph of the trees color coded by cluster
 pqlsymbol * u_display_clusters(vector<pqlsymbol *> arglist){
 	pqlsymbol * result = new pqlsymbol();
-	if (arglist.size() == 2 && arglist[0]->is_string() && arglist[1]->is_vect()){
-		display_clusters(arglist[0]->get_string(), arglist[1]->get_treeset_vect());
+	if (arglist.size() == 3 && arglist[0]->is_string() && arglist[1]->is_string() && arglist[2]->is_vect()){
+		display_clusters(arglist[0]->get_string(), arglist[1]->get_string(), arglist[2]->get_treeset_vect());
 	}
 	else{
-		cout << "display_clusters expectes a string and a vector of clusters as arguements. Found " << get_arg_types(arglist) << endl;
+		cout << "display_clusters expectes a string mdstype, a string distance type, and a vector of clusters as arguements. Found " << get_arg_types(arglist) << endl;
 		result = new pqlsymbol(ERROR, "Type Error");
 	}
 	return result;

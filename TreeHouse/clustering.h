@@ -23,7 +23,7 @@ using namespace std;
 vector<float> silhouette(vector < set < unsigned int >> inputclusts, string dist_type);
 
 //Forms clusters of the input trees based on a distance type using the agglomerative method
-vector< set < unsigned int > > agglo_clust(set <unsigned int > inputtrees, string dist_type);
+vector< set < unsigned int > > agglo_clust(set <unsigned int > inputtrees,unsigned int numclusts, string dist_type);
 
 //Forms clusters of the input trees based on a distance type using the kmeans method
 vector< set < unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsigned int k, string dist_type);
@@ -32,7 +32,7 @@ vector< set < unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsig
 void mdsTests();
 
 //Uses mds to display clusters in gnuplot
-void display_clusters(string type, vector <set < unsigned int > >clusters);
+void display_clusters(string type,string dist_type, vector <set < unsigned int > >clusters);
 
 void TestClust();
 

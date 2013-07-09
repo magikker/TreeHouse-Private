@@ -741,18 +741,6 @@ unsigned long conflictingQuartetDistance(int tree1, int tree2, bipartDistances b
   return total;
 }
 
-unsigned int rfDistance(int tree1, int tree2){
-
-  unsigned long total = 0;
-  vector<unsigned int> rf, rf2;
-  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
-  vector<unsigned int> t1 = biparttable.inverted_index.at(tree1);
-  vector<unsigned int> t2 = biparttable.inverted_index.at(tree2);
-  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
-  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
-  return (rf.size() + rf2.size()) / 2;
-
-}
 
 //Doesn't always return a value
 vector<iPair> nChooseTwo(vector<int> in){
@@ -1340,14 +1328,43 @@ for(int i = 2; i < 26; i++){
 
 void TESTSTUFF(){
 
-//readOutty();
+
+        testHungarian();
 	//testConflictingQuartetDistance();
-	testConflictingQuartetsBigDemo();
+	//testConflictingQuartetsBigDemo();
 	//testCQS();
 	//testGenerateConflictingQuartets();
 	//testNumConflictingQuartets();
 	//testGenerateDifferentQuartets();
 	//testGeenerateDifferentQuartetsFromTrees();
+}
+
+
+void testHungarian(){
+
+// int r[4*3] =  {   100, 100, 1, 100, 2, 21512, 1, 4, 9852, 6, 30252, 400 };
+//  std::vector< std::vector<int> > m = array_to_matrix(r,4,3);
+//  Hungarian hungarian(m,4,3, HUNGARIAN_MODE_MINIMIZE_COST);
+
+ int r[2*2] =  {2, 9, 1, 6 };
+  std::vector< std::vector<int> > m = array_to_matrix(r,2,2);
+  Hungarian hungarian(m,2,2, HUNGARIAN_MODE_MINIMIZE_COST);
+
+  cout << "cost matrix:\n";
+  hungarian.print_cost();
+
+  /* solve the assignement problem */
+  hungarian.solve();
+ 
+  cout << "cost after solving:\n";
+  hungarian.print_cost();
+
+  /* some output */
+  cout << "assignment:\n";
+  hungarian.print_assignment();
+
+  cout << "cost is: " << hungarian.cost() << endl;
+
 }
 
 void testConflictingQuartetsBigDemo(){

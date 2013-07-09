@@ -80,6 +80,7 @@ treehouse_SOURCES += InterfaceFunctions.h InterfaceFunctions.cc
 treehouse_SOURCES += UserFunctions.h UserFunctions.cc
 treehouse_SOURCES += quartet.h quartet.cc
 treehouse_SOURCES += distance.h distance.cc
+#treehouse_SOURCES += hungarian.cpp hungarian.h
 treehouse_SOURCES += clustering.h clustering.cc
 treehouse_SOURCES += TreeHouse.cc
 treehouse_LDADD = ${antlrdir}/libantlr3c.la -lreadline -lncurses

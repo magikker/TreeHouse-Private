@@ -221,6 +221,60 @@ return totalDepth/(double)biparttable.num_taxa_in_tree(tree);
 
 }
 
+double expected_average_depth(unsigned int n){
+  //according to Kirkpatrick and Slatkin (1992), expected average depth is  2 * summation(i = 2 to n) of (1/i)
+  double ret = 0;
+  if(n<2){
+	return 0;
+	}
+  for(int i = 2; i <= n; i++){
+	ret += (double)1/(double)i;
+	}
+  return 2*ret;
+
+}
+
+double depth_variance(unsigned int tree){
+
+  string nwTree = to_newick(tree);
+  unsigned int depth = 0;
+  vector<unsigned int> treeDepths;
+
+  for(unsigned int i = 0; i < nwTree.length(); i++){
+	if(nwTree.at(i)=='('){
+	++depth;
+		}
+	else if(nwTree.at(i)==')'){
+	--depth;
+		}	
+	else if(nwTree.at(i)==',' || nwTree.at(i)==';'){
+		}
+	else{ 
+		unsigned int room = nwTree.length()-i-1;
+		unsigned int toJump = 0;		
+		while(room>0){
+			char next = nwTree.at(i+1+toJump);
+			if(next=='(' || next==')' || next==','){
+				break;
+				}
+			else{toJump++; room--;}
+			}
+		treeDepths.push_back(depth);
+		}
+	}
+
+  double total = accumulate(treeDepths.begin(), treeDepths.end(), 0.0);
+  double ave = total / (double)treeDepths.size();
+  double sumOfSquares = 0;
+
+//now we have all of the depths in a vector. Find the variance of the vector
+//remember, variance is the sum of the squared deviations from mean over 
+  for(int i = 0; i < treeDepths.size(); i++){
+	sumOfSquares+= ( (treeDepths.at(i) - ave) * (treeDepths.at(i) - ave));
+	}
+  return sumOfSquares/(double)treeDepths.size();
+}
+
 
 vector<unsigned int> checkForDuplicateBitstrings(){
   vector<unsigned int> retVec;
@@ -246,8 +300,98 @@ return retVec;
 }
 
 
+unsigned int total_hamming_distance(unsigned int tree1, unsigned int tree2){
+  //NOTE- CURRENTLY ONLY WORKS ON HOMOGENEOUS DATA!
+
+
+ //first, get the bipartitions which differ between the trees
+ set<unsigned int> t1Biparts(biparttable.inverted_index.at(tree1).begin(), biparttable.inverted_index.at(tree1).end());
+ set<unsigned int> t2Biparts(biparttable.inverted_index.at(tree2).begin(), biparttable.inverted_index.at(tree2).end());
+ set<unsigned int> rf, rf2;
+ set_difference(t1Biparts.begin(), t1Biparts.end(), t2Biparts.begin(), t2Biparts.end(), inserter(rf, rf.begin()));
+ set_difference(t2Biparts.begin(), t2Biparts.end(), t1Biparts.begin(), t1Biparts.end(), inserter(rf2, rf2.begin()));
+ 
+ //now, calculate the XOR matrix
+ vector< vector <int> > hamming;
+
+ for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
+  	vector<int> h;
+	boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
+	for(set<unsigned int>::iterator j = rf2.begin(); j!=rf2.end(); j++){ //unique biparts to tree 2 are columns
+		int XORdistance = 0;		
+		boost::dynamic_bitset<> bj = biparttable.non_trunc_bitstring(*j);
+		for(int x = 0; x < bi.size(); x++){
+			if(bi[x]^bj[x]) {		
+				XORdistance++;
+				}
+			}
+		h.push_back(XORdistance);
+		}
+	hamming.push_back(h); //add new row to the hamming matrix
+	}
+
+/* for(vector<vector<int>>::iterator i = hamming.begin(); i!=hamming.end(); i++){ //unique biparts to tree 1 are rows
+	printVector(*i);
+	}*/
+  //now, do the hungarian algorithm on it
+
+/*  Hungarian hungarian(hamming, rf.size(), rf2.size(), HUNGARIAN_MODE_MINIMIZE_COST);
+  hungarian.print_cost();
+  hungarian.solve();
+  hungarian.print_status();
+  cout << "-----------------------------------\n";
+ */
+ return 0;
+}
+
+
+unsigned int rfDistance(int tree1, int tree2){
+
+  unsigned long total = 0;
+  vector<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = biparttable.inverted_index.at(tree1);
+  vector<unsigned int> t2 = biparttable.inverted_index.at(tree2);
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+  return (rf.size() + rf2.size()) / 2;
+
+}
+
+pair<set<unsigned int>, set<unsigned int>> rfDistanceSet(int tree1, int tree2){
+
+  set<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = biparttable.inverted_index.at(tree1);
+  vector<unsigned int> t2 = biparttable.inverted_index.at(tree2);
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+  return make_pair(rf, rf2);
+}
+
+void printRFset(int tree1, int tree2){
+  pair< set<unsigned int>, set<unsigned int> > rfDistances = rfDistanceSet(tree1, tree2);
+  cout << "Bipartitions that are in tree 1 but not tree 2: \n";
+  printSet(rfDistances.first);
+  cout << "Bipartitions that are in tree 2 but not tree 1: \n";
+  printSet(rfDistances.second);
+
+}
+
 
 void testDistance(){
+ 
+testNewick();
+//testDepthVariance();
+
+ // printRFset(0, 7);
+/*
+  for(int i = 4; i < 8; i++){
+	for(int j = 0; j < 4; j++){
+ 	 total_hamming_distance(i,j);
+		}
+	}
+*/
 
 //cout << "printing inverted tree index: ";
 //for(unsigned int i = 0; i < ::NUM_TREES; i++){
@@ -270,5 +414,35 @@ void testDistance(){
 //{
 //cout << "average distance between taxa 0 and " << i << " is: " << average_distance_between_taxa(0, i) << endl;
 // }
+
+}
+
+void testDepthVariance(){
+  for(int i = 0; i < 1000; i++){
+	double ave;
+	cout << "Depth variance is: " << depth_variance(i) << endl;
+	}
+
+}
+
+void testAverageDepth(){
+double totalAverage = 0;
+double expect = expected_average_depth(biparttable.lm.size());
+for(int i = 0; i < biparttable.NumTrees; i++){
+	double ave;
+	cout << "expected average depth for " << i << " is: " << expect;
+	cout << ", average depth is: " << (ave = average_depth(i));
+	cout << ", difference is " << ave-expect << endl;
+	totalAverage += ave;	
+	}
+cout << "TOTAL AVERAGE OVER " << biparttable.NumTrees << " TREES IS: " << totalAverage/(double)biparttable.NumTrees << endl; 
+}
+
+void testNewick(){
+ for(int i = 0; i < 10; i++){
+    string nwTree = to_newick(i);
+    cout << "newick string for tree " << i << " is: " << nwTree << endl;
+	}
+
 
 }
