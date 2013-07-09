@@ -563,8 +563,15 @@ pqlsymbol * u_reso_rate(vector<pqlsymbol *> arglist)
 	if (arglist.size() == 1 && arglist[0]->is_string()){
 		stree = arglist[0]->get_string();
 	}
+	else if(arglist.size()==1 && arglist[0]->is_int()){	
+		int tree = arglist[0]->get_int();
+		stree = to_newick(tree);
+		//append a semicolon at the end of stree because that is the format it needs to be in
+		stree.push_back(';');
+	}	
 	else{
 		cout << "reso_rate expects a single string representing a tree " << "Found " << get_arg_types(move(arglist)) << endl;
+		return new pqlsymbol(ERROR, "Type error");
 	}
 	return new pqlsymbol(reso_rate(stree));
 

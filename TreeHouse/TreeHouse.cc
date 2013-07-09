@@ -1132,7 +1132,7 @@ int main(int argc, char **argv){
 		//testDistance();
 	//	TESTSTUFF();
 	//	TestClust();
-	//	TestDist();
+	//	testDistance();
 		//mdsTests();
 		interactive = true;
 		interactive_log.open("logs/interactive_log.txt");
