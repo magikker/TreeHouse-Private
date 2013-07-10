@@ -170,7 +170,7 @@ vector<float> silhouette (vector< set <unsigned int>  > inputclusts, string dist
 
 //--------------------------Forming Clusters----------------------------------
 
-//Returns a pair representing the closest neighbor of a cluster, and the distances between the two clusters
+//Returns a pair representing the closest neighbor of a cluster, and the distances between the two clusters (agglo_clust helper)
 pair<unsigned int, float> closest_neighbor(unsigned int clustid, set <unsigned int> checkset, vector <vector <unsigned int> > distances){
 	//neighbor to clustid to be returned
 	pair<unsigned int, float> retneighbor;
@@ -193,7 +193,7 @@ pair<unsigned int, float> closest_neighbor(unsigned int clustid, set <unsigned i
 	return retneighbor;
 }
 
-//Returns a map of clusters with the two input clusters merged into a single cluster 
+//Returns a map of clusters with the two input clusters merged into a single cluster (agglo_clust helper)
 void  merge(unsigned int clust1, unsigned int clust2, 
 		map <unsigned int, set <unsigned int > > &clusters){
 	//Take the elements from clust2's set and insert them into clust1
@@ -202,7 +202,7 @@ void  merge(unsigned int clust1, unsigned int clust2,
 	clusters.erase(clust2);
 }
 
-//Returns a distance matrix where the distances are recomputed for merged clusters
+//Returns a distance matrix where the distances are recomputed for merged clusters (agglo_clust helper)
 void recompute_distances(vector < vector < unsigned int > > &distances, map < unsigned int, set < unsigned int > > clusters, unsigned int clustid, unsigned int clustid2){
 
 	typedef std::map < unsigned int, set <unsigned int> >::iterator it_map;
@@ -220,7 +220,7 @@ void recompute_distances(vector < vector < unsigned int > > &distances, map < un
 
 
 
-//Returns clusters of the input trees based on an agglomerative hierarchical method 
+//Returns clusters of the input trees based on an agglomerative hierarchical method
 vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, unsigned int numclusts, string dist_type){
 	//The return set
 	vector < set < unsigned int > > ret_clusters;
@@ -310,7 +310,7 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, unsi
 		ret_clusters.push_back(tempset); //add to the return set
 	}
 
-
+/*
 	//Prints out the clusters map
 	typedef std::map< unsigned int, set < unsigned int >>::iterator it_map;
 	for(it_map iterator = clusters.begin(); iterator != clusters.end(); iterator++){
@@ -320,13 +320,13 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, unsi
 		}
 		cout << endl;
 	}
-
+*/
 
 
 	return ret_clusters;
 }
 
-//Returns the distances for each centroid to each tree (probably not the most efficient method)
+//Returns the distances for each centroid to each tree (probably not the most efficient method) (kmeans_clust helper)
 void recompute_centroid_distances(vector < vector <unsigned int> > &centroid_distances, 
 		vector< vector< unsigned int> > distances,
 	       	unsigned int numtrees, 
@@ -473,7 +473,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	}
 
 	//Prints out the clusters (maybe less than useful on very large datasets)
-
+/*
 	for(unsigned int i = 0; i < ret_clusters.size(); i++){//for each cluster
 		cout << "Cluster : " << i << " Trees : " ;
 		for(std::set<unsigned int>::iterator  pos = ret_clusters[i].begin(); pos != ret_clusters[i].end(); ++pos){//for each tree in the cluster
@@ -481,9 +481,131 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 		}
 		cout << endl;
 	}
-
+*/
 
 	return ret_clusters;
+}
+
+//Returns a mapping of the input trees to all trees which are no more than eps distance away / dissimilar from them
+//(dbscan_clust helper)
+map <unsigned int, vector <unsigned int> > compute_eps_neighborhoods(set <unsigned int> treeset, unsigned int eps, string dist_type){
+	
+	map <unsigned int, vector < unsigned int> > retmap;
+	vector < vector < unsigned int> > distances;
+	//Computes the distance matrix to be used
+	distances = compute_bipart_distances(treeset, dist_type);
+
+	unsigned int i = 0; //Iterates over the trees while also storing the value for the matrix
+	for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
+		
+		vector <unsigned int> temp;
+		temp.clear();
+		retmap.insert(make_pair(*pos, temp));
+		
+		unsigned int j = 0; //Iterates over the trees while also storing the value for the matrix
+		for(std::set<unsigned int>::iterator pos1 = treeset.begin(); pos1 != treeset.end(); ++pos1){//for each other tree
+			if (i != j){
+				//if the distance is small enough, add the mapping from the current tree to the inner loop tree
+				if( distances[i][j] <= eps){
+					retmap[*pos].push_back(*pos1);
+				}
+			
+			}
+
+			j++;
+		}
+
+		i++;
+	}
+		
+	return retmap;
+}
+
+//Returns a cluster starting from the input tree and including all members of the input
+//tree's eps neighborhood who are not already in a cluster as well as the members of subsequent
+//eps neighborhoods when those trees belong to dense neighborhoods (dbscan_clust helper)
+set <unsigned int> grow_cluster(unsigned int inputtree, map <unsigned int, vector < unsigned int> > eps_neighborhoods, set<unsigned int> &visited,
+		vector < unsigned int > temphood, unsigned int eps, unsigned int minpts,set<unsigned int> &clustered){
+	
+	set <unsigned int> retset;
+
+	//insert the current tree into the growing cluster and into the clustered set
+	retset.insert(inputtree);
+	clustered.insert(inputtree);
+
+	for (unsigned int j = 0; j < temphood.size(); j++){//for each tree 
+		//set to hold eps_neighborhood for each tree
+		vector <unsigned int> tempvect;
+		tempvect.clear();
+		//If tree is not visited mark it as such
+		if(visited.find(temphood[j]) == visited.end()){
+			visited.insert(temphood[j]);
+			tempvect = eps_neighborhoods[temphood[j]];
+			//If the tempset is of appropriate size
+			if(tempvect.size() >= minpts){
+				//Merge the two while avoiding duplicates
+				for(unsigned int i = 0; i < tempvect.size(); i++){//for each tree in tempset
+					if(std::find(temphood.begin(), temphood.end(), tempvect[i]) != temphood.end()){
+						temphood.push_back(tempvect[i]);
+					}
+				}
+			}
+			//If the tree is not already clustered, add it to the current cluster
+			if(clustered.find(temphood[j]) == clustered.end()){
+				retset.insert(temphood[j]);
+				clustered.insert(temphood[j]);
+			}
+		}
+	}
+	return retset;
+}
+
+
+//A clustering algorithm that takes in a set of trees, a given distance eps which is the minimum distance
+//two trees can be from each other and still be considered, and minpts, the minimum number of pts required for a cluster
+vector < set < unsigned int > >dbscan_clust(set <unsigned int> treeset, unsigned int eps, unsigned int minpts, string dist_type){
+	vector < set < unsigned int> > retset;
+	map <unsigned int,  vector < unsigned int > > eps_neighborhoods;
+	set <unsigned int> visited;
+	set <unsigned int> noise;
+	set <unsigned int> clustered;
+
+
+	//Computes the eps neighborhoods all at once and stores them for use 
+	eps_neighborhoods = compute_eps_neighborhoods(treeset, eps, dist_type); //Currently unwritten
+
+
+	for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
+		//If the tree has not been visited, add it to the visited set and acquire it's eps_neighborhood
+		if(visited.find(*pos) == visited.end()){
+			visited.insert(*pos);
+			vector <unsigned int> temphood = eps_neighborhoods[*pos];
+			//If the neighborhood is not large enough, consider the point noise
+			if(temphood.size() < minpts){
+				noise.insert(*pos);
+			}
+			//Otherwise grow a cluster starting from this tree and place it in the return set
+			else{
+				set<unsigned int> tempclust;
+				tempclust.clear();
+				tempclust = grow_cluster(*pos, eps_neighborhoods, visited, temphood, eps, minpts, clustered);
+				retset.push_back(tempclust);
+			}
+		}
+	}	
+	//Adds the noise cluster to the return set
+	retset.push_back(noise);
+
+	//Prints out the clusters (maybe less than useful on very large datasets)
+	for(unsigned int i = 0; i < retset.size(); i++){//for each cluster
+		cout << "Cluster : " << i << " Trees : " ;
+		for(std::set<unsigned int>::iterator  pos = retset[i].begin(); pos != retset[i].end(); ++pos){//for each tree in the cluster
+			cout << *pos << " " ;
+		}
+		cout << endl;
+	}
+	
+	return retset;
 }
 
 //A function for determining the trees to throw out after a run of a program such as Mr. Bayes (in the works)
@@ -491,7 +613,7 @@ vector < set < unsigned int > > burnin_clust (set <unsigned int> inputtrees, str
 return kmeans_clust(inputtrees, 2,  dist_type);
 }
 
-/*
+
 //various tests that have been used for clusters
 void TestClust(){
 
@@ -499,16 +621,25 @@ void TestClust(){
 	for(unsigned int i = 0; i < 11; i++){
 		testset.insert(i);
 	}
-	silhouette(kmeans_clust(testset, 3, "rf"), "rf");
-	silhouette(agglo_clust(testset, "rf"), "rf");
+	
+	cout << "First test" << endl;
+	dbscan_clust(testset, 1, 2, "rf");
+	cout << "All trees singular test" << endl;
+	dbscan_clust(testset, 0, 0, "rf");
+	cout << "All trees noise test" << endl;
+	dbscan_clust(testset, 0, 2, "rf");
 
-	set <unsigned int> testset2;
-	for(unsigned int i = 3; i < 10; i++){
-		testset2.insert(i);
-	}
-	kmeans_clust(testset2, 3, "rf");
-	cout << endl;
-	agglo_clust(testset2, "rf");
+
+	//silhouette(kmeans_clust(testset, 3, "rf"), "rf");
+	//silhouette(agglo_clust(testset, "rf"), "rf");
+
+	//set <unsigned int> testset2;
+	//for(unsigned int i = 3; i < 10; i++){
+	//	testset2.insert(i);
+	//}
+	//kmeans_clust(testset2, 3, "rf");
+	//cout << endl;
+	//agglo_clust(testset2, "rf");
 
 	//Tests silhouette
 	//Uncommenting print statements (in silhouette) will show the data being used
@@ -533,7 +664,7 @@ void TestClust(){
 	//test_tree_vect.push_back(testset5);
 	//silhouette(test_tree_vect);
 }
-*/
+
 
 //-------------------Visualizing Trees and Clusters----------------------------
 

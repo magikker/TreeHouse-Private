@@ -1088,6 +1088,18 @@ pqlsymbol * u_kmeans_clust(vector<pqlsymbol *> arglist){
 	return result;
 }
 
+pqlsymbol * u_dbscan_clust(vector <pqlsymbol *> arglist){
+	pqlsymbol * result = new pqlsymbol();
+	if(arglist.size() == 4 && arglist[0]->is_treeset() && arglist[1]->is_int() && arglist[2]->is_int() && arglist[3]->is_string()){
+		result = new pqlsymbol(dbscan_clust(arglist[0]->get_treeset(),arglist[1]->get_int(),arglist[2]->get_int(),arglist[3]->get_string()));
+	}
+	else{
+		cout << "dbscan_clust expects a treeset, an unsigned int eps, and unsigned int minpts, and a string dist_type as input " << "Found " << get_arg_types(arglist) <<endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
+
 // takes an int. Returns the ints which share the same topology. 
 pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist) 
 {  
@@ -1980,7 +1992,8 @@ void init_the_functs()
 	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees");
 	add_function("agglo_clust", &u_agglo_clust, "Returns the agglomerative clustering of the given input set of trees.");
 	add_function("kmeans_clust", &u_kmeans_clust, "returns the k means clustering of the given input set of trees.");
-
+	add_function("dbscan_clust", &u_dbscan_clust, "Return the dbscan clustering of the given input set of trees. Last cluster is always noise (trees that don't fit a cluster based on current criteria");
+	
 	//quartets
 	add_function("shared_quartets_strict", &u_shared_quartets_strict, "Returns quartets present in every tree of treeset");
 	add_function("shared_quartets_majority", &u_shared_quartets_majority, "Returns quartets present in a majority of trees");

@@ -28,6 +28,9 @@ vector< set < unsigned int > > agglo_clust(set <unsigned int > inputtrees,unsign
 //Forms clusters of the input trees based on a distance type using the kmeans method
 vector< set < unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsigned int k, string dist_type);
 
+//Forms a cluster of the input trees based on a distance type using the dbscan method
+vector < set < unsigned int> > dbscan_clust(set<unsigned int> treeset, unsigned int eps, unsigned int minpts, string dist_type);
+
 //Tests for visualization
 void mdsTests();
 
