@@ -300,19 +300,12 @@ return retVec;
 }
 
 
-unsigned int total_hamming_distance(unsigned int tree1, unsigned int tree2){
   //NOTE- CURRENTLY ONLY WORKS ON HOMOGENEOUS DATA!
-
-
- //first, get the bipartitions which differ between the trees
- set<unsigned int> t1Biparts(biparttable.inverted_index.at(tree1).begin(), biparttable.inverted_index.at(tree1).end());
- set<unsigned int> t2Biparts(biparttable.inverted_index.at(tree2).begin(), biparttable.inverted_index.at(tree2).end());
+double hamming_distance_total(unsigned int tree1, unsigned int tree2){
+ unsigned int total = 0; 
+ pair<set<unsigned int>, set<unsigned int>> rfs = rfDistanceSet(tree1, tree2);
  set<unsigned int> rf, rf2;
- set_difference(t1Biparts.begin(), t1Biparts.end(), t2Biparts.begin(), t2Biparts.end(), inserter(rf, rf.begin()));
- set_difference(t2Biparts.begin(), t2Biparts.end(), t1Biparts.begin(), t1Biparts.end(), inserter(rf2, rf2.begin()));
- 
- //now, calculate the XOR matrix
- vector< vector <int> > hamming;
+ rf = rfs.first; rf2 = rfs.second;
 
  for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
   	vector<int> h;
@@ -325,24 +318,145 @@ unsigned int total_hamming_distance(unsigned int tree1, unsigned int tree2){
 				XORdistance++;
 				}
 			}
-		h.push_back(XORdistance);
+		total+=XORdistance;
 		}
-	hamming.push_back(h); //add new row to the hamming matrix
 	}
-
-/* for(vector<vector<int>>::iterator i = hamming.begin(); i!=hamming.end(); i++){ //unique biparts to tree 1 are rows
-	printVector(*i);
-	}*/
-  //now, do the hungarian algorithm on it
-
-/*  Hungarian hungarian(hamming, rf.size(), rf2.size(), HUNGARIAN_MODE_MINIMIZE_COST);
-  hungarian.print_cost();
-  hungarian.solve();
-  hungarian.print_status();
-  cout << "-----------------------------------\n";
- */
- return 0;
+  //note- we add to total rfDistance^2 number of times
+  // since we want total to reflect the rf distance * average distance between any two given bipartitions,
+  // we need to divide total by rf.size
+ return (double)total / (double)rf.size();
 }
+
+
+
+unsigned int hamming_distance_greedy(unsigned int tree1, unsigned int tree2){
+  //NOTE- CURRENTLY ONLY WORKS ON HOMOGENEOUS DATA!
+
+//this is average hamming distance * rf distance
+//in other words, an all-to-all bipartition hamming distance
+
+ unsigned int total = 0; 
+
+ pair<set<unsigned int>, set<unsigned int>> rfs = rfDistanceSet(tree1, tree2);
+ set<unsigned int> rf, rf2;
+ rf = rfs.first; rf2 = rfs.second;
+
+ //we need to make sure the rf distance is non-0 or else the program will crash!
+ if(rf.size()!=0){
+	 //now, calculate the XOR matrix
+	 vector< vector <int> > hamming;
+
+	 for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
+	  	vector<int> h;
+		boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
+		for(set<unsigned int>::iterator j = rf2.begin(); j!=rf2.end(); j++){ //unique biparts to tree 2 are columns
+			int XORdistance = 0;		
+			boost::dynamic_bitset<> bj = biparttable.non_trunc_bitstring(*j);
+			for(int x = 0; x < bi.size(); x++){
+				if(bi[x]^bj[x]) {		
+					XORdistance++;
+					}
+				}
+			h.push_back(XORdistance);
+			}
+		hamming.push_back(h); //add new row to the hamming matrix
+		}
+
+	  //now we have the matrix of hamming distances. 
+	  //keep a sorted list of all the indeces we have to explore
+
+	set<unsigned int> indices;
+	  for(unsigned int i = 0; i < hamming.at(0).size(); i++){
+		indices.insert(i);
+		}
+	  //go through the hamming vector for each bipartition
+	  //find the min, then remove that index from indices
+	  //also add it to the total
+
+
+	  int min = 0;
+	  for(unsigned int i = 0; i < hamming.size(); i++){
+		min = hamming.at(i).at(* (indices.begin()) );
+		int index = *( indices.begin() ); //holds where we find the min from this row	
+		//cout << "min is: " << min << " index is: " << index << endl;	
+		//printVectorCompact(hamming.at(i));
+	
+		for(set<unsigned int>::iterator j = indices.begin(); j!=indices.end(); j++){
+			if(hamming.at(i).at(*j) < min) {
+				min = hamming.at(i).at(*j);
+				index = *j;
+				}
+			}
+		//now we've gotten the min hamming distance from bipartition i. 
+		//add its min to to the total and remove index from indices
+		total+= min;
+		set<unsigned int>::iterator it = indices.find(index);
+		if(it==indices.end()){
+			cout << "hamming_distance_greedy error: index not found\n";
+			cout << "index is: " << index << endl;
+			printSetCompactTwo(indices);
+			printVectorCompact(hamming.at(i));
+			cout << endl << endl;
+			}
+		else{
+			indices.erase(indices.find(index));
+			}
+		}
+	 return total;
+  }
+  else{
+	return 0;
+	} 
+}
+
+
+double hamming_distance_average(unsigned int tree1, unsigned int tree2){
+  return hamming_distance_total(tree1, tree2) /  (double)rfDistance(tree1, tree2);
+}
+
+
+unsigned int hamming_distance_minimum(unsigned int tree1, unsigned int tree2){
+
+ unsigned int total = 0; 
+ pair<set<unsigned int>, set<unsigned int>> rfs = rfDistanceSet(tree1, tree2);
+ set<unsigned int> rf, rf2;
+ rf = rfs.first; rf2 = rfs.second;
+
+
+  if(rf.size()!=0){
+	 //now, calculate the XOR matrix
+	 vector< set <int> > hamming;
+
+	 for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
+	  	set<int> h;
+		boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
+		for(set<unsigned int>::iterator j = rf2.begin(); j!=rf2.end(); j++){ //unique biparts to tree 2 are columns
+			int XORdistance = 0;		
+			boost::dynamic_bitset<> bj = biparttable.non_trunc_bitstring(*j);
+			for(int x = 0; x < bi.size(); x++){
+				if(bi[x]^bj[x]) {		
+					XORdistance++;
+					}
+				}
+			h.insert(XORdistance);
+			}
+		hamming.push_back(h); //add new row to the hamming matrix
+		}
+
+	 //now we have the a vector of sets for each bipartition. Take the min from each set (i.e. first element)
+	  unsigned int acc = 0;
+	  for(vector<set<int>>::iterator i = hamming.begin(); i!=hamming.end(); i++){
+		if((*i).size()>0){
+			acc+=*((*i).begin());
+			}
+		}
+	  return acc;
+	}
+  else{
+	return 0;
+	}
+}
+
 
 
 unsigned int rfDistance(int tree1, int tree2){
@@ -381,39 +495,31 @@ void printRFset(int tree1, int tree2){
 
 void testDistance(){
  
-testNewick();
+testHamming();
+//testNewick();
 //testDepthVariance();
 
- // printRFset(0, 7);
-/*
-  for(int i = 4; i < 8; i++){
-	for(int j = 0; j < 4; j++){
- 	 total_hamming_distance(i,j);
+
+}
+
+void testHamming(){
+ for(int i = 234; i < 236; i++){
+	for(int j = 1000; j < 2000; j++){
+		cout << "\nTesting hamming for " << i << " " << j << ":\n";
+		cout << "	rf distance = " << rfDistance(i, j);
+		cout << ", HDG = " << hamming_distance_greedy(i,j);
+	//hamming_distance_greedy(i,j);
+	//hamming_distance_total(i,j);
+	//hamming_distance_total(i,j);
+		cout << ", HDT = " << hamming_distance_total(i,j);
+		cout << ", HDA = " << hamming_distance_average(i,j);
+		cout << ", HDM = " << hamming_distance_total(i,j);
+
 		}
+	cout << "done with " << i << endl;
 	}
-*/
+cout << endl;
 
-//cout << "printing inverted tree index: ";
-//for(unsigned int i = 0; i < ::NUM_TREES; i++){
-//	printVectorCompact(::inverted_index.at(i));
-//	}
-
-//vector<unsigned int> duplicates = checkForDuplicateBitstrings();
-//printVectorCompact(duplicates);
-//cout << "Number of duplicates is: " << duplicates.size();
-//int taxon = 3; int tree = 2;
-//cout << "Distance to root in taxon " << taxon << " in tree " << tree << " is: " << distance_to_root(taxon,tree) << endl;
-
-//for(int tree = 0; tree < ::NUM_TREES; tree++){
-//	cout << "Average depth of taxa in tree " << tree << " is: " << average_depth(tree) << endl;
-//	}
-
-
-
-//for(int i = 0; i < 500; i++)
-//{
-//cout << "average distance between taxa 0 and " << i << " is: " << average_distance_between_taxa(0, i) << endl;
-// }
 
 }
 

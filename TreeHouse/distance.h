@@ -28,8 +28,13 @@ double expected_average_depth(unsigned int n);
 double depth_variance(unsigned int tree);
 
 double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2);
-unsigned int total_hamming_distance(unsigned int tree1, unsigned int tree2);
+unsigned int hamming_distance_greedy(unsigned int tree1, unsigned int tree2);
+double hamming_distance_total(unsigned int tree1, unsigned int tree2);
+unsigned int hamming_distance_minimum(unsigned int tree1, unsigned int tree2);
+double hamming_distance_average(unsigned int tree1, unsigned int tree2);
+
 pair<set<unsigned int>, set<unsigned int>> rfDistanceSet(int tree1, int tree2);
+
 unsigned int rfDistance(int tree1, int tree2);
 void printRFset(int tree1, int tree2);
 
@@ -38,3 +43,4 @@ vector<unsigned int> checkForDuplicateBitstrings();
 void testDepthVariance();
 void testAverageDepth();
 void testNewick();
+void testHamming();
