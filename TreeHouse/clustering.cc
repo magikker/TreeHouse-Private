@@ -2,7 +2,7 @@
 
 using namespace std;
 //----------------------Cluster Analysis------------------------------------
-//Returns the average distance for each tree to the cluster containing it
+//Returns the average distance for each tree to the cluster containing it (silhouette helper)
 vector<float> diff_to_own_clusters(vector< set <unsigned int> > inputclusts, vector < vector <unsigned int> > distances){
 	unsigned int offset = 0;
 	vector< float > diff;
@@ -30,7 +30,7 @@ vector<float> diff_to_own_clusters(vector< set <unsigned int> > inputclusts, vec
 
 
 
-//Returns the average distance for each tree to the cluster with the smallest average distance from the tree
+//Returns the average distance for each tree to the cluster with the smallest average distance from the tree (silhouette helper)
 vector<float> neighboring_cluster_diffs(vector  < set < unsigned int> > inputclusts, vector < vector < unsigned int> > distances){
 	unsigned int offset = 0;
 	vector < float > diffs;
@@ -669,10 +669,17 @@ void TestClust(){
 //-------------------Visualizing Trees and Clusters----------------------------
 
 //Writes a distance matrix to a file to be read by another program
-void write_dmatrix(vector <vector < unsigned int > > dmatrix, string filename){
+void write_dmatrix(vector <vector < unsigned int > > dmatrix, string filename, bool overwrite){
 	ofstream cfile;
-	cfile.open("./temp/" + filename, ios::out | ios::trunc);
-	cfile << dmatrix.size() << endl; //Adds necessary value to top of file for dredviz
+	//Checks to see if necessary to overwrite any existing file. Only doesn't overwrite in the case 
+	//of write_dmatrix_dred, which has already overwritten any existing file with a single line we
+	//want to keep
+	if(overwrite){
+		cfile.open("./temp/" + filename, ios::out | ios::trunc);
+	}
+	else{
+		cfile.open("./temp/" + filename, ios::out | ios::app);
+	}
 	for (unsigned int i = 0; i < dmatrix.size(); i++){//for each tree
 		for(unsigned int j = 0; j < dmatrix.size(); j++){//for each other tree
 			if(i == j){
@@ -688,6 +695,82 @@ void write_dmatrix(vector <vector < unsigned int > > dmatrix, string filename){
 	cout << "created " << filename << endl;
 }
 
+//Wrapper function for write_dmatrix that adds an extra line used by dredviz
+void write_dmatrix_dred(vector <vector <unsigned int > > dmatrix, string filename){
+	ofstream cfile;
+	cfile.open("./temp/" + filename, ios::out | ios::trunc);
+	cfile << dmatrix.size() <<endl; //Adds necessary value to top of file for dredviz
+	cfile.close();
+	write_dmatrix(dmatrix, filename, false);
+}
+
+//Displays a heatmap for the given set of trees (and stores it to a filename) based on a distance type
+void display_heatmap(set <unsigned int> treeset, string filename, string dist_type){
+
+	//Stores the distance matrix and prints it to a file
+	vector <vector < unsigned int> > distances = compute_bipart_distances(treeset, dist_type);
+	string dmatrixfile;
+	dmatrixfile = filename + "_matrix";
+	write_dmatrix(distances, dmatrixfile, true);
+
+	//Values necessary in the heatmap
+	unsigned int maxdist = 0;
+	float range = treeset.size() - .5;
+
+	//Obtain the maximum distance in the distance matrix
+	for(unsigned int i = 0; i < distances.size(); i++){//for each tree
+		for(unsigned int j = 0; j < distances[i].size(); j++){//for each other tree
+			if(distances[i][j] > maxdist){
+				maxdist = distances[i][j];
+			}
+		}
+	}
+
+	//Opens a stream to write to a file
+	ofstream cfile;
+	cfile.open("./temp/dis_heatmap.p", ios::out | ios::trunc);
+//Commands for gnuplot script to run
+	//Sets file output type and name
+	cfile << "# set terminal png transparent nocrop enhanced font arial 8 size 420, 320" << endl;	
+	cfile << "set output '" + filename + ".png'" << endl;
+	//Establishes basic heatmp format
+	cfile << "set bar 1.000000" << endl;
+	cfile << "set style rectangle back fc lt -3 fillstyle solid 1.00 border -1" << endl;
+	cfile << "unset key" << endl;
+	cfile << "set view map" << endl;
+	cfile << "set xtics border in scale 0,0 mirror norotate offset character 0, 0, 0" << endl;
+	cfile << "set ytics border in scale 0,0 mirror norotate offset character 0, 0, 0" << endl;
+	cfile << "set ztics border in scale 0,0 mirror norotate offset character 0, 0, 0" << endl;
+	cfile << "set nocbtics" << endl;
+	//Sets a title to be used
+	cfile << "set title \"" + filename + "\"" << endl;
+	//Sets the ranges and labels for display
+	cfile << "set rrange [ * : * ] noreverse nowriteback # (currently [20.0000:0.0000])" << endl;
+	cfile << "set trange [ * : * ] noreverse nowriteback # (currently [-5.0000:0.0000])" << endl;
+	cfile << "set urange [ * : * ] noreverse nowriteback # (currently [-5.0000:0.0000])" << endl;
+	cfile << "set vrange [ * : * ] noreverse nowriteback # (currently [-5.0000:0.0000])" << endl;
+	//xrange and later yrange are based on the number of trees
+	cfile << "set xrange [ -0.500000 : " << range << " ] noreverse nowriteback" << endl;
+	cfile << "set ylabel offset character 0, 0 , 0 font \"\" textcolor lt -1 rotate by 90" << endl;
+	cfile << "set y2label offset character 0, 0, 0 font \"\" textcolor lt -1 rotate by 90" << endl;
+	cfile << "set yrange [ -0.500000 : " << range << " ] noreverse nowriteback" << endl;
+	cfile << "set cblabel \"Distance\"" << endl;
+	cfile << "set cblabel offset character 0, 0, 0 font \"\" textcolor lt -1 rotate by 90" << endl;
+	//The maximum distance will be one end of the spectrum in the heatmap
+	cfile << "set cbrange [ 0.00000 : " << maxdist << " ] noreverse nowriteback" << endl;
+	cfile << "set locale \"C\"" << endl;
+	//Determines the color palette, this is a fairly good standard for a heatmap I think
+	cfile << "set palette rgb 33, 13, 10" << endl;
+	cfile << "splot './temp/" + dmatrixfile +  "' matrix with image" << endl;
+	//Pauses to allow the data to be displayed
+	cfile << "pause -1" << endl;
+	cfile.close();
+	//String runs gnuplot on the script file and displays
+	string cmdstring = "gnuplot \"./temp/dis_heatmap.p\"";
+	cout << cmdstring << endl;
+	system(cmdstring.c_str());
+}
+	
 //Computes the multidimensional scaling of the input trees based on the given scaling type (nerv or lmds)
 //takes in a vector for its treeset because order matters
 void compute_mds(vector <unsigned int> treeset, string type, string filename, string dist_type){
@@ -695,8 +778,8 @@ void compute_mds(vector <unsigned int> treeset, string type, string filename, st
 	vector < vector < unsigned int > > distances = compute_bipart_distancesv(treeset, dist_type);
 	string dmatrixfile;
 	//Creates a filename for the matrix file that must be written
-	dmatrixfile = filename + "matrix";
-	write_dmatrix(distances, dmatrixfile);
+	dmatrixfile = filename + "_matrix";
+	write_dmatrix_dred(distances, dmatrixfile);
 	//Runs dredviz to compute the multidimensional scaling
 	string cmdstring = "../dredviz/dredviz-1.0.2/" + type + " --inputdist " + "./temp/" + dmatrixfile + " --outputfile " + "./temp/" + filename;
 	cout << cmdstring << endl;
@@ -766,10 +849,10 @@ void display_clusters(string type, string dist_type, vector < set < unsigned int
 			cfile << "title 'Cluster : ";
 			cfile << i;
 			cfile << "'";
-			cfile << " , ";
 
 		}
 		else if(i == clusters.size() -1){
+			cfile << " , ";
 			cfile << " \"temp/clustersDisplay\"";
 			cfile << " every ::";
 			//Starting line
@@ -782,6 +865,7 @@ void display_clusters(string type, string dist_type, vector < set < unsigned int
 			cfile << "'";
 		}
 		else{
+			cfile << " , ";
 			cfile << " \"temp/clustersDisplay\"";
 			cfile << " every ::";
 			cfile << offset;
@@ -792,13 +876,13 @@ void display_clusters(string type, string dist_type, vector < set < unsigned int
 			cfile << "title 'Cluster : ";
 			cfile << i;
 			cfile << "'";
-			cfile << " , ";
 
 		}
 	}
 	//Keeps gnuplot from closing
 	cfile << endl;
 	cfile << "pause -1" << endl;
+	cfile.close();
 	//Runs gnuplot and displays the data
 	string cmdstring = "gnuplot \"./temp/clustergraph.p\"";
 	system(cmdstring.c_str());
@@ -807,10 +891,17 @@ void display_clusters(string type, string dist_type, vector < set < unsigned int
 //Various tests used in setting up cluster display and MDS
 void mdsTests(){
 	vector< vector < unsigned int> > distances;
-	vector <unsigned int> treeset;
+	vector <unsigned int> treevect;
 	for (unsigned int i = 0; i < 11; i++){
-		treeset.push_back(i);
+		treevect.push_back(i);
 	}
+
+	set <unsigned int> treeset;
+	for (unsigned int i = 0; i < 11; i++){
+		treeset.insert(i);
+	}
+
+//	display_heatmap(treeset,"test", "rf");
 //	vector <unsigned int> vect1;
 //	vector<unsigned int> vect2;
 
@@ -822,7 +913,7 @@ void mdsTests(){
 //	}
 //	cout << endl;
 
-	write_dmatrix(compute_bipart_distancesv(treeset, "rf"), "heatmaptest");
+//	write_dmatrix(compute_bipart_distancesv(treeset, "rf"), "heatmaptest");
 
 //	vect2.push_back(2);
 //	vect2.push_back(0);

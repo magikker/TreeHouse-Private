@@ -1265,6 +1265,18 @@ pqlsymbol * u_display_clusters(vector<pqlsymbol *> arglist){
 	return result;
 }
 
+pqlsymbol * u_display_heatmap(vector<pqlsymbol *> arglist){
+	pqlsymbol * result = new pqlsymbol();
+	if (arglist.size() == 3 && arglist[0]->is_treeset() && arglist[1]->is_string() && arglist[2]->is_string()){
+		display_heatmap(arglist[0]->get_treeset(), arglist[1]->get_string(), arglist[2]->get_string());
+	}
+	else{
+		cout << "display_heatmap expectes a treeset, a string filename, and a string dist_type as input. Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
+
 pqlsymbol * u_show(vector<pqlsymbol * > arglist) {  
   pqlsymbol * result = new pqlsymbol();
   string mode = "";
@@ -2024,6 +2036,7 @@ void init_the_functs()
 
 	//visualization
 	add_function("display_clusters", &u_display_clusters, "Displays a gnuplot graph of the trees color coded by cluster");
+	add_function("display_heatmap", &u_display_heatmap, "Displays a gnuplot heatmap of the input trees using the given distance measure");
 	add_function("show", &u_show, "Displays images of the specified tree or trees (Int, IntVect, or Treeset). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
 	add_function("show_newick", &u_show_newick, "Displays images of the specified Newick strings (String or StringVect). Takes an optional String mode argument ('ortho' or 'radial') to display an SVG image. Default mode is text.");
 	add_function("export", &u_export, "Exports images of the specified tree or trees (Int, IntVect, or Treeset) to the specified folder path (String). Takes an optional String mode argument ('ortho' or 'radial') to export an SVG image. Default mode is text.");

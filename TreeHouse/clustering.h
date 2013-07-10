@@ -37,6 +37,10 @@ void mdsTests();
 //Uses mds to display clusters in gnuplot
 void display_clusters(string type,string dist_type, vector <set < unsigned int > >clusters);
 
+//Displays a heatmap of the distances of the given treeset based on the given dist_type
+void display_heatmap(set <unsigned int> treeset, string filename, string dist_type);
+
+//Test for clustering functions
 void TestClust();
 
 #endif
