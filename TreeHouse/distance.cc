@@ -275,6 +275,233 @@ double depth_variance(unsigned int tree){
   return sumOfSquares/(double)treeDepths.size();
 }
 
+double calculate_C(unsigned int tree){
+  return calculate_C(to_newick(tree));
+}
+
+double calculate_C(string nw){
+  //C is defined as 2/( n(n-3)+2 ) * (summation from 1 to n-1)(ri - si)
+  //where ri and si are the number of taxa to the right and left of each internal node 
+  //and ri>si
+
+  //theorem- in a newick string of a bifurcating tree, each opening parenthesis represents an internal node of the tree
+  unsigned int total = 0;
+  pair<int, int> x = numLeftRight(nw, total);
+  cout << "calculate_C: total is: " << total << endl;
+  size_t num_taxa = count(nw.begin(), nw.end(), ',') + 1; //count the number of commas, add one, to get NumTaxa
+  double multiplier = 2.0 / ( ( (double)num_taxa * (double)(num_taxa-3) ) + 2.0);
+  return multiplier * (double)total;  
+
+}
+
+pair<int, int> numLeftRight(string nw, unsigned int &total){
+  //helper function for calculate_C, returns the number of taxa to the left and right of an internal node
+  
+  //remove spaces in string:
+  nw.erase(std::remove_if(nw.begin(), nw.end(), ::isspace), nw.end());
+  cout << "CALLING NUMLEFTRIGHT ON " << nw << endl;
+
+  //BASE CASE 1- we have a singleton taxa, as in "A". Return pair(1,0)
+  //BASE CASE 2- we have a closing paren before we see another opening pair, as in the case of (A,B). 
+  //	return pair(1,1)
+  //RECURSIVE CASE- we encounter an opening paren, as is the case of ((A,B),(C,D)). 
+	//since the tree is bifurcating, there must be at most TWO substrings, where the first is started
+	//by the first opening paren, and the second is started after the closing of the first opening paren
+	//for instance, the Newick String  ((A,B),(C,D),E,F) should never be encountered
+
+  //now to detect each base:
+  //base case 1- string starts with a single (
+  //base case 2- string does not start with a paren
+  //recursive case- string starts with ((
+
+  if(nw.length() < 1){
+	return make_pair(0,0);
+	}
+  //now we know the string has at least one character; check what the first one is
+  if(nw.at(0)=='('){ //we're in either base case 1 or recursive case
+	if(nw.size()<2){
+		cout << "numLeftRight error: input string is '(', this shouldn't happen\n";
+		return make_pair(0,0);
+		}
+	if(count(nw.begin()+1, nw.end(), '(') == 0){ //there are no more left parents, BASE CASE 2
+		return make_pair(1,1);
+		}
+	else{ //RECURSIVE CASE
+		//now we need to find the two branches of and call numLeftRight on both
+		if(nw.at(1)!='('){
+		//case one- we have a NwString like (A,(B,C)), i.e. second character in this string 
+			//isn't a left paren. 
+			int l = 1;
+			int r = 0;
+			//find the next opening paren
+			size_t firstParen = nw.find("(", 1); //don't search first character
+			if(firstParen==string::npos){
+				cout << "ERROR- could not find opening paren in numLeftRight\n";
+				}
+			else{
+				string right = nw.substr(firstParen, nw.length()-firstParen);
+				cout << "recursive case 1- calling on " << right << endl;
+				r = sumPair(numLeftRight(right, total));
+				}
+			total += abs (l - r);
+			cout << abs (l - r) << " added to total for string " << nw << endl;
+			return make_pair(l, r);
+			}
+		else{ //we know string starts with "(("
+			//find the split between each branch of the tree
+			int numParens = 1; int index = 2;
+			while(numParens>0 && index < nw.length()){
+				if(nw.at(index)=='('){
+					numParens++;
+					}
+				else if(nw.at(index)==')'){
+					numParens--;
+					}
+				if(numParens!=0){
+					++index;
+					}
+				}
+			//now we have the index of the closing paren after the first opening paren
+			//there should be a comma after this index
+			if(!nw.at(index+1)==','){
+				cout << "recursive case error! expected comma to split up left and right!\n";
+				}
+			string leftString = nw.substr(1, index);
+			string rightString = nw.substr(index+2, nw.length()-index-3);
+			cout << "recursive call: performing numLeftRight on " << leftString << " and " << rightString << " from original " << nw << endl;
+			int left = sumPair( numLeftRight(leftString, total) );
+			int right = sumPair( numLeftRight( rightString, total) );
+			total += abs (left - right);
+			cout <<abs (left - right) << " added to total for string " << nw << endl;
+			return make_pair(left,right);
+			}	
+		}
+	}
+  else{ //BASE CASE 1
+	return make_pair(1,0);
+	}
+}
+
+bool isBifurcating(string nw){
+  return isBifurcating(nw, 0);
+}
+
+bool isBifurcating(string nw, int depth){
+  cout << "calling isBifurcating on " << nw << endl;
+  bool retVal = true;
+
+  //remove spaces in string:
+  nw.erase(std::remove_if(nw.begin(), nw.end(), ::isspace), nw.end());
+  if(nw.length()<2){
+	cout << "isBifurcating error: newick string input size is " << nw.length() << endl;
+	return false;
+	}	
+
+  //make sure the string starts with a paren
+  if(nw.at(0)!='('){
+	cout << "isBifurcating error! The newick string doesn't start with a paren! Starts with " << nw.at(0) << endl;
+	return false;
+	}
+  //now we know that the 0th index is an opening paren. 
+
+  int degree = 0;
+  int index = 1;
+ 
+  while(nw.length() > index){ //OUTER WHILE LOOP- looks for branches off of root node
+	//all we care about is commas, which indicate we just hit a taxon, and parens, which indicate we found nesting
+	if(nw.at(index)==','){
+		//we just went over a taxon or a paren unit, add to degree
+		degree++;
+		if(degree>2){
+		cout << "The tree isn't bifurcating! Found at depth " << depth << endl;
+		return false;
+		}
+		index++;
+		}
+	else if(nw.at(index)=='('){
+		//we found a new level of nesting! Recursively call it and skip to when we find a closing paren
+		int startIndex = index;	//store the index where we encounter the opening paren	
+		depth++;
+		int parenNesting = 1;
+		//find where the matching closing paren is
+		index++;
+		while(parenNesting!=0){
+			if(nw.at(index)=='('){
+				parenNesting++;
+				}
+			else if(nw.at(index)==')'){
+				parenNesting--;
+				}
+			if(parenNesting!=0){index++;}
+			}
+		int endIndex = index; //this is where the nested newick branch ends
+		//we still have a little work to do- skip to after the next comma, because other this function won't work on ((A,B),(C,D)), for example
+	/*	while(index < nw.length()){
+			if(nw.at(index)!='('){			
+				index++;
+				}
+			else{
+				break;
+				}
+			}*/
+		index++;
+		retVal = retVal & isBifurcating(nw.substr(startIndex, endIndex-startIndex+1), depth);
+		}
+	else if(nw.at(index)==')'){
+		cout << "closing paren found at index " << index << " on string " << nw << endl;		
+		degree++; //add to degree for instances like (A,B)
+			  //the code should only hit a closing paren if it the Nw string didn't start with two opening parens
+		index++;
+
+		}
+	else{
+		index++;
+		}
+	}
+
+  cout << "on NwString " << nw << ", degree is " << degree << endl;
+  return (degree==2);
+
+}
+
+
+void testIsBifurcating(){
+  string nw = "((A,B),C)";
+  cout << isBifurcating(nw) << endl;
+  nw = "((A,B),(C,D))";
+  cout << isBifurcating(nw) << endl;
+  nw = "(A,B)";
+  cout << isBifurcating(nw) << endl;
+  nw = "(A,(B,C))";
+  cout << isBifurcating(nw) << endl;
+  //now the following tests should NOT be bifurcating
+  nw = "((A,B),(C,D), (E,F))";
+  cout << isBifurcating(nw) << endl;
+  nw = "(A,B,C,D)";
+  cout << isBifurcating(nw) << endl;
+  nw = "(((A,B),(C,D)))";
+  cout << isBifurcating(nw) << endl;
+  nw = "(A)";
+  cout << isBifurcating(nw) << endl;
+}
+
+int sumPair(pair<int, int> x){
+  return x.first + x.second;
+}
+
+
+void testCalculateC(){
+  cout << "calculating left and right pairs:\n";
+  string nw = "((A,B), (B,C))";
+  nw = "( ( (A,B), (C,(D,(E,F)))), G)";
+ // string nw2 = 
+  //nw = "(B,C)";
+  unsigned int total = 0;
+  pair<int,int> lr = numLeftRight(nw, total);
+  cout << lr.first << ", " << lr.second << endl;
+  cout << "total is: " << total << endl;
+}
+
 
 vector<unsigned int> checkForDuplicateBitstrings(){
   vector<unsigned int> retVec;
@@ -344,24 +571,8 @@ unsigned int hamming_distance_greedy(unsigned int tree1, unsigned int tree2){
  //we need to make sure the rf distance is non-0 or else the program will crash!
  if(rf.size()!=0){
 	 //now, calculate the XOR matrix
-	 vector< vector <int> > hamming;
-
-	 for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
-	  	vector<int> h;
-		boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
-		for(set<unsigned int>::iterator j = rf2.begin(); j!=rf2.end(); j++){ //unique biparts to tree 2 are columns
-			int XORdistance = 0;		
-			boost::dynamic_bitset<> bj = biparttable.non_trunc_bitstring(*j);
-			for(int x = 0; x < bi.size(); x++){
-				if(bi[x]^bj[x]) {		
-					XORdistance++;
-					}
-				}
-			h.push_back(XORdistance);
-			}
-		hamming.push_back(h); //add new row to the hamming matrix
-		}
-
+	 vector< vector <int> > hamming = hammingDistanceMatrixVector(rf, rf2);
+	
 	  //now we have the matrix of hamming distances. 
 	  //keep a sorted list of all the indeces we have to explore
 
@@ -417,32 +628,14 @@ double hamming_distance_average(unsigned int tree1, unsigned int tree2){
 
 unsigned int hamming_distance_minimum(unsigned int tree1, unsigned int tree2){
 
- unsigned int total = 0; 
  pair<set<unsigned int>, set<unsigned int>> rfs = rfDistanceSet(tree1, tree2);
  set<unsigned int> rf, rf2;
  rf = rfs.first; rf2 = rfs.second;
 
 
   if(rf.size()!=0){
-	 //now, calculate the XOR matrix
-	 vector< set <int> > hamming;
 
-	 for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
-	  	set<int> h;
-		boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
-		for(set<unsigned int>::iterator j = rf2.begin(); j!=rf2.end(); j++){ //unique biparts to tree 2 are columns
-			int XORdistance = 0;		
-			boost::dynamic_bitset<> bj = biparttable.non_trunc_bitstring(*j);
-			for(int x = 0; x < bi.size(); x++){
-				if(bi[x]^bj[x]) {		
-					XORdistance++;
-					}
-				}
-			h.insert(XORdistance);
-			}
-		hamming.push_back(h); //add new row to the hamming matrix
-		}
-
+  	vector< set <int> > hamming = hammingDistanceMatrixSet(rf, rf2);
 	 //now we have the a vector of sets for each bipartition. Take the min from each set (i.e. first element)
 	  unsigned int acc = 0;
 	  for(vector<set<int>>::iterator i = hamming.begin(); i!=hamming.end(); i++){
@@ -455,6 +648,38 @@ unsigned int hamming_distance_minimum(unsigned int tree1, unsigned int tree2){
   else{
 	return 0;
 	}
+}
+
+double hamming_distance_minimum_coverage(unsigned int tree1, unsigned int tree2){
+//returns the minimum hamming distance AND what proportion of the columns were covered
+
+	pair<set<unsigned int>, set<unsigned int>> rfs = rfDistanceSet(tree1, tree2);
+	set<unsigned int> rf, rf2;
+	rf = rfs.first; rf2 = rfs.second;
+	set<unsigned int> coverSet; //keeps track of which biparts in rf2 have had their hamming distance added to total;
+	  if(rf.size()!=0 && rf2.size()!=0){
+		 //now, calculate the XOR matrix
+		 vector< vector <int> > hamming = hammingDistanceMatrixVector(rf, rf2);
+
+		 //now we have the a vector of sets for each bipartition. Take the min from each set (i.e. first element)
+		  for(unsigned int i = 0; i < hamming.size(); i++){
+			//printVectorCompact(hamming.at(i));
+			int min = hamming.at(i).at(0);
+			int minIndex = 0;		
+			for(unsigned int j = 0; j < hamming.at(i).size(); j++){
+				if(hamming.at(i).at(j) < min){
+					minIndex = j;
+					min = hamming.at(i).at(j);
+					}
+				}
+				coverSet.insert(minIndex);
+			}
+		return (double)coverSet.size() / (double)rf2.size();
+		}
+
+	  else{
+		return 0;
+		}
 }
 
 
@@ -470,6 +695,48 @@ unsigned int rfDistance(int tree1, int tree2){
   set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
   return (rf.size() + rf2.size()) / 2;
 
+}
+
+vector<set<int>> hammingDistanceMatrixSet(set<unsigned int> rf, set<unsigned int> rf2){
+  //calculate the all-to-all hamming distance between bipartitions in rf and rf2
+  vector< set<int> > hamming;
+  for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
+  	set<int> h;
+	boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
+	for(set<unsigned int>::iterator j = rf2.begin(); j!=rf2.end(); j++){ //unique biparts to tree 2 are columns
+		int XORdistance = 0;		
+		boost::dynamic_bitset<> bj = biparttable.non_trunc_bitstring(*j);
+		for(int x = 0; x < bi.size(); x++){
+			if(bi[x]^bj[x]) {		
+				XORdistance++;
+				}
+			}
+		h.insert(XORdistance);
+		}
+	hamming.push_back(h); //add new row to the hamming matrix
+	}
+  return hamming;
+}
+
+vector<vector<int>> hammingDistanceMatrixVector(set<unsigned int> rf, set<unsigned int> rf2){	 
+
+  vector< vector <int> > hamming;
+	 for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
+	  	vector<int> h;
+		boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
+		for(set<unsigned int>::iterator j = rf2.begin(); j!=rf2.end(); j++){ //unique biparts to tree 2 are columns
+			int XORdistance = 0;		
+			boost::dynamic_bitset<> bj = biparttable.non_trunc_bitstring(*j);
+			for(int x = 0; x < bi.size(); x++){
+				if(bi[x]^bj[x]) {		
+					XORdistance++;
+					}
+				}
+			h.push_back(XORdistance);
+			}
+		hamming.push_back(h); //add new row to the hamming matrix
+		}
+	return hamming;
 }
 
 pair<set<unsigned int>, set<unsigned int>> rfDistanceSet(int tree1, int tree2){
@@ -494,29 +761,33 @@ void printRFset(int tree1, int tree2){
 
 
 void testDistance(){
- 
-testHamming();
+ testIsBifurcating();
+//testCalculateC();
+//testHamming();
 //testNewick();
 //testDepthVariance();
 
 
 }
 
+
 void testHamming(){
- for(int i = 234; i < 236; i++){
-	for(int j = 1000; j < 2000; j++){
+ for(int i = 250; i < 300; i++){
+	for(int j = 1000; j < 1050; j++){
+		unsigned int rf, min;
 		cout << "\nTesting hamming for " << i << " " << j << ":\n";
-		cout << "	rf distance = " << rfDistance(i, j);
+                cout << "	rf distance = " << (rf = rfDistance(i, j));
 		cout << ", HDG = " << hamming_distance_greedy(i,j);
 	//hamming_distance_greedy(i,j);
 	//hamming_distance_total(i,j);
 	//hamming_distance_total(i,j);
 		cout << ", HDT = " << hamming_distance_total(i,j);
 		cout << ", HDA = " << hamming_distance_average(i,j);
-		cout << ", HDM = " << hamming_distance_total(i,j);
-
+		cout << ", HDM = " << (min = hamming_distance_minimum(i,j));
+		cout << "\n HDM ave = " << (double)min/(double)rf;
+		cout << "HDMC: " << hamming_distance_minimum_coverage(i,j);
 		}
-	cout << "done with " << i << endl;
+	//cout << "done with " << i << endl;
 	}
 cout << endl;
 
