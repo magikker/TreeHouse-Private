@@ -112,31 +112,14 @@ std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsign
 
 
 //Computes various distance measures based on bipartitions, used to compute the distance matrix of given trees through two wrapper functions
-vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int> > biparts, string measure){
+vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int> > biparts, unsigned int switch_value){
 	//Return Value
 	vector< vector <unsigned int> > distances;
-	//Holds the value for the distance type switch
-	unsigned int switch_value;
 
 	distances.resize(biparts.size(), vector< unsigned int >(biparts.size(), 0));
 
 	//To set the switch since strings are intuitive to us but not switch statements
-	if (measure == "rf" || measure == "RF" || measure == "Rf"){
-		switch_value = 0;
-	}
-	else if (measure == "eu" || measure == "EU" || measure == "Eu" || measure == "euclidean"
-			|| measure == "Euclidean"){
-		switch_value = 1;
-	}
-	else if (measure == "j-t" || measure == "jaccard-tanimoto"){
-		switch_value = 2;
-	}
-	else if (measure == "dice" || measure == "Dice"){
-		switch_value = 3;
-	}
-//	else if (measure == "r-r" || measure == "russel-rao"){
-//		switch_value = 4;
-//	}
+
 
 	for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
 		for (unsigned int j = 1; j < biparts.size(); j++){//for all others
@@ -176,7 +159,7 @@ vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int>
 			//	case 4: //Russel-Rao distance
 		//			dist = (a / m);
 			//		break;
-					default: //No proper distance measure given
+				default: //No proper distance measure given
 					cout << "Unknown Distance measure given.";
 					break;
 			}
@@ -198,45 +181,85 @@ vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int>
 	return distances;
 }
 
-//Wrapper for bipart_distances, takes in a vector of trees for when some ordering of the trees matters and
-//a set reordering them would be a problem (important for the cluster visualization)
-vector < vector<unsigned int> > compute_bipart_distancesv(vector <unsigned int> treevect, string measure){
+//Computes and returns a distance matrix, uses the included string to determine the distance measure to be used
+//accepts a treeset which is the most general representation
+vector < vector <unsigned int> > compute_distances(set <unsigned int> treeset, string measure){
 	//Return Value
 	vector < vector <unsigned int> > distances;
-	//Holds bipartitions
-	vector <vector <unsigned int> > biparts;
 
-	for(unsigned int i = 0; i < treevect.size(); i++){//for each tree
-		biparts.push_back(::biparttable.inverted_index.at(treevect[i]));
+	//Holds the string converted to a switch value
+	unsigned int switch_value;
+
+	if (measure == "rf" || measure == "RF" || measure == "Rf"){
+		switch_value = 0;
 	}
+	else if (measure == "eu" || measure == "EU" || measure == "Eu" || measure == "euclidean"
+			|| measure == "Euclidean"){
+		switch_value = 1;
+	}
+	else if (measure == "j-t" || measure == "jaccard-tanimoto"){
+		switch_value = 2;
+	}
+	else if (measure == "dice" || measure == "Dice"){
+		switch_value = 3;
+	}
+//	else if (measure == "r-r" || measure == "russel-rao"){
+//		switch_value = 4;
+//	}
 
-	//Passes the bipartitions off to the actual distance computation
-	distances = bipart_distances(biparts, measure);
-	
-	return distances;
-}
-
-//Wrapper for bipart_distances, takes in a set of trees, this being the most common way of passing around trees
-vector < vector <unsigned int> > compute_bipart_distances(set <unsigned int> treeset, string measure){
-	//Return Value
-	vector < vector <unsigned int > >distances;
-	//Holds Bipartitions
-	vector < vector < unsigned int> > biparts;
-
-	//For certain distance measures, temporarily on hold
-	//int m; //# unique bipartitions
-	//m = unique_biparts(treeset);
-	
-	//Computes the bipartitions
-	for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
+	if(switch_value < 5){
+		vector < vector < unsigned int> > biparts;
+		//Computes the bipartitions
+		for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
 		biparts.push_back(::biparttable.inverted_index.at(*pos));
+		}	
+
+		distances = bipart_distances(biparts, switch_value);
 	}
 	
-	//Passes the bipartitions off to the actual distance computation
-	distances = bipart_distances(biparts, measure);
-
 	return distances;
 }
+
+//Computes and returns a distance matrix, uses the included string to determine the distance measure to be used
+//accept a vector of trees for when order needs to be maintained (clustering visualization).
+vector < vector <unsigned int> > compute_distances(vector <unsigned int> treevect, string measure){
+	//Return Value
+	vector < vector <unsigned int> > distances;
+
+	//Holds the string converted to a switch value
+	unsigned int switch_value;
+
+	if (measure == "rf" || measure == "RF" || measure == "Rf"){
+		switch_value = 0;
+	}
+	else if (measure == "eu" || measure == "EU" || measure == "Eu" || measure == "euclidean"
+			|| measure == "Euclidean"){
+		switch_value = 1;
+	}
+	else if (measure == "j-t" || measure == "jaccard-tanimoto"){
+		switch_value = 2;
+	}
+	else if (measure == "dice" || measure == "Dice"){
+		switch_value = 3;
+	}
+//	else if (measure == "r-r" || measure == "russel-rao"){
+//		switch_value = 4;
+//	}
+
+	if(switch_value < 5){
+		vector < vector < unsigned int> > biparts;
+		//Computes the bipartitions
+		for(unsigned int i = 0; i < treevect.size(); i++){//for each tree
+			biparts.push_back(::biparttable.inverted_index.at(treevect[i]));
+		}
+
+		distances = bipart_distances(biparts, switch_value);
+	}
+	
+	return distances;
+}
+
+
 	
 
 //Various tests that have been used for the distance functions
@@ -246,11 +269,6 @@ void TestDist(){
 	test_trees.insert(2);
 	test_trees.insert(3);
 	test_trees.insert(4);
-
-//	cout << "rf distance" << endl;
-//	compute_bipart_distances(test_biparts, "rf");
-//	cout << "euclidean distance" << endl;
-//	compute_bipart_distances(test_biparts, "eu");
 }
 
 //Returns the vector of taxa which are present in all of the input trees

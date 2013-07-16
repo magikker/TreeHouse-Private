@@ -28,9 +28,9 @@ std::vector<string> distinguishing_taxa(set<unsigned int> inputtrees1, set<unsig
 
 std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2);
 
-vector < vector < unsigned int>> compute_bipart_distances(set <unsigned int> treeset, string dist_type);
+vector < vector < unsigned int>> compute_distances(set <unsigned int> treeset, string dist_type);
 
-vector < vector <unsigned int>> compute_bipart_distancesv(vector <unsigned int> treeset, string dist_type);
+vector < vector <unsigned int>> compute_distances(vector <unsigned int> treevect, string dist_type);
 
 void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned int tree, int iterations, string folder);
    
