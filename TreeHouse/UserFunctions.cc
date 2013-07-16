@@ -1842,8 +1842,15 @@ pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
 
 pqlsymbol * u_distinguishing_taxa(vector<pqlsymbol * > arglist){
 	pqlsymbol * result;
-	if (arglist[0]->is_treeset() && arglist[1]->is_treeset() ){
-		result = new pqlsymbol(distinguishing_taxa(arglist[0]->get_treeset(), arglist[1]->get_treeset()));
+	if (arglist.size()==3)
+	{	
+		if(arglist[0]->is_treeset() && arglist[1]->is_treeset() ){
+			result = new pqlsymbol(distinguishing_taxa(arglist[0]->get_treeset(), arglist[1]->get_treeset()));
+		}
+		else{
+			cout << "u_distinguishing_taxa expects two treesets"  << "Found " << get_arg_types(move(arglist)) << endl;
+			result = new pqlsymbol(ERROR, "Type Error");
+			}
 	}
 	else{
 		cout << "u_distinguishing_taxa expects two treesets"  << "Found " << get_arg_types(move(arglist)) << endl;
@@ -1860,6 +1867,10 @@ pqlsymbol * u_distance_between_taxa(vector<pqlsymbol * > arglist){
 	  if(arglist[0]->is_int() && arglist[1]->is_int() && arglist[2]->is_int()){
 	  result = new pqlsymbol(distance_between_taxa(arglist[0]->get_int(), arglist[1]->get_int(), arglist[2]->get_int()));
 	  }
+	  else{
+	cout << "distance_between_taxa expects three ints, taxon1 taxon2 and tree. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+		}
   } 
   else {
 	cout << "distance_between_taxa expects three ints, taxon1 taxon2 and tree. "  << "Found " << get_arg_types(move(arglist)) << endl;
@@ -1930,10 +1941,19 @@ pqlsymbol * u_average_distance_between_taxa(vector<pqlsymbol * > arglist){
 	  result = new pqlsymbol(average_distance_between_taxa(arglist[0]->get_int(), arglist[1]->get_int()));
 	  }
   } 
-  else {
-	cout << "average_distance_between_taxa expects two ints, i.e. two taxa. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  else if (arglist.size()==3) {
+	if(arglist[0]->is_int() && arglist[1]->is_int() && arglist[2]->is_treeset()){
+		result = new pqlsymbol(average_distance_between_taxa(arglist[0]->get_int(), arglist[1]->get_int(), arglist[2]->get_treeset()));
+		}
+	else{ cout << "average_distance_between_taxa expects two ints, i.e. two taxa, and an optional treeset. "  << "Found " << get_arg_types(move(arglist)) << endl;
 	result = new pqlsymbol(ERROR, "Type Error");
+	}
   	}
+  else{
+	cout << "average_distance_between_taxa expects two ints, i.e. two taxa, and an optional treeset. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+
+	}
 
   return result;
 }
