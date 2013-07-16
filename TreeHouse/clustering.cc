@@ -100,7 +100,7 @@ vector<float> silhouette (vector< set <unsigned int>  > inputclusts, string dist
 		}
 	}
 	//Finds and stores the distances
-	distances = compute_bipart_distances(treeset, dist_type);
+	distances = compute_distances(treeset, dist_type);
 
 	//Computes diff_within_cluster
 	diff_within_cluster = diff_to_own_clusters(inputclusts, distances);
@@ -166,6 +166,102 @@ vector<float> silhouette (vector< set <unsigned int>  > inputclusts, string dist
 
 	return cwidth;
 }
+
+//Returns a set of pairs representing the trees which share a cluster in the input cluster set
+set <pair <unsigned int, unsigned int> > get_cluster_pairs (vector < set < unsigned int> > clusters){
+	set <pair <unsigned int, unsigned int> > retset;
+	
+	//Inserts the pairings of trees which share a cluster into the return set
+	for(unsigned int i = 0; i < clusters.size(); i++){//for each cluster
+		for(std::set<unsigned int>::iterator pos = clusters[i].begin(); pos != clusters[i].end(); ++pos){//for each tree in cluster
+			for(std::set<unsigned int>::iterator pos2 = clusters[i].begin(); pos2 != clusters[i].end(); ++pos2){//for each other tree in cluster
+				if(*pos != *pos2){
+				retset.insert(make_pair(*pos, *pos2));
+				}
+			}
+		}
+	}
+	return retset;
+}
+
+//Returns a set of pairs representing the trees which do not share a cluster in the input cluster set
+//(will contain both a pair and its mirror)
+set <pair <unsigned int, unsigned int> > get_unclustered_pairs (vector < set < unsigned int> > clusters){
+	set < pair < unsigned int, unsigned int > > retset;
+
+	//Inserts the pairings of tree which do no share a cluster into the return set
+	for (unsigned int i = 0; i < clusters.size(); i++){//for each cluster
+		for(unsigned int j = 0; j < clusters.size(); j++){//for each other cluster
+			if(i != j){
+			for(std::set<unsigned int>::iterator pos = clusters[i].begin(); 
+					pos != clusters[i].end(); ++pos){//for each tree in the cluster
+				for(std::set<unsigned int>::iterator pos2 = clusters[j].begin(); 
+						pos2 != clusters[j].end(); ++pos2){//for each tree in the other cluster
+					retset.insert(make_pair(*pos, *pos2));
+					retset.insert(make_pair(*pos2, *pos));
+				}
+			}
+			}
+		}
+	}
+	return retset;
+}
+
+//Returns a number between 0 and 1 representing how similar 2 clusterings are, where 1 is identical and 0 is completely different
+float rand_index (vector < set < unsigned int > > clusters1, vector < set < unsigned int > > clusters2){
+	float retvalue;
+	//# of Pairs of trees that are in the same cluster in clusters1, and the same cluster in clusters2
+	unsigned int a;
+	//# of Pairs of trees that are in different clusters in clusters1, and different clusters in cluststers2
+	unsigned int b;
+	//# of Pairs of trees that are clustered together in clusters1, and clustered apart in clusters2
+	unsigned int c;
+	//# of Pairs of trees that are clustered apart in clusters1, and clustered together in clusters2
+	unsigned int d;
+	//Paired trees in clusters1
+	set <pair <unsigned int, unsigned int> > same1;
+	//Paired trees in clusters2
+	set <pair <unsigned int, unsigned int> > same2;
+	//Separated trees in clusters1
+	set <pair <unsigned int, unsigned int> > separate1;
+	//Separated trees in clusters2
+	set <pair <unsigned int, unsigned int> > separate2;
+
+	//Fill the sets
+	same1 = get_cluster_pairs(clusters1);
+	same2 = get_cluster_pairs(clusters2);
+	separate1 = get_unclustered_pairs(clusters1);
+	separate2 = get_unclustered_pairs(clusters2);
+	
+	//Obtain the value to be used for the calculation (a, b, c, d)
+	set<pair <unsigned int, unsigned int> > tempset;
+	set_intersection(same1.begin(), same1.end(), same2.begin(), same2.end(),std::inserter(tempset, tempset.end()));
+	a = tempset.size();
+	tempset.clear();
+
+	set_intersection(separate1.begin(), separate1.end(), separate2.begin(), separate2.end(),std::inserter(tempset, tempset.end()));
+	b = tempset.size();
+	tempset.clear();
+
+	set_intersection(same1.begin(), same1.end(), separate2.begin(), separate2.end(),std::inserter(tempset, tempset.end()));
+	c = tempset.size();
+	tempset.clear();
+
+	set_intersection(separate1.begin(), separate1.end(), same2.begin(), same2.end(),std::inserter(tempset, tempset.end()));
+	d = tempset.size();
+	tempset.clear();
+
+	//Compute the rand index for the clusterings
+	float temp1 = a + b;
+	float temp2 = a + b + c + d;
+
+	retvalue = temp1 / temp2;
+
+	cout << "Rand Index is: " << retvalue << endl;
+	return retvalue;
+}
+
+
 
 
 //--------------------------Forming Clusters----------------------------------
@@ -250,7 +346,7 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, unsi
 
 
 	//Computes the distances
-	distances = compute_bipart_distances(inputtrees, dist_type);
+	distances = compute_distances(inputtrees, dist_type);
 
 
 	//Initialize neighbor_stack with an arbitrary element of remaining (the first one here) ((100 is arbitrary, 
@@ -389,7 +485,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	vector < vector < unsigned int > > centroid_distances;
 
 	//Computes the tree-distances matrix
-//	tree_distances = compute_bipart_distancesv(inputtrees, dist_type);
+//	tree_distances = compute_distancesv(inputtrees, dist_type);
 
 	//Creates a history of centroids
 //	for(unsigned int i = 0; i < k; i++){//k times
@@ -404,7 +500,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	for(std::set<unsigned int>::iterator pos = inputtrees.begin(); pos != inputtrees.end(); ++pos){//for each tree
 		shuffled.push_back(*pos);
 	}
-	tree_distances = compute_bipart_distancesv(shuffled, dist_type);
+	tree_distances = compute_distances(shuffled, dist_type);
 	random_shuffle(shuffled.begin(), shuffled.end());
 	for(unsigned int i = 0; i < k; i++){//while we do not have k clusters
 		set<unsigned int> temp;
@@ -493,7 +589,7 @@ map <unsigned int, vector <unsigned int> > compute_eps_neighborhoods(set <unsign
 	map <unsigned int, vector < unsigned int> > retmap;
 	vector < vector < unsigned int> > distances;
 	//Computes the distance matrix to be used
-	distances = compute_bipart_distances(treeset, dist_type);
+	distances = compute_distances(treeset, dist_type);
 
 	unsigned int i = 0; //Iterates over the trees while also storing the value for the matrix
 	for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
@@ -607,11 +703,39 @@ vector < set < unsigned int > >dbscan_clust(set <unsigned int> treeset, unsigned
 	
 	return retset;
 }
-
+/*
 //A function for determining the trees to throw out after a run of a program such as Mr. Bayes (in the works)
-vector < set < unsigned int > > burnin_clust (set <unsigned int> inputtrees, string dist_type){
-return kmeans_clust(inputtrees, 2,  dist_type);
+vector < set < unsigned int > > burnin_clust (set <unsigned int> treeset, string dist_type){
+	vector < set < unsigned int> > retset;
+	//Stores and computes the distance matrix
+	vector < vector < unsigned int > > distances;
+	distances = compute_distances(treeset, dist_type);
+	
+	//Stores the average distance from each tree to the remaining trees
+	//and the total distance before averaging
+	vector < pair < float, float > > rem_distances;
+
+	//Stores the average distance from each tree to the already clustered trees
+	//and the toal distance before averaging
+	vector < pair < float, float > > past_distances;
+
+	//Fills the rem_distances vector
+	for(unsigned int i = 0; i < treeset.size(); i++){//For each tree
+		float tempsum = 0;
+		for(unsigned int j = 0; j < treeset.size(); j++){//For each other tree
+			if(i != j){
+				tempsum += distances[i][j];
+			}
+			rem_distances.push_back(tempsum, tempsum / treeset.size());
+		}
+	}
+
+	//Fills the past_distances vector to begin
+	for (unsigned int i = 0; i < treeset.size(); i++){//for each tree
+		past_distances.push_back((0,0));
+	}	
 }
+*/
 
 
 //various tests that have been used for clusters
@@ -621,13 +745,16 @@ void TestClust(){
 	for(unsigned int i = 0; i < 11; i++){
 		testset.insert(i);
 	}
+	kmeans_clust(testset, 2, "rf");
+	rand_index(kmeans_clust(testset, 2, "rf"),kmeans_clust(testset,2,"rf"));
+	rand_index(kmeans_clust(testset, 3, "rf"),kmeans_clust(testset,2,"rf"));
 	
-	cout << "First test" << endl;
-	dbscan_clust(testset, 1, 2, "rf");
-	cout << "All trees singular test" << endl;
-	dbscan_clust(testset, 0, 0, "rf");
-	cout << "All trees noise test" << endl;
-	dbscan_clust(testset, 0, 2, "rf");
+	//cout << "First test" << endl;
+	//dbscan_clust(testset, 1, 2, "rf");
+	//cout << "All trees singular test" << endl;
+	//dbscan_clust(testset, 0, 0, "rf");
+	//cout << "All trees noise test" << endl;
+	//dbscan_clust(testset, 0, 2, "rf");
 
 
 	//silhouette(kmeans_clust(testset, 3, "rf"), "rf");
@@ -708,7 +835,7 @@ void write_dmatrix_dred(vector <vector <unsigned int > > dmatrix, string filenam
 void display_heatmap(set <unsigned int> treeset, string filename, string dist_type){
 
 	//Stores the distance matrix and prints it to a file
-	vector <vector < unsigned int> > distances = compute_bipart_distances(treeset, dist_type);
+	vector <vector < unsigned int> > distances = compute_distances(treeset, dist_type);
 	string dmatrixfile;
 	dmatrixfile = filename + "_matrix";
 	write_dmatrix(distances, dmatrixfile, true);
@@ -773,9 +900,9 @@ void display_heatmap(set <unsigned int> treeset, string filename, string dist_ty
 	
 //Computes the multidimensional scaling of the input trees based on the given scaling type (nerv or lmds)
 //takes in a vector for its treeset because order matters
-void compute_mds(vector <unsigned int> treeset, string type, string filename, string dist_type){
+void compute_mds(vector <unsigned int> treevect, string type, string filename, string dist_type){
 	//computes the distances, function should probably accept a distance type input
-	vector < vector < unsigned int > > distances = compute_bipart_distancesv(treeset, dist_type);
+	vector < vector < unsigned int > > distances = compute_distances(treevect, dist_type);
 	string dmatrixfile;
 	//Creates a filename for the matrix file that must be written
 	dmatrixfile = filename + "_matrix";
@@ -913,7 +1040,7 @@ void mdsTests(){
 //	}
 //	cout << endl;
 
-//	write_dmatrix(compute_bipart_distancesv(treeset, "rf"), "heatmaptest");
+//	write_dmatrix(compute_bipart_distances(treevect, "rf"), "heatmaptest");
 
 //	vect2.push_back(2);
 //	vect2.push_back(0);
@@ -925,8 +1052,8 @@ void mdsTests(){
 //	cout << endl;
 
 
-//	write_dmatrix(compute_bipart_distancesv(vect2, "rf"), "vect2");
-//	write_dmatrix(compute_bipart_distancesv(treeset, "rf"), "demo");
+//	write_dmatrix(compute_bipart_distances(vect2, "rf"), "vect2");
+//	write_dmatrix(compute_bipart_distances(treevect, "rf"), "demo");
 //	vector < set < unsigned int> > clusters = kmeans_clust(treeset, 2, "rf");
 //	cout << "clusters defined" << endl;
 //	vector < set <unsigned int> > clusters = kmeans_clust(treeset, 2, "eu");

@@ -22,6 +22,9 @@ using namespace std;
 //computes the silhouette widths of your input clusters for cluster analysis
 vector<float> silhouette(vector < set < unsigned int >> inputclusts, string dist_type);
 
+//Computes the rand index of the two given clusterings for a set of trees
+float rand_index(vector < set < unsigned int > > cluster1, vector < set < unsigned int > > cluster2);
+
 //Forms clusters of the input trees based on a distance type using the agglomerative method
 vector< set < unsigned int > > agglo_clust(set <unsigned int > inputtrees,unsigned int numclusts, string dist_type);
 
