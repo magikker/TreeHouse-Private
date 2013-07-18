@@ -261,6 +261,102 @@ float rand_index (vector < set < unsigned int > > clusters1, vector < set < unsi
 	return retvalue;
 }
 
+//Computes n choose k for the given n and k
+long long nchoosek(unsigned long long n, unsigned long long k) {
+	if ( k > n ) {
+		return 0;
+	}
+	unsigned long long r = 1;
+	for(unsigned int d = 1; d <= k; d++){
+		r *= n--;
+		r /= d;
+	}
+	return r;
+}
+
+
+float adjusted_rand_index(vector < set < unsigned int > > clusters1, vector < set < unsigned int > > clusters2){
+	float retvalue;
+	//Holds the number of elements in common between the clusters in each clustering
+	vector < vector < unsigned int> > contingency_table;
+	contingency_table.resize(clusters1.size(), vector <unsigned int> (clusters2.size(), 0));
+	//Holds the sum values for computation
+	vector <float> asums;
+	vector <float> bsums;
+	unsigned int num_trees = 0;
+
+	for(unsigned int i = 0; i < clusters1.size(); i++){//for each cluster in clusters1
+		num_trees += clusters1[i].size();
+	}
+
+	//Fills the contingency table
+	for(unsigned int i = 0; i < clusters1.size(); i++){//for each cluster in clusters1
+		float tempsum = 0;
+		for(unsigned int j = 0; j < clusters2.size(); j++){//for each cluster in clusters2
+			set < unsigned int > tempset;
+			tempset.clear();
+			set_intersection(clusters1[i].begin(), clusters1[i].end(), clusters2[j].begin(), clusters2[j].end(), std::inserter(tempset, tempset.end()));
+			contingency_table[i][j] = tempset.size();
+			contingency_table[j][i] = tempset.size();
+			tempsum += tempset.size();
+		}
+		asums.push_back(tempsum);
+	}
+
+	//Fills the bsums vector
+	for(unsigned int i = 0; i < clusters2.size(); i++){//for each cluster in clusters2
+		float tempsum = 0;
+		for(unsigned int j = 0; j < clusters1.size(); j++){//for each cluster in clusters1
+			tempsum += contingency_table[j][i];
+		}	
+		bsums.push_back(tempsum);
+	}
+
+	//Computes the necessary sum from the contingency_table
+	long long nsum = 0;
+	for(unsigned int i = 0; i < contingency_table.size(); i++){//for each from clusters1
+		for(unsigned int j = 0; j < contingency_table[i].size(); j++){//for each from clusters2
+			nsum += nchoosek(contingency_table[i][j], 2);
+		}
+	}
+/*
+	for(unsigned int i = 0; i < contingency_table.size(); i++){
+		cout << "Row: " << i << ": ";
+		for (unsigned int k = 0; k < i; k++){
+			cout << "  ";
+		}
+		for (unsigned int j = i; j < contingency_table.size(); j++){
+			cout << contingency_table[i][j] << " ";
+		}
+		cout << endl;
+	}
+*/
+	//Computes the sums totals
+	long long asum = 0;
+	long long bsum = 0;
+	for(unsigned int i = 0; i < asums.size(); i++){//for each asum
+		asum += nchoosek(asums[i], 2);
+	}
+	for(unsigned int i = 0; i < bsums.size(); i++){//for each bsum
+		bsum += nchoosek(bsums[i], 2);
+	}
+	
+	//Computes the nchoose 2 of the number of trees
+	long long n = nchoosek(num_trees, 2);
+
+
+	retvalue = ((nsum - (asum * bsum / n)) / ((asum + bsum) / 2.0 - (asum * bsum / n))) * 1.0;
+
+//	cout << "Nsum: " << nsum << " asum : " << asum << " bsum : " << bsum << " n : " << n << endl;
+
+	float printtest = (7.0 - (14*13/45)) / ((14.0+13.0)/2.0 - (14 * 13 /45.0)) ;
+
+
+	cout << "Adjusted Rand Index: " << retvalue << endl;
+
+	return retvalue;
+}
+
 
 
 
@@ -569,7 +665,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	}
 
 	//Prints out the clusters (maybe less than useful on very large datasets)
-/*
+	/*
 	for(unsigned int i = 0; i < ret_clusters.size(); i++){//for each cluster
 		cout << "Cluster : " << i << " Trees : " ;
 		for(std::set<unsigned int>::iterator  pos = ret_clusters[i].begin(); pos != ret_clusters[i].end(); ++pos){//for each tree in the cluster
@@ -577,7 +673,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 		}
 		cout << endl;
 	}
-*/
+	*/
 
 	return ret_clusters;
 }
@@ -742,13 +838,36 @@ vector < set < unsigned int > > burnin_clust (set <unsigned int> treeset, string
 void TestClust(){
 
 	set <unsigned int> testset;
+	vector < set <unsigned int> > testvect;
+	set <unsigned int> piece;
+	set <unsigned int> piece2;
+
 	for(unsigned int i = 0; i < 11; i++){
 		testset.insert(i);
 	}
+
+	piece.insert(5);
+	piece.insert(0);
+	piece.insert(2);
+	piece.insert(8);
+	piece2.insert(3);
+	piece2.insert(4);
+	piece2.insert(6);
+	piece2.insert(7);
+	piece2.insert(9);
+	piece2.insert(10);
+	testvect.push_back(piece);
+	testvect.push_back(piece2);
+
+
+
 	kmeans_clust(testset, 2, "rf");
+	adjusted_rand_index(kmeans_clust(testset, 2, "rf"),kmeans_clust(testset,2,"rf"));
+	adjusted_rand_index(kmeans_clust(testset, 3, "rf"),kmeans_clust(testset,2,"rf"));
+	adjusted_rand_index(kmeans_clust(testset, 2, "rf"),testvect);
+	
 	rand_index(kmeans_clust(testset, 2, "rf"),kmeans_clust(testset,2,"rf"));
 	rand_index(kmeans_clust(testset, 3, "rf"),kmeans_clust(testset,2,"rf"));
-	
 	//cout << "First test" << endl;
 	//dbscan_clust(testset, 1, 2, "rf");
 	//cout << "All trees singular test" << endl;
