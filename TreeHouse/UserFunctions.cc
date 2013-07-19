@@ -302,16 +302,18 @@ pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
 }
 
 pqlsymbol * u_similarity_search(vector< pqlsymbol * > arglist) {
-
+	pqlsymbol * result;
 	string stree;
 
 	if (arglist.size() == 1 && arglist[0]->is_string()){
 		stree = arglist[0]->get_string();
+		result = new pqlsymbol(similarity_search(stree));
 	}
 	else{
 		cout << "similarity_search expects a single string representing a tree " << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
 	}
-	return new pqlsymbol(similarity_search(stree));
+	return result;
 }
 
 pqlsymbol * u_get_trees_with_taxa(vector< pqlsymbol * > arglist) {  
@@ -1773,10 +1775,12 @@ pqlsymbol * u_set_hetero(vector<pqlsymbol * > arglist) {
 		
         if (arglist[0]->get_bool()){
 			::biparttable.hetero = true;
+			cout << "HETERO set to true!\n";
 			result = new pqlsymbol("HETERO set to true");
 		}
 		else{
 			::biparttable.hetero = false;
+			cout << "HETERO set to false!\n";
 			result = new pqlsymbol("HETERO set to false");
 		}		
 	}
