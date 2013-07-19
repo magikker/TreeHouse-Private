@@ -1997,9 +1997,42 @@ void add_function(string functname, afptr funct, string doc ){
 
 }
 
+void add_function2(string functname, string doc, vector<vector<int>> args, afptr funct){
+	::argFunctMap.insert(std::make_pair(functname, (afptr)u_template));
+	//This is so tab-autocomplete works
+	::functionKeys.push_back(functname);
+	::helpRef.insert(std::make_pair(functname, doc));
+        ::argMap.insert(std::make_pair(functname, args));
+	::ptrMap.insert(std::make_pair(functname, funct));
+}
+
+
+pqlsymbol * u_template(vector<pqlsymbol * > arglist, string functName){
+  pqlsymbol * result;
+  cout << "functname is: " << functName << endl; 
+  cout << "we're in the user function template!\n";
+  std::map<std::string, afptr>::iterator it = ptrMap.find(functName);
+  
+  if(it==ptrMap.end()){
+	cout << "u_template error: Could not find function pointer\n";
+	return new pqlsymbol(ERROR, "Invalid function");
+	}
+  result = new pqlsymbol();
+  //result = new pqlsymbol( (*it)
+//  result = new pqlsymbol( (*it).second("test"));
+  return result;
+}
+
+
 //adds the functions to the their maps. 
 void init_the_functs()
 {
+
+	//NEW STUFF
+	vector<vector<int>> emptyArgs;
+ //	add_function2("help", "blah blah blah", emptyArgs, &help);
+
+
 	//::functionKeys.push_back("");
 	
 	//search

@@ -78,7 +78,7 @@ set<unsigned int> clade_size_search(vector<int> required, int size)
 				}
 			}
 		
-		cout << "Partial BS is: "; 
+		//cout << "Partial BS is: "; 
 		for(unsigned int i = 0; i < partialBS.size(); i++) { 
 			cout << partialBS[i]; 
 		} 
@@ -203,7 +203,7 @@ set<unsigned int> smallest_clade(vector<int> required){
 				}
 			else{
 				if(bSize < smallest){
-					cout << "new smallest clade size found of size " << bSize << "!" << endl;
+					//cout << "new smallest clade size found of size " << bSize << "!" << endl;
 					smallest = bSize; 
 					index = 0;
 					if(B.goodBipartitions.size()<=index){

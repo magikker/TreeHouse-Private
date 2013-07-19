@@ -69,6 +69,55 @@ return 0;
 
 }
 
+double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2, set<unsigned int> treeSet){
+	  //only homogeneous?
+
+	  if(!::biparttable.hetero){
+	//  cout << "we have a homogeneous data set!" << endl;
+	  //takes the average distance between taxa for every tree.
+	  //first, we need to look at every bipartition and indicate whether the taxa are on a different side of the edge
+	  //each edge where the taxa differ adds 1 to the distance
+	  
+	  unsigned int numBiparts = biparttable.BipartTable.size();
+	  unsigned long int total = 0;
+
+	  for(unsigned int i = 0; i < numBiparts; i++){
+		if(!biparttable.BipartTable[i].same_bitstring_value(taxon1, taxon2)){
+		//this means they ARENT on the same edge for that bitstring- add to total
+	 	 	//cout << "tree size for bipartition " << i << " is " << biparttable.BipartitionTable[i].trees_size() << endl;
+			vector<unsigned int> trees = biparttable.BipartTable[i].get_trees();
+			for(int t = 0; t < trees.size(); t++){
+				if(treeSet.find(trees.at(t))!=treeSet.end()){
+					++total;
+					}
+				}
+
+			}
+		}
+
+	/*
+	 //for testing this function against Mark Adamo's distance_between_taxa function
+	 unsigned int total2 = 0;
+	  for(int i = 0; i < ::NUM_TREES; i++)
+	 {
+	   total2+=distance_between_taxa(taxon1, taxon2, i);
+		}
+	  cout << "total is: " << total << ", total 2 is " << total2 << endl;
+	*/
+
+	  return total/treeSet.size();
+	  
+	 }
+	  else{
+	  	cout << "We have a heterogeneous data set! Return 0 for now!" << endl;
+	  	return 0;
+		}
+
+	return 0;
+
+}
+
+
 double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2){
   set<unsigned int> allTrees;
   for(unsigned int i = 0; i < ::biparttable.NumTrees; i++){
@@ -82,8 +131,8 @@ double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2, set<
 //because we have to look at rooted trees, we need to get the newick strings for all trees
 //for that reason, we can't take any shortcuts by just looking at the bipartition table
   unsigned int total = 0;
-  for(unsigned int i = 0; i < treeSet.size(); i++){
-	total+=distance_to_common_ancestor(taxon1, taxon2, i);
+  for(set<unsigned int>::iterator i = treeSet.begin(); i!= treeSet.end(); i++){
+	total+=distance_to_common_ancestor(taxon1, taxon2, *i);
 	}
 
   return total/(double)treeSet.size();
@@ -220,6 +269,7 @@ double average_depth(unsigned int tree){ //returns the average taxon depth of a 
 return totalDepth/(double)biparttable.num_taxa_in_tree(tree);
 
 }
+
 
 double expected_average_depth(unsigned int n){
   //according to Kirkpatrick and Slatkin (1992), expected average depth is  2 * summation(i = 2 to n) of (1/i)
@@ -387,7 +437,7 @@ bool isBifurcating(string nw){
 }
 
 bool isBifurcating(string nw, int depth){
-  cout << "calling isBifurcating on " << nw << endl;
+  //cout << "calling isBifurcating on " << nw << endl;
   bool retVal = true;
 
   //remove spaces in string:
@@ -413,7 +463,8 @@ bool isBifurcating(string nw, int depth){
 		//we just went over a taxon or a paren unit, add to degree
 		degree++;
 		if(degree>2){
-		cout << "The tree isn't bifurcating! Found at depth " << depth << endl;
+		//cout << "The tree isn't bifurcating! Found at depth " << depth << endl;
+		 // if(depth!=1){cout << " found at depth " << depth << endl;}		
 		return false;
 		}
 		index++;
@@ -448,7 +499,7 @@ bool isBifurcating(string nw, int depth){
 		retVal = retVal & isBifurcating(nw.substr(startIndex, endIndex-startIndex+1), depth);
 		}
 	else if(nw.at(index)==')'){
-		cout << "closing paren found at index " << index << " on string " << nw << endl;		
+		//cout << "closing paren found at index " << index << " on string " << nw << endl;		
 		degree++; //add to degree for instances like (A,B)
 			  //the code should only hit a closing paren if it the Nw string didn't start with two opening parens
 		index++;
@@ -459,14 +510,23 @@ bool isBifurcating(string nw, int depth){
 		}
 	}
 
-  cout << "on NwString " << nw << ", degree is " << degree << endl;
+ // cout << "on NwString " << nw << ", degree is " << degree << endl;
   return (degree==2);
 
 }
 
 
 void testIsBifurcating(){
-  string nw = "((A,B),C)";
+  unsigned int numBifurcating = 0;
+  for(unsigned int i = 0; i < biparttable.NumTrees; i++){
+	bool x = isBifurcating(to_newick(i));
+	if(x){ numBifurcating++;
+		cout << "Tree " << i << " is bifurcating" << endl;}
+	if(!(i%100)) { cout << "DONE WITH " << i << endl;}
+	}
+  cout << "NUMBER OF TREES BIFURCATING: " << numBifurcating << endl;
+
+/*  string nw = "((A,B),C)";
   cout << isBifurcating(nw) << endl;
   nw = "((A,B),(C,D))";
   cout << isBifurcating(nw) << endl;
@@ -483,6 +543,7 @@ void testIsBifurcating(){
   cout << isBifurcating(nw) << endl;
   nw = "(A)";
   cout << isBifurcating(nw) << endl;
+*/
 }
 
 int sumPair(pair<int, int> x){
@@ -493,7 +554,7 @@ int sumPair(pair<int, int> x){
 void testCalculateC(){
   cout << "calculating left and right pairs:\n";
   string nw = "((A,B), (B,C))";
-  nw = "( ( (A,B), (C,(D,(E,F)))), G)";
+  nw = "( (A,B),C)";
  // string nw2 = 
   //nw = "(B,C)";
   unsigned int total = 0;
@@ -544,6 +605,10 @@ double hamming_distance_total(unsigned int tree1, unsigned int tree2){
 			if(bi[x]^bj[x]) {		
 				XORdistance++;
 				}
+			}
+		//make sure that one bitstring isn't inverted
+		if(XORdistance > biparttable.lm.size()/2){
+			XORdistance -= biparttable.lm.size()/2;
 			}
 		total+=XORdistance;
 		}
@@ -711,6 +776,9 @@ vector<set<int>> hammingDistanceMatrixSet(set<unsigned int> rf, set<unsigned int
 				XORdistance++;
 				}
 			}
+		if(XORdistance > biparttable.lm.size()/2){
+			XORdistance -= biparttable.lm.size()/2;
+			}
 		h.insert(XORdistance);
 		}
 	hamming.push_back(h); //add new row to the hamming matrix
@@ -732,6 +800,9 @@ vector<vector<int>> hammingDistanceMatrixVector(set<unsigned int> rf, set<unsign
 					XORdistance++;
 					}
 				}
+			if(XORdistance > biparttable.lm.size()/2){
+			XORdistance -= biparttable.lm.size()/2;
+			}
 			h.push_back(XORdistance);
 			}
 		hamming.push_back(h); //add new row to the hamming matrix

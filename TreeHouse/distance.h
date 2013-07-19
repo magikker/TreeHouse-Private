@@ -35,6 +35,7 @@ bool isBifurcating(string nw);
 bool isBifurcating(string nw, int depth);
 
 double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2);
+double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2, set<unsigned int> treeSet);
 unsigned int hamming_distance_greedy(unsigned int tree1, unsigned int tree2);
 double hamming_distance_total(unsigned int tree1, unsigned int tree2);
 unsigned int hamming_distance_minimum(unsigned int tree1, unsigned int tree2);

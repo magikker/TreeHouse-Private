@@ -17,6 +17,8 @@
 #include "ConsensusFunctions.h"
 #include "clustering.h"
 
+pqlsymbol * u_template(vector<pqlsymbol * > arglist, string functName);
+
 void init_the_functs();
 
 #endif
