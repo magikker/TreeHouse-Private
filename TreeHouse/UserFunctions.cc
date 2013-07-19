@@ -1077,6 +1077,19 @@ pqlsymbol * u_rand_index(vector <pqlsymbol *> arglist){
 	return result;
 }
 
+pqlsymbol * u_adjusted_rand_index(vector <pqlsymbol *> arglist){
+	pqlsymbol * result = new pqlsymbol();
+
+	if(arglist.size() == 2 && arglist[0]->is_vect() && arglist[1]->is_vect()){
+		result = new pqlsymbol(adjusted_rand_index(arglist[0]->get_treeset_vect(), arglist[1]->get_treeset_vect()));
+	}
+	else{
+		cout << "rand_index expects a pair of clusters, and a string dist_type as input " << "Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
+
 pqlsymbol * u_agglo_clust(vector<pqlsymbol * > arglist){
 	pqlsymbol * result = new pqlsymbol();
 	if (arglist.size() == 3 && arglist[0]->is_treeset() && arglist[1]->is_int() && arglist[2]->is_string()){
@@ -2040,6 +2053,7 @@ void init_the_functs()
 	//clustering
 	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees");
 	add_function("rand_index", &u_rand_index, "Returns the rand index of two clusterings for a set of trees");
+	add_function("adjusted_rand_index", &u_adjusted_rand_index, "Returns the adjusted rand index of two clusterings for a set of trees");
 	add_function("agglo_clust", &u_agglo_clust, "Returns the agglomerative clustering of the given input set of trees.");
 	add_function("kmeans_clust", &u_kmeans_clust, "returns the k means clustering of the given input set of trees.");
 	add_function("dbscan_clust", &u_dbscan_clust, "Return the dbscan clustering of the given input set of trees. Last cluster is always noise (trees that don't fit a cluster based on current criteria");
