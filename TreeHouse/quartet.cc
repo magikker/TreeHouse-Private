@@ -115,6 +115,164 @@ CQS::CQS(set<unsigned int> A,set<unsigned int> B,set<unsigned int> C,set<unsigne
 }
 
 
+numericQuartet::numericQuartet(){
+  index = 0;
+  config = 0;
+
+}
+
+numericQuartet::numericQuartet(quartet q){
+  //transfer quartet q to a,b,c,d
+
+  /*CONFIGURATIONS:
+	0 = AB | CD
+	1 = AC |BD
+	2 = AD | BC
+
+  */
+  unsigned int a,b,c,d;
+  iPair i, j;
+  i = q.getA(); j = q.getB();
+  unsigned int i1, i2, j1, j2;
+  i1 = i.first; i2 = i.second; j1 = j.first; j2 = j.second;
+
+	//we now i1 < j1 because that is how quartets sort them.
+	a = i1;
+        if(i2 < j1){ //we are in config 0
+		config = 0;
+		b = i2;
+		c = j1;
+		d = j2;
+		}
+	else{ //j1 < i2
+		b = j1;
+		if(i2 < j2){
+			config = 1;
+			c = i2;
+			d = j2;			
+			}
+		else{
+			config = 2;
+			c = j2;
+			d = i2;		
+			}
+		}
+	
+
+
+  //now verify our findings. After we test we can comment this out.
+  if(!(a < b && b < c && c < d)){
+	cout << "Numeric quartet error! Could not order a,b,c,d!\n";
+	}
+	
+  //a = qa.first; b = qa.second; c = qb.first; d = qb.second;
+  //unsigned int numTaxa = biparttable.lm.size();
+  unsigned int numTaxa = 8;  //for testing
+
+  unsigned long offset = 0; //we are keeping track of how far offset our quartet is from {1,2,3,4}
+  //eventually, offset will become the index of the quartet
+
+  //first, account for the fourth number in the quartet
+  //the default case for d is that is is one greater than c. For each number greater than that, add 1 to offset.
+
+  offset += (d-c-1);
+  
+  //now account for offset in C
+  unsigned int distanceC, taxaOffset;
+  for(distanceC = c-(b+1), taxaOffset = numTaxa-(b+1); distanceC>0; distanceC--, taxaOffset--){
+	offset += taxaOffset;
+	}
+
+  //now account for offset in b.
+  if(b>(a+1)){
+	unsigned int n_b, taxaOffset;
+  	for(n_b = b-(a+1), taxaOffset = numTaxa-(a+2); n_b > 0; n_b--, taxaOffset--){
+		offset += ((taxaOffset * (taxaOffset+1) ) / 2);
+		}
+	}
+
+  //now account for offset in a
+  if(a>1){
+	unsigned int n_a, taxaOffset;
+        for(n_a = a-1, taxaOffset = numTaxa-3; a>1; a--, taxaOffset--){
+		offset +=( (( taxaOffset )*( taxaOffset+1)*(taxaOffset+2)) / 6 );
+		}
+	}  
+
+  index = offset;
+  config = 0;
+
+}
+
+quartet numericQuartet::toQuartet(){
+  //first, get a,b,c,d
+  unsigned int a,b,c,d;
+  a = 1;
+  unsigned long offset = index; 
+  
+  unsigned int numTaxa = 8; //FOR TESTING PURPOSES
+//unsigned int numTaxa = biparttable.lm.size();
+  
+ //first figure out (a) by iteratively subtracting values from the series (x)(x+1)(x+2)/6 starting with numTaxa-3
+
+  for(int x = numTaxa - 3; x > 0; x--){
+	unsigned long toSubtract = ( x * (x+1) * (x+2)) / 6;
+        if(toSubtract>offset){
+		break;
+		} 
+	else{
+		offset -= toSubtract;
+		++a;
+		}
+	}
+  //now figure out b by subtracting from b's series, or n*(n+1) / 2 where n = numTaxa-(a+2)
+  b = a + 1;
+  for(int x = numTaxa - (a+2); x > 0; x--){
+	unsigned long toSubtract = ( x * (x+1)) / 2;
+	        if(toSubtract>offset){
+		break;
+		} 
+	else{
+		offset -= toSubtract;
+		++b;
+		}
+	}
+  
+  //now we have a and b, figure out c by iteratively subtracting from offset again
+    c = b + 1;
+    for(int x = numTaxa - (b+1); x > 1; x--){
+	        if(x>offset){
+		break;
+		} 
+	else{
+		offset -= x;
+		++c;
+		}
+	}
+  //now, d is simply c + 1 + offset!
+  d = c + 1 + offset;
+
+  //now, check configuration
+  if(config==0){
+	return quartet(a,b,c,d);
+	}
+  else if(config==1){
+	return quartet(a,c,b,d);
+	}
+  else if(config==2){
+	return quartet(a,d,b,c);
+	}
+  else{
+	cout << "numericQuartet::toQuartet error: Config value was not 0,1, or 2!\n";
+	return quartet();	
+	}
+}
+
+unsigned long numericQuartet::getIndex(){
+	return index;
+	}
+
+
 quartet::quartet(int a0, int a1, int b0, int b1){
 
 A = make_pair(a0, a1);
@@ -1326,10 +1484,11 @@ for(int i = 2; i < 26; i++){
 	}
 }
 
+
 void TESTSTUFF(){
 
-
-        testHungarian();
+	testIterateThroughQuartets(8);
+        //testHungarian();
 	//testConflictingQuartetDistance();
 	//testConflictingQuartetsBigDemo();
 	//testCQS();
@@ -1337,6 +1496,34 @@ void TESTSTUFF(){
 	//testNumConflictingQuartets();
 	//testGenerateDifferentQuartets();
 	//testGeenerateDifferentQuartetsFromTrees();
+}
+
+
+void testIterateThroughQuartets(int limit){
+	//iterates through all combinations of quartets in the form 'a,b,c,d' where a<b<c<d
+  if(limit<=4){
+	cout << "testIterateThroughQuartets error: limit must be greater than 4\n";
+	return;
+	}
+  unsigned long counter = 0;
+  for(int a = 1; a <=limit-3; a++){
+	for(int b = a+1; b <= limit-2; b++){
+		for(int c = b+1; c <= limit - 1; c++){
+			for(int d = c+1; d <= limit; d++, counter++){
+				//cout << counter << ". " << a << ", " << b << ", " << c << ", " << d << endl;
+				quartet x = quartet(a,b,c,d);
+				cout << "Quartet before converting to numeric:\n";				
+				x.print();
+				numericQuartet y = numericQuartet(x);
+				cout << "Numeric: " << y.getIndex() << endl;
+				quartet z = y.toQuartet();
+				cout << "Quartet after converting back from numeric:\n";
+				z.print(); 
+				cout << "\n\n";
+				}
+			}
+		}
+	}
 }
 
 

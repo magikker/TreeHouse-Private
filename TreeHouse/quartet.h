@@ -57,6 +57,8 @@ void setIntersect(set<int> a, set<int> b, set<int> &result);
 unsigned int numIntersecting(CQS x, CQS y);
 //CQS intersect(CQS x, CQS y);
 
+
+
 class quartet{ //a class to store quartets. I'm open to ideas about how to make this better...
 	private:	
 		iPair A; //one side of the quartet
@@ -81,6 +83,28 @@ class quartet{ //a class to store quartets. I'm open to ideas about how to make 
   bool operator>=(const quartet& one, const quartet& two);
   bool operator==(const quartet& one, const quartet& two);
   //void operator=(quartet& one, const quartet& two);
+
+
+
+class numericQuartet{
+  private:
+    unsigned long index;
+    char config; //the configuration of the quartet 
+    /*CONFIGURATIONS:
+	0 = AB | CD
+	1 = AC |BD
+	2 = AD | BC
+
+  */
+  public:
+    numericQuartet(quartet q);
+    numericQuartet();
+    unsigned long getIndex();
+    quartet toQuartet();
+
+
+};
+
 
 
 class bPair{ //holds all relevant info about quartets on a pair of bipartitions
@@ -181,5 +205,6 @@ void testOperatorsForQuartets();
 void testGenerateDifferentQuartetsFromTrees();
 void testConflictingQuartetsBigDemo();
 void testHungarian();
+void testIterateThroughQuartets(int limit);
 
 #endif
