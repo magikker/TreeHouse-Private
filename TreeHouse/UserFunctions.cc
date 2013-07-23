@@ -1,5 +1,5 @@
 #include "UserFunctions.h"
-
+#include <boost/variant.hpp>
 //Return the type of each arg. 
 string get_arg_types(vector<pqlsymbol * > arglist) {
   string argtypes = "(";
@@ -1997,41 +1997,140 @@ void add_function(string functname, afptr funct, string doc ){
 
 }
 
-void add_function2(string functname, string doc, vector<vector<int>> args, afptr funct){
+//Does typechecking for all functions input to add_function with a list of argument types
+//simplifies type checking for all proper inputs (to work with overloaded functions
+//requires that a different user function is written for each overload - otherwise
+//they would have to typecheck again anyway)
+pqlsymbol * u_template(vector <pqlsymbol *> arglist, string functName){
+	
+	pqlsymbol * result;
+
+	std::map<std::string, afptr>::iterator it = ptrMap.find(functName);
+	if (it == ptrMap.end()){
+		cout << "u_template error: Could not find function pointer\n";
+		return new pqlsymbol(ERROR, "Invalid function");
+	}
+
+	if (argMap[functName].size() != arglist.size()){
+		cout << "Expects " << argMap[functName].size() << " inputs Found: " << arglist.size() << endl;
+		return new pqlsymbol(ERROR, "Input size Error");
+	}
+	for(unsigned int i = 0; i < argMap[functName].size(); i++){//For each arg type in argMap
+	
+		switch(argMap[functName][i]){
+
+			case 0: //Atom
+				if(!arglist[i]->is_atom()){
+					cout << "Expects an atom as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 1: //int
+				if(!arglist[i]->is_int()){
+					cout << "Expects an integer as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 2: //String
+				if(!arglist[i]->is_string()){
+					cout << "Expects a string as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 3: //Treeset
+				if(!arglist[i]->is_treeset()){
+					cout << "Expects a treeset as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 4: //Vect
+				if(!arglist[i]->is_vect()){
+					cout << "Expects a vector as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 5: //Bool
+				if(!arglist[i]->is_bool()){
+					cout << "Expects a boolean as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 6: //Char
+				if(!arglist[i]->is_char()){
+					cout << "Expects a char as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 7: //Float
+				if(!arglist[i]->is_float()){
+					cout << "Expects a float as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 8: //Double
+				if(!arglist[i]->is_double()){
+					cout << "Expects a double as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 9: //Symbol
+				if(!arglist[i]->is_symbol()){
+					cout << "Expects a symbol as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			case 10://Function
+				if(!arglist[i]->is_funct()){
+					cout << "Expects a function as input " << i << " Found : " << get_arg_types(arglist) << endl;
+					return new pqlsymbol(ERROR, "Type Error");
+				}
+				break;
+			default: //Not a known type given
+				cout << "No known type given.";
+				break;
+		}
+		
+	}
+
+	result = new pqlsymbol ( (*it).second(arglist));
+	return result;	
+}
+
+//Overload of the add_function which accepts a variable number of inputs after the documentation string
+//representing the types for each arguement accepted by the function
+template <class... Args>
+void add_function(string functname, afptr funct, string doc, Args... sepArgs){
+	std::vector<int> args = {sepArgs...};
 	::argFunctMap.insert(std::make_pair(functname, (afptr)u_template));
 	//This is so tab-autocomplete works
 	::functionKeys.push_back(functname);
 	::helpRef.insert(std::make_pair(functname, doc));
-        ::argMap.insert(std::make_pair(functname, args));
+	::argMap.insert(std::make_pair(functname, args));
 	::ptrMap.insert(std::make_pair(functname, funct));
 }
-
-
-pqlsymbol * u_template(vector<pqlsymbol * > arglist, string functName){
-  pqlsymbol * result;
-  cout << "functname is: " << functName << endl; 
-  cout << "we're in the user function template!\n";
-  std::map<std::string, afptr>::iterator it = ptrMap.find(functName);
-  
-  if(it==ptrMap.end()){
-	cout << "u_template error: Could not find function pointer\n";
-	return new pqlsymbol(ERROR, "Invalid function");
-	}
-  result = new pqlsymbol();
-  //result = new pqlsymbol( (*it)
-//  result = new pqlsymbol( (*it).second("test"));
-  return result;
-}
-
 
 //adds the functions to the their maps. 
 void init_the_functs()
 {
 
-	//NEW STUFF
-	vector<vector<int>> emptyArgs;
- //	add_function2("help", "blah blah blah", emptyArgs, &help);
+	//Leftovers from an attempt to reduce the number of user functions which have
+	//to be written
+	/*
+	boost::function<void(void)> voidHelp;
+	voidHelp = boost::bind(::help, "void");
+	vector <boost::function<void(void)>> functVect;
+	functVect.push_back(voidHelp);
+	boost::bind(functVect[0], "rand_index");
+	voidHelp();
+	*/
 
+	/*
+	boost::variant<boost::function<void(std::string)> > varTest;
+	boost::variant< int, double > varInt;
+	varTest = boost::bind(help, _1);
+	std::string input = "show";
+	boost::get<boost::function<void(std::string)>>(varTest)(input);
+	*/
 
 	//::functionKeys.push_back("");
 	

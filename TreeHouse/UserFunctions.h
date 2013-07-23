@@ -16,6 +16,9 @@
 #include "quartet.h"
 #include "ConsensusFunctions.h"
 #include "clustering.h"
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
+#include <boost/variant.hpp>
 
 pqlsymbol * u_template(vector<pqlsymbol * > arglist, string functName);
 

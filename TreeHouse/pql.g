@@ -17,11 +17,11 @@ options
   
   //#include "HashTableSearch.h"
   #include "UtilityFunctions.h"
+  #include "UserFunctions.h"
   #include "label-map.hh"
   #include "global.h"
   #include "pqlsymbol.h"
   #include "THGlobals.h"
-  #include "UserFunctions.h"
   using namespace std;
 }
 
@@ -421,29 +421,22 @@ postfix_expression
         }
         else
         {
-          //Gotta have a value copy thing here. 
-          if($a.result->get_string()=="show"){
-          	cout << "We have show function!\n";
+        //Extra if statement and iterator to check if the template for type checking is used
+        std::map<std::string, vector <int> >::iterator it = argMap.find($a.result->get_string());
+        if(it==argMap.end()){
+          	//Gotta have a value copy thing here. 
+          	$result =  (*iter).second($c.result) ;
+          	while(!$c.result.empty()){
+                	  delete $c.result.back();
+                	  $c.result.pop_back();
+                	  }
+          }
+          else{
+          	$result = u_template($c.result, $a.result->get_string());
           	}
-         std::map<std::string, vector<vector<int>>>::iterator it = argMap.find($a.result->get_string());
-         if(it==argMap.end()){ 
-          $result =  (*iter).second($c.result) ;
-          while(!$c.result.empty()){
-                  delete $c.result.back();
-                  $c.result.pop_back();
-          }
-          }
-         else{
-         	cout << "we found the argument in argMap!!!\n";
-         	$result = u_template($c.result, $a.result->get_string());
-         	 
-         	 while(!$c.result.empty()){
-                  	delete $c.result.back();
-                  	$c.result.pop_back();
-          		}
-         	} 
         }
     }
+    
     
     )*
     {

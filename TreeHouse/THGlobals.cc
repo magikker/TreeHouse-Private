@@ -27,7 +27,8 @@ voidFuncts voidFunctMap;
 argFuncts argFunctMap;
 std::vector<std::string> functionKeys;
 std::map<std::string, std::string> helpRef;
-std::map<std::string, vector<vector<int>>> argMap;
+std::map<std::string, vector<int>> argMap;
+
 std::map<std::string, afptr> ptrMap; //a map containing the function pointers for user functions
 
 //ector< vector<unsigned int> > inverted_index;	

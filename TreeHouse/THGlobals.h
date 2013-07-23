@@ -57,7 +57,7 @@ extern vector< pqlsymbol* > query_results;
 extern voidFuncts voidFunctMap;
 extern argFuncts argFunctMap;
 extern std::vector<std::string> functionKeys;
-extern std::map<std::string, vector<vector<int>>> argMap;
+extern std::map<std::string, vector<int>> argMap;
 extern std::map<std::string, afptr> ptrMap;
 extern std::map<std::string, std::string> helpRef;
 
