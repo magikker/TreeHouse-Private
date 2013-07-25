@@ -1130,7 +1130,7 @@ int main(int argc, char **argv){
 	//start_clock();
 	if (strcmp(argv[cmdind],"-i") == 0) {
 	//	testDistance();
-	//	TESTSTUFF();
+		TESTSTUFF();
 	//	TestClust();
 
 	//	testDistance();

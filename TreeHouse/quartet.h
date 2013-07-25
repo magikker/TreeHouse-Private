@@ -159,8 +159,8 @@ vector<quartet> generateDifferentQuartets(int bipartA, int bipartB);
 vector<quartet> generateSameQuartets(int bipartA, int bipartB);
 
 
+set<quartet> generateConflictingQuartetsBruteForce(int bipart1, int bipart2);
 set<quartet> generateConflictingQuartets(int bipart1, int bipart2);
-set<quartet> generateConflictingQuartets2(int bipart1, int bipart2);
 qPair generateConflictingQuartets3(int bipart1, int bipart2);
 CQS generateConflictingQuartets4(int bipart1, int bipart2);
 unsigned int numConflictingQuartets(int bipart1, int bipart2);
@@ -195,6 +195,7 @@ void ktetAnalysis(int t);
 void quartetAnalysis(int, int); //not fully implemented
 void printSet(set<quartet> s);
 void TESTSTUFF();
+void testConflictingQuartetSpeed();
 void testConflictingQuartetDistance();
 void testCQS();
 void testGenerateBipartitionConflicts();

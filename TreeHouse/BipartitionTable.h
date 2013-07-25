@@ -368,6 +368,24 @@ int num_taxa_in_tree(int treeindex){
 			BipartTable[i].print_line();
 		}
 	}
+
+	void print_inverted_index(){
+		cout << "Trivial Bipartitions:\n";
+		for(set<unsigned int>::iterator it = trivial_bipartitions.begin(); it!=trivial_bipartitions.end(); it++){
+			cout << *it << "  ";
+			}
+			cout << endl << endl;
+		for(unsigned int i = 0; i < inverted_index.size(); i++){
+			cout << i << ". ";
+			for(unsigned int j = 0; j < inverted_index.at(i).size(); j++){
+				unsigned int bipart = inverted_index.at(i).at(j);
+				if(trivial_bipartitions.find(bipart)==trivial_bipartitions.end()){ //if the bipart is non-trivial
+					cout << inverted_index.at(i).at(j) << ", ";
+					}
+				}
+				cout << endl;	
+			}
+		}
 	
 	/*
 	void print_hashtable(){
