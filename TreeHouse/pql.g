@@ -422,7 +422,7 @@ postfix_expression
         else
         {
         //Extra if statement and iterator to check if the template for type checking is used
-        std::map<std::string, vector <int> >::iterator it = argMap.find($a.result->get_string());
+        std::map<std::string, vector <vector < dataType> > >::iterator it = argMap.find($a.result->get_string());
         if(it==argMap.end()){
           	//Gotta have a value copy thing here. 
           	$result =  (*iter).second($c.result) ;
