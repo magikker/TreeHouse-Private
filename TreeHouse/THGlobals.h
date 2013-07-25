@@ -53,12 +53,31 @@ extern int NUM_TREES_INIT;
 
 extern vector< pqlsymbol* > query_results;
 
+//Data Type for switch u_template type checking switch
+enum dataType
+{
+	TYPE_ATOM,
+	TYPE_INT,
+	TYPE_STRING,
+	TYPE_TREESET,
+	TYPE_VECT,
+	TYPE_INTVECT,
+	TYPE_STRINGVECT,
+	TYPE_TREESETVECT,
+	TYPE_BOOL,
+	TYPE_CHAR,
+	TYPE_FLOAT,
+	TYPE_DOUBLE,
+	TYPE_SYMBOL,
+	TYPE_FUNCTION
+};
+
 //Function maps. Use void if the function takes no args and arg if it does. 
 extern voidFuncts voidFunctMap;
 extern argFuncts argFunctMap;
 extern std::vector<std::string> functionKeys;
-extern std::map<std::string, vector<int>> argMap;
-extern std::map<std::string, afptr> ptrMap;
+extern std::map<std::string, vector<vector <dataType> > > argMap;
+extern std::map<std::string, afptr > ptrMap;
 extern std::map<std::string, std::string> helpRef;
 
 //map of the symbol in the language. These are were declared varibles are stored. If a user enters r = 7; r is set to 7 in the map. 

@@ -27,9 +27,9 @@ voidFuncts voidFunctMap;
 argFuncts argFunctMap;
 std::vector<std::string> functionKeys;
 std::map<std::string, std::string> helpRef;
-std::map<std::string, vector<int>> argMap;
+std::map<std::string, vector<vector <dataType> >> argMap;
 
-std::map<std::string, afptr> ptrMap; //a map containing the function pointers for user functions
+std::map<std::string, afptr > ptrMap; //a map containing the function pointers for user functions
 
 //ector< vector<unsigned int> > inverted_index;	
 //vector< bool* > taxa_in_trees;  // which taxa are in which trees					NEED
