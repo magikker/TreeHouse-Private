@@ -651,7 +651,7 @@ vector<quartet> generateDifferentQuartets(int bipartA, int bipartB){
   return retVec;
 }
 
-set<quartet> generateConflictingQuartets(int bipart1, int bipart2){
+set<quartet> generateConflictingQuartetsBruteForce(int bipart1, int bipart2){ //SLOWER VERSION
   //right now, we will brute force this because we need to results for testing
   set<quartet> retSet;
   set<unsigned int> ones, zeros;
@@ -681,7 +681,7 @@ set<quartet> generateConflictingQuartetsGroup(int bipart1, set<unsigned int> bip
 	return retSet;
 }
 
-set<quartet> generateConflictingQuartets2(int bipart1, int bipart2){
+set<quartet> generateConflictingQuartets(int bipart1, int bipart2){
 	set<quartet> retSet;
 	boost::dynamic_bitset<> a, b;
 	a = biparttable.BipartTable.at(bipart1).get_bitstring();
@@ -753,7 +753,7 @@ bool isQPairEmpty(qPair a){
 }
 
 
-qPair generateConflictingQuartets3(int bipart1, int bipart2){
+qPair generateConflictingQuartets3(int bipart1, int bipart2){ //returns qPair, which is pair< set<iPair>, set<iPair> > qPair;
 	  qPair retPair;
 	  boost::dynamic_bitset<> a, b;
 	  a = biparttable.BipartTable.at(bipart1).get_bitstring();
@@ -1274,6 +1274,7 @@ set<quartet> generateDifferentQuartetsFromTrees3(int a, int b){
 
 set<quartet> generateDifferentQuartetsFromTrees4(int a, int b){
  //COMPARISON OF UNIQUE-TREE1 TO UNIQUE-TREE2
+ //WARNING- THIS MIGHT NOT GIVE A VALID QUARTET DISTANCE!
  set<unsigned int> t1Biparts(::biparttable.inverted_index.at(a).begin(), ::biparttable.inverted_index.at(a).end());
  set<unsigned int> t2Biparts(::biparttable.inverted_index.at(b).begin(), ::biparttable.inverted_index.at(b).end());
  set<unsigned int> unique, unique2;
@@ -1487,7 +1488,8 @@ for(int i = 2; i < 26; i++){
 
 void TESTSTUFF(){
 
-	testIterateThroughQuartets(8);
+	//testGenerateDifferentQuartetsFromTrees();
+	//testIterateThroughQuartets(8);
         //testHungarian();
 	//testConflictingQuartetDistance();
 	//testConflictingQuartetsBigDemo();
@@ -1497,6 +1499,7 @@ void TESTSTUFF(){
 	//testGenerateDifferentQuartets();
 	//testGeenerateDifferentQuartetsFromTrees();
 }
+
 
 
 void testIterateThroughQuartets(int limit){
@@ -1605,11 +1608,11 @@ void testConflictingQuartetDistance(){
 	
 
 
-void testGenerateDifferentQuaratetsFromTrees(){
+void testGenerateDifferentQuartetsFromTrees(){
   vector<unsigned int> rf, rf2;
   //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
-  vector<unsigned int> t1 = ::biparttable.inverted_index.at(258);
-  vector<unsigned int> t2 = ::biparttable.inverted_index.at(561);
+  vector<unsigned int> t1 = ::biparttable.inverted_index.at(0);
+  vector<unsigned int> t2 = ::biparttable.inverted_index.at(4);
   set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
   set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
   set<unsigned int> group;
@@ -1668,15 +1671,15 @@ void testGenerateDifferentQuaratetsFromTrees(){
   group.insert(4); group.insert(13);
 
   cout << "conflicting quartets between 2 and 4:\n";
-  printSet(generateConflictingQuartets(2,4));
+  printSet(generateConflictingQuartetsBruteForce(2,4));
   cout << "conflicting quartets between 2 and 13:\n";
-  printSet(generateConflictingQuartets(2,13));
+  printSet(generateConflictingQuartetsBruteForce(2,13));
   cout << "conflicting quartets between 2 and group:\n";
   printSet(generateConflictingQuartetsGroup(2, group));
   cout << "conflicting quartets between 6 and 4:\n";
-  printSet(generateConflictingQuartets(6,4));
+  printSet(generateConflictingQuartetsBruteForce(6,4));
   cout << "conflicting quartets between 6 and 13:\n";
-  printSet(generateConflictingQuartets(6,13));
+  printSet(generateConflictingQuartetsBruteForce(6,13));
   cout << "conflicting quartets between 6 and group:\n";
   printSet(generateConflictingQuartetsGroup(6, group));
 
@@ -1793,15 +1796,15 @@ void testGenerateConflictingQuartets(){
 	  group.insert(4); group.insert(13);
 
 	  cout << "conflicting quartets between 2 and 4:\n";
-	  printSet(generateConflictingQuartets(2,4));
+	  printSet(generateConflictingQuartetsBruteForce(2,4));
 	  cout << "conflicting quartets between 2 and 13:\n";
-	  printSet(generateConflictingQuartets(2,13));
+	  printSet(generateConflictingQuartetsBruteForce(2,13));
 	  cout << "conflicting quartets between 2 and group:\n";
 	  printSet(generateConflictingQuartetsGroup(2, group));
 	  cout << "conflicting quartets between 6 and 4:\n";
-	  printSet(generateConflictingQuartets(6,4));
+	  printSet(generateConflictingQuartetsBruteForce(6,4));
 	  cout << "conflicting quartets between 6 and 13:\n";
-	  printSet(generateConflictingQuartets(6,13));
+	  printSet(generateConflictingQuartetsBruteForce(6,13));
 	  cout << "conflicting quartets between 6 and group:\n";
 	  printSet(generateConflictingQuartetsGroup(6, group));
 
@@ -1904,13 +1907,13 @@ void testGenerateDifferentQuartets(){
 
 
 	cout << "conflicting quartets between biparts 2 and 4:\n";
-	printSet(conflict1 = generateConflictingQuartets(2,4));
+	printSet(conflict1 = generateConflictingQuartetsBruteForce(2,4));
 	cout << "conflicting quartets between biparts 2 and 13:\n";
-	printSet(conflict2 = generateConflictingQuartets(2,13));
+	printSet(conflict2 = generateConflictingQuartetsBruteForce(2,13));
 	cout << "conflicting quartets between biparts 6 and 4:\n";
-	printSet(conflict3 = generateConflictingQuartets(6,4));
+	printSet(conflict3 = generateConflictingQuartetsBruteForce(6,4));
 	cout << "conflicting quartets between biparts 6 and 13:\n";
-	printSet(conflict4 = generateConflictingQuartets(6,13));
+	printSet(conflict4 = generateConflictingQuartetsBruteForce(6,13));
 	
 
 

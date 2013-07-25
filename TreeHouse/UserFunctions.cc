@@ -1829,6 +1829,12 @@ pqlsymbol * u_print_biparttable(vector<pqlsymbol * > arglist) {
 	return result;
 }
 
+pqlsymbol * u_print_inverted_index(vector<pqlsymbol * > arglist) {
+  pqlsymbol * result = new pqlsymbol();
+  ::biparttable.print_inverted_index();
+  return result;
+}
+
 
 pqlsymbol * u_print_label_map(vector<pqlsymbol * > arglist){
 	pqlsymbol * result = new pqlsymbol();
@@ -1960,6 +1966,43 @@ pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
   	
   	return result;
 }
+
+pqlsymbol * u_print_conflicting_quartets(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+	     set<quartet> conflictingQuartets = generateConflictingQuartets(arglist[0]->get_int(), arglist[1]->get_int());
+   	     printSet(conflictingQuartets);
+	     result = new pqlsymbol();
+	  }
+  } 
+  else {
+	cout << "print_conflicting_quartets expects two INTs, i.e. bipartition indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+pqlsymbol * u_num_conflicting_quartets(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+	     result = new pqlsymbol(numConflictingQuartets(arglist[0]->get_int(), arglist[1]->get_int()));
+	  }
+  } 
+  else {
+	cout << "num_conflicting_quartets expects two INTs, i.e. bipartition indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
 
 
 pqlsymbol * u_average_distance_between_taxa(vector<pqlsymbol * > arglist){
@@ -2261,7 +2304,9 @@ void init_the_functs()
 	add_function("shared_quartets_strict", &u_shared_quartets_strict, "Returns quartets present in every tree of treeset",TYPE_TREESET);
 	add_function("shared_quartets_majority", &u_shared_quartets_majority, "Returns quartets present in a majority of trees", TYPE_TREESET);
 	add_function("print_quartets_from_tree", &u_print_quartets_from_tree, "Prints all quartets of a tree given its index as an int", TYPE_INT);
-	
+	add_function("print_conflicting_quartets", &u_print_conflicting_quartets, "Given two bipartitions, prints all conflicting quartets");
+	add_function("num_conflicting_quartets", &u_num_conflicting_quartets, "Returns number of conflicting quartets across two given bipartitions");
+
 	//distance
 	add_function("distance_between_taxa", &u_distance_between_taxa, "Returns distance between two specified taxa in a specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
 	add_function("distance_to_common_ancestor", &u_distance_to_common_ancestor, "Returns distance between two specified taxa in a specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
@@ -2283,8 +2328,11 @@ void init_the_functs()
 	
 	
 	//utilities
+
 	add_function("help", &u_help, "Prints function description given a function name", TYPE_STRING);
-	
+	add_function("help", &u_help, "Prints function description given a function name");
+	add_function("print_inverted_index", &u_print_inverted_index, "prints the inverted index, which is num trees long by num biparts wide.");
+
 	//visualization
 	add_function("display_clusters", &u_display_clusters, "Displays a gnuplot graph of the trees color coded by cluster", TYPE_STRING, TYPE_STRING, TYPE_TREESETVECT);
 	add_function("display_heatmap", &u_display_heatmap, "Displays a gnuplot heatmap of the input trees using the given distance measure", TYPE_TREESET, TYPE_STRING, TYPE_STRING);
