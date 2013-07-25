@@ -1986,6 +1986,29 @@ pqlsymbol * u_print_conflicting_quartets(vector<pqlsymbol * > arglist){
   return result;
 }
 
+
+pqlsymbol * u_get_num_quartets(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==1)
+  {
+	  if(arglist[0]->is_int()){
+   	     
+	     result = new pqlsymbol(getNumQuartets(arglist[0]->get_int()));
+	  }
+  } 
+  else {
+	cout << "get_num_quartets expects one argument of type INT.. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+
+
+
+
 pqlsymbol * u_num_conflicting_quartets(vector<pqlsymbol * > arglist){
   pqlsymbol * result;
 
