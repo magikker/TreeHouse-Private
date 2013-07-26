@@ -37,6 +37,10 @@ vector< set < unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsig
 //Forms a cluster of the input trees based on a distance type using the dbscan method
 vector < set < unsigned int> > dbscan_clust(set<unsigned int> treeset, unsigned int eps, unsigned int minpts, string dist_type);
 
+//Forms a pair of clusters, the first of which is to be the burned trees from a set, and the rest is to be retained
+//currently still incomplete and untested
+vector < set < unsigned int > > burnin_clust(set<unsigned int> treeset, string dist_type);
+
 //Tests for visualization
 void mdsTests();
 

@@ -380,6 +380,7 @@ pqlsymbol * u_get_trees_without_taxa(vector<pqlsymbol * > arglist)
 	return result;
 }
 
+/*
 pqlsymbol * u_to_newick(vector<pqlsymbol * > arglist) 
 {  
 	pqlsymbol * result;
@@ -404,6 +405,14 @@ pqlsymbol * u_to_newick(vector<pqlsymbol * > arglist)
 		result = new pqlsymbol(ERROR, "Type Error");
 	}
 	return result;
+}
+*/
+
+pqlsymbol * u_to_newick(vector<pqlsymbol *> arglist){
+	
+	to_newick(arglist[0]->get_int());
+
+	return new pqlsymbol(to_newick(arglist[0]->get_int()));
 }
 
 pqlsymbol * u_least_conflict(vector<pqlsymbol * > arglist) 
@@ -1033,19 +1042,8 @@ pqlsymbol * u_unique(vector<pqlsymbol * > arglist)
 pqlsymbol * u_unique_biparts(vector<pqlsymbol *> arglist)
 {
 	pqlsymbol * result;
-	
-	if(arglist.size() != 1){	
-		cout << "Error: unique_biparts expects one argument of type tree set";
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
-	else if(!arglist[0]->is_treeset() ){
-		cout << "Error: unique_biparts takes a tree set, Found " << get_arg_types(arglist) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
-	else{
-		result = new pqlsymbol(unique_biparts(arglist[0]->get_treeset()));
-		//result = new pqlsymbol(ERROR, "Type Error");
-	}
+
+	result = new pqlsymbol(unique_biparts(arglist[0]->get_treeset()));
 	
 	return result;
 }
@@ -1053,13 +1051,8 @@ pqlsymbol * u_unique_biparts(vector<pqlsymbol *> arglist)
 pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
 	pqlsymbol * result = new pqlsymbol();
 	
-	if(arglist.size() == 2 && arglist[0]->is_vect() && arglist[1]->is_string()){
-		result = new pqlsymbol(silhouette(arglist[0]->get_treeset_vect(), arglist[1]->get_string()));
-	}
-	else{
-		cout << "silhouette expect a single treeset vector, and a string dist_type as input " << "Found " << get_arg_types(arglist) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}	
+	result = new pqlsymbol(silhouette(arglist[0]->get_treeset_vect(), arglist[1]->get_string()));
+
 	return result;
 	
 }
@@ -1067,38 +1060,23 @@ pqlsymbol * u_silhouette(vector<pqlsymbol * > arglist) {
 pqlsymbol * u_rand_index(vector <pqlsymbol *> arglist){
 	pqlsymbol * result = new pqlsymbol();
 	
-	if(arglist.size() == 2 && arglist[0]->is_vect() && arglist[1]->is_vect()){
-		result = new pqlsymbol(rand_index(arglist[0]->get_treeset_vect(), arglist[1]->get_treeset_vect()));
-	}
-	else{
-		cout << "rand_index expects a pair of clusters, and a string dist_type as input " << "Found " << get_arg_types(arglist) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
+	result = new pqlsymbol(rand_index(arglist[0]->get_treeset_vect(), arglist[1]->get_treeset_vect()));
+
 	return result;
 }
 
 pqlsymbol * u_adjusted_rand_index(vector <pqlsymbol *> arglist){
 	pqlsymbol * result = new pqlsymbol();
 	
-	if(arglist.size() == 2 && arglist[0]->is_vect() && arglist[1]->is_vect()){
-		result = new pqlsymbol(adjusted_rand_index(arglist[0]->get_treeset_vect(), arglist[1]->get_treeset_vect()));
-	}
-	else{
-		cout << "rand_index expects a pair of clusters, and a string dist_type as input " << "Found " << get_arg_types(arglist) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
+	result = new pqlsymbol(adjusted_rand_index(arglist[0]->get_treeset_vect(), arglist[1]->get_treeset_vect()));
+
 	return result;
 }
 
 pqlsymbol * u_agglo_clust(vector<pqlsymbol * > arglist){
 	pqlsymbol * result = new pqlsymbol();
-	if (arglist.size() == 3 && arglist[0]->is_treeset() && arglist[1]->is_int() && arglist[2]->is_string()){
-		result = new pqlsymbol(agglo_clust(arglist[0]->get_treeset(), arglist[1]->get_int(), arglist[2]->get_string()));
-	}
-	else{
-		cout << "agglo_clust expects a treeset, an int number of clusters,  and a string dist_type as input " << " Found " << get_arg_types(arglist) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
+		
+	result = new pqlsymbol(agglo_clust(arglist[0]->get_treeset(), arglist[1]->get_int(), arglist[2]->get_string()));
 	
 	return result;
 	
@@ -1106,25 +1084,24 @@ pqlsymbol * u_agglo_clust(vector<pqlsymbol * > arglist){
 
 pqlsymbol * u_kmeans_clust(vector<pqlsymbol *> arglist){
 	pqlsymbol * result = new pqlsymbol();
-	if(arglist.size() == 3 && arglist[0]->is_treeset() && arglist[1]->is_int() && arglist[2]->is_string()){
-		result = new pqlsymbol(kmeans_clust(arglist[0]->get_treeset(),arglist[1]->get_int(), arglist[2]->get_string()));
-	}
-	else{
-		cout << "kmeans_clust expects a treeset, an unsigned int, and a string dist_type as input " << "Found " << get_arg_types(arglist) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
+		
+	result = new pqlsymbol(kmeans_clust(arglist[0]->get_treeset(),arglist[1]->get_int(), arglist[2]->get_string()));
+	
 	return result;
 }
 
 pqlsymbol * u_dbscan_clust(vector <pqlsymbol *> arglist){
 	pqlsymbol * result = new pqlsymbol();
-	if(arglist.size() == 4 && arglist[0]->is_treeset() && arglist[1]->is_int() && arglist[2]->is_int() && arglist[3]->is_string()){
-		result = new pqlsymbol(dbscan_clust(arglist[0]->get_treeset(),arglist[1]->get_int(),arglist[2]->get_int(),arglist[3]->get_string()));
-	}
-	else{
-		cout << "dbscan_clust expects a treeset, an unsigned int eps, and unsigned int minpts, and a string dist_type as input " << "Found " << get_arg_types(arglist) <<endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
+
+	result = new pqlsymbol(dbscan_clust(arglist[0]->get_treeset(),arglist[1]->get_int(),arglist[2]->get_int(),arglist[3]->get_string()));
+
+	return result;
+}
+
+pqlsymbol * u_burnin_clust(vector <pqlsymbol *> arglist){
+	pqlsymbol * result = new pqlsymbol();
+
+	result = new pqlsymbol(burnin_clust(arglist[0]->get_treeset(), arglist[1]->get_string()));
 	return result;
 }
 
@@ -2047,7 +2024,7 @@ string type_check(dataType expected, pqlsymbol * given, bool &error){
 	switch(expected){
 		
 	case TYPE_ATOM: //Atom
-		if(given->is_atom()){
+		if(!given->is_atom()){
 			ret_string = "Expects an atom as input ";
 			error = true;
 		}
@@ -2059,7 +2036,6 @@ string type_check(dataType expected, pqlsymbol * given, bool &error){
 		}
 		break;
 	case TYPE_STRING: //String
-		cout << "Entered string case" << endl;
 		if(!given->is_string()){
 			ret_string =  "Expects a string as input ";
 			error = true;
@@ -2158,7 +2134,7 @@ pqlsymbol * u_template(vector <pqlsymbol *> arglist, string functName){
 	for(unsigned int i = 0; i < argMap[functName].size(); i ++){//for each potential set of arguments
 		if (argMap[functName][i].size() != arglist.size()){
 			cout << "Expects " << argMap[functName].size() << " inputs, Found: " << arglist.size() << endl;
-			return new pqlsymbol(ERROR, "Input size Error");
+//			return new pqlsymbol(ERROR, "Input size Error");
 		}
 	}
 	
@@ -2185,13 +2161,14 @@ pqlsymbol * u_template(vector <pqlsymbol *> arglist, string functName){
 			return result = new pqlsymbol( ( *it).second(arglist));
 		}	
 		*/
-			return result = new pqlsymbol ( (*it).second(arglist));
+	
+		return ptrMap[functName](arglist);
 		
 	}
 	//Outpus the error string accumulated
 	cout << errString << inputNum <<  " Found : " << get_arg_types(arglist) << endl;
-	result = new pqlsymbol(ERROR, "Type Error");
-	return result;	
+	return new pqlsymbol(ERROR, "Type Error");
+
 }
 
 //Overload of the add_function which accepts a variable number of inputs after the documentation string
@@ -2200,7 +2177,7 @@ pqlsymbol * u_template(vector <pqlsymbol *> arglist, string functName){
 template <class... Args>
 void add_function(string functname, afptr funct, string doc, Args... sepArgs){
 	std::vector<dataType> args = {sepArgs...};
-	::argFunctMap.insert(std::make_pair(functname, (afptr)u_template));
+	::argFunctMap.insert(std::make_pair(functname, funct));
 	//This is so tab-autocomplete works
 	::functionKeys.push_back(functname);
 	::helpRef.insert(std::make_pair(functname, doc));
@@ -2299,6 +2276,7 @@ void init_the_functs()
 	add_function("agglo_clust", &u_agglo_clust, "Returns the agglomerative clustering of the given input set of trees.", TYPE_TREESET, TYPE_INT, TYPE_STRING);
 	add_function("kmeans_clust", &u_kmeans_clust, "returns the k means clustering of the given input set of trees.", TYPE_TREESET, TYPE_INT, TYPE_STRING);
 	add_function("dbscan_clust", &u_dbscan_clust, "Return the dbscan clustering of the given input set of trees. Last cluster is always noise (trees that don't fit a cluster based on current criteria", TYPE_TREESET, TYPE_INT, TYPE_INT, TYPE_STRING);
+	add_function("burnin_clust", &u_burnin_clust, "User Function for testing a clustering method - Currently unfinished", TYPE_TREESET, TYPE_STRING);
 	
 	//quartets
 	add_function("shared_quartets_strict", &u_shared_quartets_strict, "Returns quartets present in every tree of treeset",TYPE_TREESET);

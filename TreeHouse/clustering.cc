@@ -349,9 +349,6 @@ float adjusted_rand_index(vector < set < unsigned int > > clusters1, vector < se
 
 //	cout << "Nsum: " << nsum << " asum : " << asum << " bsum : " << bsum << " n : " << n << endl;
 
-	float printtest = (7.0 - (14*13/45)) / ((14.0+13.0)/2.0 - (14 * 13 /45.0)) ;
-
-
 	cout << "Adjusted Rand Index: " << retvalue << endl;
 
 	return retvalue;
@@ -368,7 +365,7 @@ pair<unsigned int, float> closest_neighbor(unsigned int clustid, set <unsigned i
 	pair<unsigned int, float> retneighbor;
 
 	float bestdist = 100;
-	unsigned int best_neighbor;
+	unsigned int best_neighbor = 0;
 	for(std::set<unsigned int>::iterator pos = checkset.begin(); pos != checkset.end(); pos++){//for each cluster in checkset
 		float tempdist;
 		//If the distance from clustid to anything in the checkset is
@@ -408,9 +405,6 @@ void recompute_distances(vector < vector < unsigned int > > &distances, map < un
 		distances[clustid][current] = tempdist;
 	}
 }
-
-
-
 
 //Returns clusters of the input trees based on an agglomerative hierarchical method
 vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, unsigned int numclusts, string dist_type){
@@ -535,11 +529,11 @@ void recompute_centroid_distances(vector < vector <unsigned int> > &centroid_dis
 
 		for(unsigned int j = 0; j < numtrees; j++){//for each tree	
 			float tempsum = 0;
-			float tempdifference = 0;
 			float dist = 0;
 			for(std::set<unsigned int>::iterator pos = centroidcluster[i].begin(); pos != centroidcluster[i].end(); ++pos){//for each tree
 				tempsum += distances[j][*pos];
 			}
+
 			//ifor(std::set<unsigned int>::iterator pos = removed.begin(); pos != removed.end(); ++pos){//for each tree removed
 			//	tempdifference += distances[j][*pos];
 		//	}
@@ -653,7 +647,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	}
 
 	//Adds the cluster information to the return set
-	for(unsigned int i = 0; i < nclusters.size(); i++){//for eachc luster
+	for(unsigned int i = 0; i < nclusters.size(); i++){//for each cluster
 		set<unsigned int> tempset;
 		tempset.clear();
 		for(std::set<unsigned int>::iterator pos = nclusters[i].begin(); pos != nclusters[i].end(); ++pos){//for each tree in cluster
@@ -799,21 +793,41 @@ vector < set < unsigned int > >dbscan_clust(set <unsigned int> treeset, unsigned
 	
 	return retset;
 }
-/*
-//A function for determining the trees to throw out after a run of a program such as Mr. Bayes (in the works)
+
+//Recomputes the distance for burnin_clust (burnin_clust helper)
+void recompute_distances(vector < vector < unsigned int > > distances, 
+				vector < pair < float, float > > &rem_distances, vector < pair < float, float> > &burned_distances,
+				unsigned int burnedSize, unsigned int remSize, unsigned int treenum, unsigned int setsize){
+
+	for(unsigned int i = treenum; i < setsize; i++){//for each tree after the treenum
+	
+		//Recompute the remaining distances for each tree
+		rem_distances[i].second -= distances[i][treenum];
+		rem_distances[i].first = rem_distances[i].second / remSize;
+		//Recompute the burned distances for each tree
+		burned_distances[i].second += distances[i][treenum];
+		burned_distances[i].first = burned_distances[i].second / burnedSize;
+	}
+}
+
+
+//A function for determining the trees to throw out after a run of a program such as Mr. Bayes (in the works, currently 
+//theoretical and largly untested)
 vector < set < unsigned int > > burnin_clust (set <unsigned int> treeset, string dist_type){
 	vector < set < unsigned int> > retset;
 	//Stores and computes the distance matrix
 	vector < vector < unsigned int > > distances;
 	distances = compute_distances(treeset, dist_type);
-	
+	set <unsigned int > burnedset;
+	set <unsigned int > keepset = treeset;
+
 	//Stores the average distance from each tree to the remaining trees
 	//and the total distance before averaging
 	vector < pair < float, float > > rem_distances;
 
 	//Stores the average distance from each tree to the already clustered trees
 	//and the toal distance before averaging
-	vector < pair < float, float > > past_distances;
+	vector < pair < float, float > > burned_distances;
 
 	//Fills the rem_distances vector
 	for(unsigned int i = 0; i < treeset.size(); i++){//For each tree
@@ -822,30 +836,72 @@ vector < set < unsigned int > > burnin_clust (set <unsigned int> treeset, string
 			if(i != j){
 				tempsum += distances[i][j];
 			}
-			rem_distances.push_back(tempsum, tempsum / treeset.size());
 		}
+
+		rem_distances.push_back(make_pair(tempsum / treeset.size(), tempsum));
 	}
+
 
 	//Fills the past_distances vector to begin
 	for (unsigned int i = 0; i < treeset.size(); i++){//for each tree
-		past_distances.push_back((0,0));
-	}	
+		burned_distances.push_back(make_pair(0,0));
+	}
+
+
+	unsigned int treenum = 0;
+
+	for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
+		//If closer to the remaining trees than to the burned set
+		//we're done
+		cout << "Distances : " << rem_distances[treenum].first << " " << burned_distances[treenum].first << endl;
+		if(rem_distances[treenum].first < burned_distances[treenum].first){	
+			break;
+		}
+		//Else, burn the current tree and recompute_distances
+		else{
+			burnedset.insert(*pos);
+			keepset.erase(*pos);
+			recompute_distances(distances, rem_distances, burned_distances, burnedset.size(), keepset.size(), treenum, treeset.size());
+		}
+		treenum++;
+	}
+
+
+	retset.push_back(burnedset);
+	retset.push_back(keepset);
+
+	//Prints out the clusters (maybe less than useful on very large datasets)
+	
+	for(unsigned int i = 0; i < retset.size(); i++){//for each cluster
+		cout << "Cluster : " << i << " Trees : " ;
+		for(std::set<unsigned int>::iterator  pos = retset[i].begin(); pos != retset[i].end(); ++pos){//for each tree in the cluster
+			cout << *pos << " " ;
+		}
+		cout << endl;
+	}
+	
+
+	return retset;
+
 }
-*/
+
 
 
 //various tests that have been used for clusters
 void TestClust(){
 
 	set <unsigned int> testset;
-	vector < set <unsigned int> > testvect;
-	set <unsigned int> piece;
-	set <unsigned int> piece2;
+	//vector < set <unsigned int> > testvect;
+	//set <unsigned int> piece;
+	//set <unsigned int> piece2;
 
 	for(unsigned int i = 0; i < 11; i++){
 		testset.insert(i);
 	}
 
+	burnin_clust(testset, "rf");
+
+	/*
 	piece.insert(5);
 	piece.insert(0);
 	piece.insert(2);
@@ -909,6 +965,7 @@ void TestClust(){
 	//test_tree_vect.push_back(testset4);
 	//test_tree_vect.push_back(testset5);
 	//silhouette(test_tree_vect);
+	*/
 }
 
 
