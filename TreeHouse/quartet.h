@@ -157,6 +157,7 @@ void fillDifferenceVectors(boost::dynamic_bitset<> v1, boost::dynamic_bitset<> v
 void addMatchedPairs(vector<iPair> p1, vector<iPair> p2, vector<quartet> &retVec);
 vector<quartet> generateDifferentQuartets(int bipartA, int bipartB);
 vector<quartet> generateSameQuartets(int bipartA, int bipartB);
+void printSameQuartets(int a, int b);
 
 
 set<quartet> generateConflictingQuartetsBruteForce(int bipart1, int bipart2);
@@ -180,8 +181,8 @@ unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_b
 
 set<quartet> generateDifferentQuartetsFromTrees(int a, int b); //ALL TO ALL
 set<quartet> generateDifferentQuartetsFromTrees2(int a, int b);
-set<quartet> generateDifferentQuartetsFromTrees3(int a, int b); //UNIQUE TO ALL
-set<quartet> generateDifferentQuartetsFromTrees4(int a, int b); //UNIQUE TO UNIQUE
+set<quartet> generateDifferentQuartetsFromTrees3(int a, int b); //UNIQUE TO ALL. FASTEST QUARTET DISTANCE
+set<quartet> generateDifferentQuartetsFromTrees4(int a, int b); //UNIQUE TO UNIQUE, PRODUCES INCORRECT QUARTET DISTANCE
 set<quartet> generateSameQuartetsFromTrees(int a, int b);
 set<quartet> generateQuartetsFromTree(int t);
 set<quartet> generateQuartetsFromBiparts(set<unsigned int> s);

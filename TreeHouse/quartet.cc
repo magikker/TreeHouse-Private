@@ -932,24 +932,54 @@ vector<quartet> generateSameQuartets(int bipartA, int bipartB){
    boost::dynamic_bitset<> A = biparttable.non_trunc_bitstring(bipartA);
    boost::dynamic_bitset<> B = biparttable.non_trunc_bitstring(bipartB);
    boost::dynamic_bitset<> C;
-   boost::dynamic_bitset<> D;
    
-  C = A & B;
-  D = A ^ B;
+  C = A ^ B;
   
   vector<int> ones;
   vector<int> zeros;
+
+  int countShared = 0;
  
  for(unsigned int i = 0; i < A.size(); i++){
 	if (C[i] == true){
-		ones.push_back(i);
+		countShared++;
 	}
-	if (D[i] == true){
-		zeros.push_back(i);
 	}
- }
+
+  if(countShared > (A.size()/2)){ //one bipart doesn't need to be inverted.
+	//now, look at which elements are shared 
+	for(unsigned int i = 0; i < A.size(); i++){
+		if(C[i]==true){
+			if(C[i]==1){
+				ones.push_back(i);
+				}
+			else{
+				zeros.push_back(i);
+				}
+			}
+		}
+
+	}
+  else{
+	for(unsigned int i = 0; i < A.size(); i++){
+		if(C[i]==false){
+			if(A[i]==1){
+				ones.push_back(i);
+				}
+			else{
+				zeros.push_back(i);
+				}
+			}
+		}
+
+	}
+ 
  
  return generateQuartetsFromOnesZeros(ones, zeros);
+}
+
+void printSameQuartets(int a, int b){
+	printQuartets(generateSameQuartets(a,b));
 }
 
 
@@ -1167,9 +1197,10 @@ unsigned int getNumQuartets(int b){
   //takes the index of a bipartition and counts the number of quartets implied by it
   int nOnes = biparttable.number_of_ones(b);
   int nZeros = biparttable.number_of_zeros(b) + ::biparttable.lm.size() - biparttable.bitstring_size(b);
+
   //quartets = (nOnes choose 2) * (nZeros choose 2) 
 //cout << "num ones is: " << nOnes << ", number of 0s is " << nZeros << endl;
-  return(getNumQuartets(nOnes,nZeros));
+   return(getNumQuartets(nOnes,nZeros));
 
 }
 

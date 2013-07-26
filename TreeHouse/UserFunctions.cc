@@ -1995,7 +1995,11 @@ pqlsymbol * u_get_num_quartets(vector<pqlsymbol * > arglist){
 	  if(arglist[0]->is_int()){
    	     
 	     result = new pqlsymbol(getNumQuartets(arglist[0]->get_int()));
-	  }
+	}
+	else{
+	cout << "get_num_quartets expects one argument of type INT.. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
   } 
   else {
 	cout << "get_num_quartets expects one argument of type INT.. "  << "Found " << get_arg_types(move(arglist)) << endl;
@@ -2025,6 +2029,42 @@ pqlsymbol * u_num_conflicting_quartets(vector<pqlsymbol * > arglist){
 
   return result;
 }
+
+pqlsymbol * u_num_shared_quartets(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+	     result = new pqlsymbol(getNumSameQuartets(arglist[0]->get_int(), arglist[1]->get_int()));
+	  }
+  } 
+  else {
+	cout << "num_conflicting_quartets expects two INTs, i.e. bipartition indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+pqlsymbol * u_print_shared_quartets(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+		printSameQuartets(arglist[0]->get_int(), arglist[1]->get_int());	     
+		result = new pqlsymbol();
+	  }
+  } 
+  else {
+	cout << "num_conflicting_quartets expects two INTs, i.e. bipartition indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
 
 
 
@@ -2329,6 +2369,10 @@ void init_the_functs()
 	add_function("print_quartets_from_tree", &u_print_quartets_from_tree, "Prints all quartets of a tree given its index as an int", TYPE_INT);
 	add_function("print_conflicting_quartets", &u_print_conflicting_quartets, "Given two bipartitions, prints all conflicting quartets");
 	add_function("num_conflicting_quartets", &u_num_conflicting_quartets, "Returns number of conflicting quartets across two given bipartitions");
+	//add_function("get_num_quartets", &u_get_num_quartets, "Returns the number of quartets implied by a given bipartition.", TYPE_INT);
+	add_function("get_num_quartets", &u_get_num_quartets, "Returns the number of quartets implied by a given bipartition.");
+	add_function("print_shared_quartets_bipart", &u_print_shared_quartets, "Prints the shared quartets between two given bipartitions");
+	add_function("num_shared_quartets_bipart", &u_num_shared_quartets, "Prints the shared quartets between two given bipartitions");
 
 	//distance
 	add_function("distance_between_taxa", &u_distance_between_taxa, "Returns distance between two specified taxa in a specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
