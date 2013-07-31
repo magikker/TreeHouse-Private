@@ -811,8 +811,9 @@ void recompute_distances(vector < vector < unsigned int > > distances,
 }
 
 
-//A function for determining the trees to throw out after a run of a program such as Mr. Bayes (in the works, currently 
-//theoretical and largly untested)
+//A function for determining the trees to throw out after a run of a program such as Mr. Bayes 
+//Clustering approach being attempted as alternative method
+//(in the works, currently theoretical and largly untested) 
 vector < set < unsigned int > > burnin_clust (set <unsigned int> treeset, string dist_type){
 	vector < set < unsigned int> > retset;
 	//Stores and computes the distance matrix
@@ -829,7 +830,8 @@ vector < set < unsigned int > > burnin_clust (set <unsigned int> treeset, string
 	//and the toal distance before averaging
 	vector < pair < float, float > > burned_distances;
 
-	//Fills the rem_distances vector
+	//Fills the rem_distances vector (seems to make function very slow - should be revised)
+	//Possibly run on subset of the input dataset
 	for(unsigned int i = 0; i < treeset.size(); i++){//For each tree
 		float tempsum = 0;
 		for(unsigned int j = 0; j < treeset.size(); j++){//For each other tree
@@ -840,7 +842,7 @@ vector < set < unsigned int > > burnin_clust (set <unsigned int> treeset, string
 
 		rem_distances.push_back(make_pair(tempsum / treeset.size(), tempsum));
 	}
-
+	cout << "finished rem_distances" << endl;
 
 	//Fills the past_distances vector to begin
 	for (unsigned int i = 0; i < treeset.size(); i++){//for each tree
@@ -895,13 +897,13 @@ void TestClust(){
 	//set <unsigned int> piece;
 	//set <unsigned int> piece2;
 
-	for(unsigned int i = 0; i < 11; i++){
+	for(unsigned int i = 0; i < 10000; i++){
 		testset.insert(i);
 	}
 
-	burnin_clust(testset, "rf");
+//	burnin_clust(testset, "rf");
 
-	/*
+/*	
 	piece.insert(5);
 	piece.insert(0);
 	piece.insert(2);
@@ -914,16 +916,17 @@ void TestClust(){
 	piece2.insert(10);
 	testvect.push_back(piece);
 	testvect.push_back(piece2);
+*/
 
 
-
-	kmeans_clust(testset, 2, "rf");
-	adjusted_rand_index(kmeans_clust(testset, 2, "rf"),kmeans_clust(testset,2,"rf"));
-	adjusted_rand_index(kmeans_clust(testset, 3, "rf"),kmeans_clust(testset,2,"rf"));
-	adjusted_rand_index(kmeans_clust(testset, 2, "rf"),testvect);
-	
-	rand_index(kmeans_clust(testset, 2, "rf"),kmeans_clust(testset,2,"rf"));
-	rand_index(kmeans_clust(testset, 3, "rf"),kmeans_clust(testset,2,"rf"));
+	//kmeans_clust(testset, 2, "rf");
+//	cout<< "adjusted_rand_index" << endl;
+//	adjusted_rand_index(kmeans_clust(testset, 2, "rf"),kmeans_clust(testset,2,"rf"));
+//	adjusted_rand_index(kmeans_clust(testset, 3, "rf"),kmeans_clust(testset,2,"rf"));
+//	adjusted_rand_index(kmeans_clust(testset, 2, "rf"),testvect);
+//	cout << "rand_index" << endl;
+//	rand_index(kmeans_clust(testset, 2, "rf"),kmeans_clust(testset,2,"rf"));
+//	rand_index(kmeans_clust(testset, 3, "rf"),kmeans_clust(testset,2,"rf"));
 	//cout << "First test" << endl;
 	//dbscan_clust(testset, 1, 2, "rf");
 	//cout << "All trees singular test" << endl;
@@ -965,7 +968,7 @@ void TestClust(){
 	//test_tree_vect.push_back(testset4);
 	//test_tree_vect.push_back(testset5);
 	//silhouette(test_tree_vect);
-	*/
+	
 }
 
 
