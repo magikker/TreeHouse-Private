@@ -1640,6 +1640,24 @@ pqlsymbol * u_test_trait_correlation(vector<pqlsymbol * > arglist) {
 	}
 	return result;
 }
+
+pqlsymbol * u_conflicting_quartet_distance(vector<pqlsymbol * > arglist) {
+	pqlsymbol * result = new pqlsymbol();
+	if (arglist.size() == 2) {
+		if(arglist[0]->is_int() && arglist[1]->is_int()){
+			return new pqlsymbol(conflictingQuartetDistance(arglist[0]->get_int(), arglist[1]->get_int()));
+			}	
+		else{
+			cout << "conflicting_quartet_distance expect two ints (tree indices)." << endl;
+			result = new pqlsymbol(ERROR, "Type Error");
+			}
+	}
+	 else {
+		cout << "conflicting_quartet_distance expect two ints (tree indices)." << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
 /*
 pqlsymbol * u_taxa_filter(vector<pqlsymbol * > arglist) {  
 pqlsymbol * result = new pqlsymbol();
@@ -1927,23 +1945,6 @@ pqlsymbol * u_distance_to_root(vector<pqlsymbol * > arglist){
   	return result;
 }
 
-pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
-	pqlsymbol * result;
-	
-	if (arglist.size()==1)
-	{
-		if(arglist[0]->is_int()){
-			result = new pqlsymbol(average_depth(arglist[0]->get_int()));
-		}
-	} 
-	else {
-		cout << "average_depth expects one INT (a taxa) as an input. "  << "Found " << get_arg_types(move(arglist)) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-  	}
-  	
-  	return result;
-}
-
 pqlsymbol * u_print_conflicting_quartets(vector<pqlsymbol * > arglist){
   pqlsymbol * result;
 
@@ -2024,6 +2025,62 @@ pqlsymbol * u_num_shared_quartets(vector<pqlsymbol * > arglist){
   return result;
 }
 
+
+pqlsymbol * u_num_overlapping_quartets(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+	     result = new pqlsymbol(numOverlappingQuartets(arglist[0]->get_int(), arglist[1]->get_int()));
+	  }
+  } 
+  else {
+	cout << "num_overlapping_quartets expects two INTs, i.e. bipartition indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+pqlsymbol * u_quartet_distance(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+ 	     set<quartet> qDist = generateDifferentQuartetsFromTrees3(arglist[0]->get_int(), arglist[1]->get_int());
+	     unsigned int size = qDist.size();
+	     result = new pqlsymbol(size);
+	  }
+  } 
+  else {
+	cout << "quartet_distance expects two INTs, i.e. tree indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+pqlsymbol * u_print_quartet_distance(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==2)
+  {
+	  if(arglist[0]->is_int() && arglist[1]->is_int()){
+ 	     set<quartet> qDist = generateDifferentQuartetsFromTrees3(arglist[0]->get_int(), arglist[1]->get_int());
+	     printSet(qDist);
+	     result = new pqlsymbol();
+	  }
+  } 
+  else {
+	cout << "print_quartet_distance expects two INTs, i.e. tree indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
 pqlsymbol * u_print_shared_quartets(vector<pqlsymbol * > arglist){
   pqlsymbol * result;
 
@@ -2042,7 +2099,54 @@ pqlsymbol * u_print_shared_quartets(vector<pqlsymbol * > arglist){
   return result;
 }
 
+pqlsymbol * u_is_bifurcating(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
 
+  if (arglist.size()==1)
+  {
+	  if(arglist[0]->is_int()){
+		result = new pqlsymbol(isBifurcating(to_newick(arglist[0]->get_int())));
+	  }
+	else if(arglist[0]->is_string()){
+		result = new pqlsymbol(isBifurcating(arglist[0]->get_string()));
+		}
+	else{
+	cout << "is_bifurcating expects either an int or a string (representing a tree). "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+		}
+  } 
+  else {
+	cout << "is_bifurcating expects either an int or a string (representing a tree). "  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
+
+pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
+  pqlsymbol * result;
+
+  if (arglist.size()==1)
+  {
+	  if(arglist[0]->is_int()){
+		result = new pqlsymbol(average_depth(arglist[0]->get_int()));
+	  }
+	else if(arglist[0]->is_treeset()){
+		result = new pqlsymbol(average_depth(arglist[0]->get_treeset()));
+		}
+	else{
+		cout << "average_depth expects an int (i.e. tree index) or a treeset."  << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+		}
+		
+  } 
+  else {
+	cout << "average_depth expects an int (i.e. tree index) or a treeset."  << "Found " << get_arg_types(move(arglist)) << endl;
+	result = new pqlsymbol(ERROR, "Type Error");
+  	}
+
+  return result;
+}
 
 
 pqlsymbol * u_average_distance_between_taxa(vector<pqlsymbol * > arglist){
@@ -2068,6 +2172,143 @@ pqlsymbol * u_average_distance_between_taxa(vector<pqlsymbol * > arglist){
   		
 	}
 	
+	return result;
+}
+
+pqlsymbol * u_expected_depth(vector<pqlsymbol * > arglist){
+	pqlsymbol * result;
+	
+	if (arglist.size()==1)
+	{
+		if(arglist[0]->is_int() && arglist[1]->is_int()){
+			result = new pqlsymbol(expected_average_depth(arglist[0]->get_int()));
+		}
+		else{
+			cout << "expected_average_depth expects an int. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  			result = new pqlsymbol(ERROR, "Type Error");
+			}
+	} 
+	
+  	else{
+  		cout << "expected_average_depth expects an int. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  		result = new pqlsymbol(ERROR, "Type Error");
+  		
+	}
+	
+	return result;
+}
+
+pqlsymbol * u_calculate_C(vector<pqlsymbol * > arglist){
+	pqlsymbol * result;
+	
+	if (arglist.size()==1)
+	{
+		if(arglist[0]->is_int()){
+			result = new pqlsymbol(calculate_C(arglist[0]->get_int()));
+		}
+		else if(arglist[0]->is_string()){
+			result = new pqlsymbol(calculate_C(arglist[0]->get_string()));
+			}
+		else{
+  			cout << "calculate_C expects either an int or a Newick string. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  			result = new pqlsymbol(ERROR, "Type Error");
+			}
+	} 
+	
+  	else{
+  		cout << "calculate_C expects either an int or a Newick string. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  		result = new pqlsymbol(ERROR, "Type Error");
+  		
+	}
+	
+	return result;
+}
+
+pqlsymbol * u_edit_distance_greedy(vector<pqlsymbol * > arglist){
+	pqlsymbol * result;
+	
+	if (arglist.size()==2)
+	{
+		if(arglist[0]->is_int() && arglist[1]->is_int()){
+			result = new pqlsymbol(edit_distance_greedy(arglist[0]->get_int(), arglist[1]->get_int()));
+		}
+		else{
+  			cout << "edit_distance_greedy expects two trees. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  			result = new pqlsymbol(ERROR, "Type Error");
+			}
+	} 
+	
+  	else{
+  		cout << "edit_distance_greedy expects two trees. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  		result = new pqlsymbol(ERROR, "Type Error");
+ 
+	}
+	return result;
+}
+
+pqlsymbol * u_edit_distance_total(vector<pqlsymbol * > arglist){
+	pqlsymbol * result;
+	
+	if (arglist.size()==2)
+	{
+		if(arglist[0]->is_int() && arglist[1]->is_int()){
+			result = new pqlsymbol(edit_distance_total(arglist[0]->get_int(), arglist[1]->get_int()));
+		}
+		else{
+  			cout << "edit_distance_total expects two trees. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  			result = new pqlsymbol(ERROR, "Type Error");
+			}
+	} 
+	
+  	else{
+  		cout << "edit_distance_total expects two trees. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  		result = new pqlsymbol(ERROR, "Type Error");
+ 
+	}
+	return result;
+}
+
+pqlsymbol * u_edit_distance_average(vector<pqlsymbol * > arglist){
+	pqlsymbol * result;
+	
+	if (arglist.size()==2)
+	{
+		if(arglist[0]->is_int() && arglist[1]->is_int()){
+			result = new pqlsymbol(edit_distance_average(arglist[0]->get_int(), arglist[1]->get_int()));
+		}
+		else{
+  			cout << "edit_distance_average expects two trees. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  			result = new pqlsymbol(ERROR, "Type Error");
+			}
+	} 
+	
+  	else{
+  		cout << "edit_distance_average expects two trees. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  		result = new pqlsymbol(ERROR, "Type Error");
+ 
+	}
+	return result;
+}
+
+pqlsymbol * u_edit_distance_minimum(vector<pqlsymbol * > arglist){
+	pqlsymbol * result;
+	
+	if (arglist.size()==2)
+	{
+		if(arglist[0]->is_int() && arglist[1]->is_int()){
+			result = new pqlsymbol(edit_distance_minimum(arglist[0]->get_int(), arglist[1]->get_int()));
+		}
+		else{
+  			cout << "edit_distance_minimum expects two trees. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  			result = new pqlsymbol(ERROR, "Type Error");
+			}
+	} 
+	
+  	else{
+  		cout << "edit_distance_minimum expects two trees. "  << "Found " << get_arg_types(move(arglist)) << endl;
+  		result = new pqlsymbol(ERROR, "Type Error");
+ 
+	}
 	return result;
 }
 
@@ -2289,7 +2530,7 @@ void init_the_functs()
 	add_function("get_trees_without_taxa", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 	add_function("gtwot", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 	
-	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa", TYPE_VECT, TYPE_INT);
+	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa");
 	add_function("smallest_clade", &u_smallest_clade, "Returns trees with the smallest clade of given taxa", TYPE_VECT);
 	add_function("get_trees_with_taxa", &u_get_trees_with_taxa, "Returns the trees that have the input taxa", TYPE_VECT);
 	add_function("gtwt", &u_get_trees_with_taxa, "Returns the trees that have the input taxa", TYPE_VECT);
@@ -2348,17 +2589,26 @@ void init_the_functs()
 	add_function("print_conflicting_quartets", &u_print_conflicting_quartets, "Given two bipartitions, prints all conflicting quartets");
 	add_function("num_conflicting_quartets", &u_num_conflicting_quartets, "Returns number of conflicting quartets across two given bipartitions");
 	//add_function("get_num_quartets", &u_get_num_quartets, "Returns the number of quartets implied by a given bipartition.", TYPE_INT);
-	add_function("get_num_quartets", &u_get_num_quartets, "Returns the number of quartets implied by a given bipartition.");
-	add_function("print_shared_quartets_bipart", &u_print_shared_quartets, "Prints the shared quartets between two given bipartitions");
-	add_function("num_shared_quartets_bipart", &u_num_shared_quartets, "Prints the shared quartets between two given bipartitions");
-
+	add_function("num_quartets", &u_get_num_quartets, "Returns the number of quartets implied by a given bipartition.", TYPE_INT);
+	add_function("print_shared_quartets", &u_print_shared_quartets, "Prints the shared quartets between two given bipartitions");
+	add_function("num_shared_quartets", &u_num_shared_quartets, "Returns number of shared quartets between two biparts");
+	add_function("num_overlapping_quartets", &u_num_overlapping_quartets, "Returns number of overlapping quartets between two 	biparts");
+	add_function("quartet_distance", &u_quartet_distance, "Returns quartet distance between two trees");
+	add_function("print_quartet_distance", &u_print_quartet_distance, "Prints differing quartets between two trees.");
+	add_function("conflicting_quartet_distance", &u_conflicting_quartet_distance, "Returns conflicting quartet distance between two trees");
 	//distance
 	add_function("distance_between_taxa", &u_distance_between_taxa, "Returns distance between two specified taxa in a specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
 	add_function("distance_to_common_ancestor", &u_distance_to_common_ancestor, "Returns distance between two specified taxa in a specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
 	add_function("distance_to_root", &u_distance_to_root, "Returns distance to root of specified taxa in specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
-	add_function("average_depth", &u_average_depth, "Returns the average depth of a specified taxa among all trees",TYPE_TREESET);
-	add_function("average_distance_between_taxa", &u_average_distance_between_taxa, "Returns the average distance between two taxa among all trees",TYPE_INT, TYPE_INT, TYPE_TREESET);
-	
+	add_function("average_depth", &u_average_depth, "Returns the average depth of a specified taxa among all trees");
+	add_function("expected_average_depth", &u_average_depth, "Returns the theoretical expected average depth given a number of taxa", TYPE_INT);
+	add_function("average_distance_between_taxa", &u_average_distance_between_taxa, "Returns the average distance between two taxa among all trees");
+	add_function("is_bifurcating", &u_is_bifurcating, "Returns boolean representing whether inputted tree is bifurcating");
+	add_function("calculate_C", &u_calculate_C, "Returns the value of C (a symmetry measure) for a tree. Input is either an int or a string. Input tree MUST be bifurcating!");
+	add_function("edit_distance_greedy", &u_edit_distance_greedy, "Given two trees, returns greedy edit distance");
+	add_function("edit_distance_minimum", &u_edit_distance_minimum, "Given two trees, returns minimum edit distance");
+	add_function("edit_distance_total", &u_edit_distance_total, "Given two trees, returns total edit distance");
+	add_function("edit_distance_average", &u_edit_distance_average, "Given two trees, returns average edit distance");
 	//consensus
 	add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.", TYPE_TREESET);
 	add_function("consensus_strict", &u_strict_consen, "Returns the newick string for the strict consensus tree for the input treeset.", TYPE_TREESET);
@@ -2377,6 +2627,7 @@ void init_the_functs()
 	add_function("help", &u_help, "Prints function description given a function name", TYPE_STRING);
 	add_function("help", &u_help, "Prints function description given a function name");
 	add_function("print_inverted_index", &u_print_inverted_index, "prints the inverted index, which is num trees long by num biparts wide.");
+
 
 	//visualization
 	add_function("display_clusters", &u_display_clusters, "Displays a gnuplot graph of the trees color coded by cluster", TYPE_STRING, TYPE_STRING, TYPE_TREESETVECT);
@@ -2427,4 +2678,3 @@ void init_the_functs()
  	
 	
 }
-

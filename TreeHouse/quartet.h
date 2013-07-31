@@ -146,7 +146,7 @@ void insertQuartetsFromBipart(int b, set<quartet> &setty);
 
 vector<quartet> generateQuartetsFromOnesZeros(vector<int> ones, vector<int> zeros);
 set<quartet> generateQuartetsFromOnesZerosSet(vector<int> ones, vector<int> zeros);
-
+void getOnesZeros(boost::dynamic_bitset<> x, vector<int> &ones, vector<int> &zeros);
 
 vector<iPair> nChooseTwo(vector<int> in);
 vector<iPair> matchTaxa(vector<int> a, vector<int> b);
@@ -165,8 +165,10 @@ set<quartet> generateConflictingQuartets(int bipart1, int bipart2);
 qPair generateConflictingQuartets3(int bipart1, int bipart2);
 CQS generateConflictingQuartets4(int bipart1, int bipart2);
 unsigned int numConflictingQuartets(int bipart1, int bipart2);
-unsigned long conflictingQuartetDistance(int tree1, int tree2);
-unsigned long conflictingQuartetDistance(int tree1, int tree2, bipartDistances b);
+unsigned long OldConflictingQuartetDistance(int tree1, int tree2);
+unsigned long OldConflictingQuartetDistance(int tree1, int tree2, bipartDistances b);
+double OldModifiedConflictingQuartetDistance(int tree1, int tree2);
+double conflictingQuartetDistance(int tree1, int tree2);
 set<quartet> generateConflictingQuartetsGroup(int bipart1, set<unsigned int> bipart2);
 
 unsigned int getNumQuartets(int);
@@ -177,6 +179,7 @@ unsigned int getNumQuartets(int nOnes, int nZeros);
 unsigned int getNumDifferentQuartets(int a, int b);
 unsigned int getNumSameQuartets(int a, int b);
 unsigned int getNumSameQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b);
+unsigned int numOverlappingQuartets(int a, int b);
 unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_bitset<> b);
 
 set<quartet> generateDifferentQuartetsFromTrees(int a, int b); //ALL TO ALL
@@ -192,12 +195,15 @@ unsigned int quartet_distance(int tree1, int tree2);
 void shared_quartets_strict(set<unsigned int> trees);
 void shared_quartets_majority(set<unsigned int> trees);
 
+vector<vector<unsigned int>> distanceWrapper(set<int> in, string mode);
+
 void ktetAnalysis(int t);
 void quartetAnalysis(int, int); //not fully implemented
 void printSet(set<quartet> s);
 void TESTSTUFF();
 void testConflictingQuartetSpeed();
 void testConflictingQuartetDistance();
+void testModifiedConflictingQuartetDistance();
 void testCQS();
 void testGenerateBipartitionConflicts();
 void testGenerateConflictingQuartets();

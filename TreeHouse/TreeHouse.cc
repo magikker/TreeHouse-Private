@@ -1131,7 +1131,7 @@ int main(int argc, char **argv){
 	if (strcmp(argv[cmdind],"-i") == 0) {
 	//	testDistance();
 	//	TESTSTUFF();
-		TestClust();
+	//	TestClust();
 
 	//	testDistance();
 		//mdsTests();
