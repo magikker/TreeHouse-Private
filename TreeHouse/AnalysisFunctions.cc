@@ -305,6 +305,7 @@ unsigned int distance_switch(string measure){
 	else if (measure == "editm" || measure == "minimum-edit"){
 		switch_value = 25;
 	}
+	return switch_value;
 }
 
 //Computes the distance matrix for the given input and measure, input is a treeset, for when order isn't especially important
@@ -313,7 +314,6 @@ vector <vector < unsigned int> > compute_distances(set < unsigned int > treeset,
 	vector < vector <unsigned int> > distances;
 	
 	unsigned int switch_value = distance_switch(measure);
-
 	if(switch_value < 20){
 		vector < vector < unsigned int> > biparts;
 	
