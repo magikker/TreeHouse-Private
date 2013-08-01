@@ -293,12 +293,14 @@ float adjusted_rand_index(vector < set < unsigned int > > clusters1, vector < se
 	for(unsigned int i = 0; i < clusters1.size(); i++){//for each cluster in clusters1
 		float tempsum = 0;
 		for(unsigned int j = 0; j < clusters2.size(); j++){//for each cluster in clusters2
+			if(!clusters1[i].empty() && !clusters2[j].empty()){
 			set < unsigned int > tempset;
 			tempset.clear();
 			set_intersection(clusters1[i].begin(), clusters1[i].end(), clusters2[j].begin(), clusters2[j].end(), std::inserter(tempset, tempset.end()));
 			contingency_table[i][j] = tempset.size();
 			contingency_table[j][i] = tempset.size();
 			tempsum += tempset.size();
+			}
 		}
 		asums.push_back(tempsum);
 	}
@@ -307,7 +309,7 @@ float adjusted_rand_index(vector < set < unsigned int > > clusters1, vector < se
 	for(unsigned int i = 0; i < clusters2.size(); i++){//for each cluster in clusters2
 		float tempsum = 0;
 		for(unsigned int j = 0; j < clusters1.size(); j++){//for each cluster in clusters1
-			tempsum += contingency_table[j][i];
+			tempsum += contingency_table[i][j];
 		}	
 		bsums.push_back(tempsum);
 	}

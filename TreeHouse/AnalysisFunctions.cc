@@ -287,6 +287,38 @@ unsigned int distance_switch(string measure){
 	else if (measure == "lance-williams"){
 		switch_value = 15;
 	}
+	else if (measure == "quartet" || measure == "qd"){
+		switch_value = 20;
+	}
+	else if (measure == "conflicting-quartet" || measure == "cqd"){
+		switch_value = 21;
+	}
+	else if (measure == "editg" || measure == "greedy-edit"){
+		switch_value = 22;
+	}
+	else if (measure == "editt" || measure == "total-edit"){
+		switch_value = 23;
+	}
+	else if (measure == "editm" || measure == "minimum-edit"){
+		switch_value = 24;
+	}
+	else if (measure == "editm" || measure == "minimum-edit"){
+		switch_value = 25;
+	}
+
+
+
+	}
+	else if(switch_value == 21){
+	}
+	else if(switch_value == 22){
+	}
+	else if(switch_value == 23){
+	}
+	else if(switch_value == 24){
+	}
+	else if(switch_value == 25){
+	}
 	return switch_value;
 }
 
@@ -297,7 +329,7 @@ vector <vector < unsigned int> > compute_distances(set < unsigned int > treeset,
 	
 	unsigned int switch_value = distance_switch(measure);
 
-	if(switch_value < 5){
+	if(switch_value < 20){
 		vector < vector < unsigned int> > biparts;
 	
 		for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
@@ -305,7 +337,13 @@ vector <vector < unsigned int> > compute_distances(set < unsigned int > treeset,
 		}	
 		distances = bipart_distances(biparts, switch_value);
 	}
+
+	else {
+		//Quartet and Edit distances
+		distanceWrapper(treeset, switch_value);
+	}
 	return distances;
+
 }
 
 //Computes the distance matrix for the given input and measure, input is a vector of trees, for when the given order
@@ -325,6 +363,10 @@ vector < vector < unsigned int > > compute_distances(vector < unsigned int > tre
 		
 		distances = bipart_distances(biparts, switch_value);
 	}
+
+
+
+
 	return distances;
 }	
 
