@@ -305,21 +305,6 @@ unsigned int distance_switch(string measure){
 	else if (measure == "editm" || measure == "minimum-edit"){
 		switch_value = 25;
 	}
-
-
-
-	}
-	else if(switch_value == 21){
-	}
-	else if(switch_value == 22){
-	}
-	else if(switch_value == 23){
-	}
-	else if(switch_value == 24){
-	}
-	else if(switch_value == 25){
-	}
-	return switch_value;
 }
 
 //Computes the distance matrix for the given input and measure, input is a treeset, for when order isn't especially important

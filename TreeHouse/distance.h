@@ -35,6 +35,8 @@ int sumPair(pair<int, int> x);
 bool isBifurcating(string nw);
 bool isBifurcating(string nw, int depth);
 
+vector < vector < unsigned int > > distanceWrapper (set < unsigned int >, int);
+
 double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2);
 double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2, set<unsigned int> treeSet);
 unsigned int edit_distance_greedy(unsigned int tree1, unsigned int tree2);

@@ -560,8 +560,8 @@ int sumPair(pair<int, int> x){
 }
 
 
-vector<vector<unsigned int>> distanceWrapper(set<int> in, int mode){
-  vector<int> trees(in.begin(), in.end());
+vector<vector<unsigned int>> distanceWrapper(set<unsigned int> in, int mode){
+  vector< unsigned int> trees(in.begin(), in.end());
   
   vector<vector<unsigned int>> retVal;
   

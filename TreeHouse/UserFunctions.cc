@@ -1850,6 +1850,7 @@ pqlsymbol * u_print_conflicting_quartets(vector<pqlsymbol * > arglist){
 	cout << "print_conflicting_quartets expects two INTs, i.e. bipartition indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
 	result = new pqlsymbol(ERROR, "Type Error");
   	}
+}
 
 pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
 	pqlsymbol * result;
@@ -1860,7 +1861,7 @@ pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
 
 	return result;
 }
-
+/*
 pqlsymbol * u_print_conflicting_quartets(vector<pqlsymbol * > arglist){
 	pqlsymbol * result;
 
@@ -1880,7 +1881,7 @@ pqlsymbol * u_print_conflicting_quartets(vector<pqlsymbol * > arglist){
 
 	return result;
 }
-
+*/
 
 pqlsymbol * u_get_num_quartets(vector<pqlsymbol * > arglist){
   pqlsymbol * result;
@@ -2039,7 +2040,7 @@ pqlsymbol * u_is_bifurcating(vector<pqlsymbol * > arglist){
 
   return result;
 }
-
+/*
 pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
   pqlsymbol * result;
 
@@ -2064,7 +2065,7 @@ pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
 
   return result;
 }
-
+*/
 
 pqlsymbol * u_average_distance_between_taxa(vector<pqlsymbol * > arglist){
 	pqlsymbol * result;
