@@ -325,7 +325,7 @@ vector <vector < unsigned int> > compute_distances(set < unsigned int > treeset,
 
 	else {
 		//Quartet and Edit distances
-		distanceWrapper(treeset, switch_value);
+		distances = distanceWrapper(treeset, switch_value);
 	}
 	return distances;
 
