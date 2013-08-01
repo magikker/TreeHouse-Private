@@ -270,6 +270,15 @@ return totalDepth/(double)biparttable.num_taxa_in_tree(tree);
 
 }
 
+double average_depth(set<unsigned int> trees){
+  double total = 0;
+  for(set<unsigned int>::iterator i = trees.begin(); i!=trees.end(); i++){
+	total += average_depth(*i);
+	}
+  return total/(double)trees.size();
+
+}
+
 
 double expected_average_depth(unsigned int n){
   //according to Kirkpatrick and Slatkin (1992), expected average depth is  2 * summation(i = 2 to n) of (1/i)
@@ -349,7 +358,7 @@ pair<int, int> numLeftRight(string nw, unsigned int &total){
   
   //remove spaces in string:
   nw.erase(std::remove_if(nw.begin(), nw.end(), ::isspace), nw.end());
-  cout << "CALLING NUMLEFTRIGHT ON " << nw << endl;
+//  cout << "CALLING NUMLEFTRIGHT ON " << nw << endl;
 
   //BASE CASE 1- we have a singleton taxa, as in "A". Return pair(1,0)
   //BASE CASE 2- we have a closing paren before we see another opening pair, as in the case of (A,B). 
@@ -390,11 +399,11 @@ pair<int, int> numLeftRight(string nw, unsigned int &total){
 				}
 			else{
 				string right = nw.substr(firstParen, nw.length()-firstParen);
-				cout << "recursive case 1- calling on " << right << endl;
+		//		cout << "recursive case 1- calling on " << right << endl;
 				r = sumPair(numLeftRight(right, total));
 				}
 			total += abs (l - r);
-			cout << abs (l - r) << " added to total for string " << nw << endl;
+		//	cout << abs (l - r) << " added to total for string " << nw << endl;
 			return make_pair(l, r);
 			}
 		else{ //we know string starts with "(("
@@ -422,7 +431,7 @@ pair<int, int> numLeftRight(string nw, unsigned int &total){
 			int left = sumPair( numLeftRight(leftString, total) );
 			int right = sumPair( numLeftRight( rightString, total) );
 			total += abs (left - right);
-			cout <<abs (left - right) << " added to total for string " << nw << endl;
+	//		cout <<abs (left - right) << " added to total for string " << nw << endl;
 			return make_pair(left,right);
 			}	
 		}
@@ -551,6 +560,36 @@ int sumPair(pair<int, int> x){
 }
 
 
+vector<vector<unsigned int>> distanceWrapper(set<int> in, int mode){
+  vector<int> trees(in.begin(), in.end());
+  
+  vector<vector<unsigned int>> retVal;
+  
+  for(unsigned int i = 0; i < trees.size() - 1; i++){
+	for(unsigned int j = i + 1; j < trees.size(); j++){
+		if(mode==21){ //conflicting quartet distance
+			retVal.at(i).push_back( conflictingQuartetDistance(trees.at(i), trees.at(j)) );
+			}
+		else if(mode==20){ //quartet distance
+			retVal.at(i).push_back( quartet_distance(trees.at(i), trees.at(j)) );
+			}
+		else if(mode==23){ //edit distance total
+			retVal.at(i).push_back( edit_distance_total(trees.at(i), trees.at(j)) );
+			}
+		else if(mode==22){ //edit distance greedy
+			retVal.at(i).push_back( edit_distance_greedy(trees.at(i), trees.at(j)) );
+			}
+		else if(mode==24){ //edit distance min
+			retVal.at(i).push_back( edit_distance_minimum(trees.at(i), trees.at(j)) );
+			}
+		
+		}
+	}
+
+  return retVal;
+
+}
+
 void testCalculateC(){
   cout << "calculating left and right pairs:\n";
   string nw = "((A,B), (B,C))";
@@ -589,7 +628,7 @@ return retVec;
 
 
   //NOTE- CURRENTLY ONLY WORKS ON HOMOGENEOUS DATA!
-double hamming_distance_total(unsigned int tree1, unsigned int tree2){
+double edit_distance_total(unsigned int tree1, unsigned int tree2){
  unsigned int total = 0; 
  pair<set<unsigned int>, set<unsigned int>> rfs = rfDistanceSet(tree1, tree2);
  set<unsigned int> rf, rf2;
@@ -621,11 +660,11 @@ double hamming_distance_total(unsigned int tree1, unsigned int tree2){
 
 
 
-unsigned int hamming_distance_greedy(unsigned int tree1, unsigned int tree2){
+unsigned int edit_distance_greedy(unsigned int tree1, unsigned int tree2){
   //NOTE- CURRENTLY ONLY WORKS ON HOMOGENEOUS DATA!
 
-//this is average hamming distance * rf distance
-//in other words, an all-to-all bipartition hamming distance
+//this is average edit distance * rf distance
+//in other words, an all-to-all bipartition edit distance
 
  unsigned int total = 0; 
 
@@ -636,42 +675,42 @@ unsigned int hamming_distance_greedy(unsigned int tree1, unsigned int tree2){
  //we need to make sure the rf distance is non-0 or else the program will crash!
  if(rf.size()!=0){
 	 //now, calculate the XOR matrix
-	 vector< vector <int> > hamming = hammingDistanceMatrixVector(rf, rf2);
+	 vector< vector <int> > edit = editDistanceMatrixVector(rf, rf2);
 	
-	  //now we have the matrix of hamming distances. 
+	  //now we have the matrix of edit distances. 
 	  //keep a sorted list of all the indeces we have to explore
 
 	set<unsigned int> indices;
-	  for(unsigned int i = 0; i < hamming.at(0).size(); i++){
+	  for(unsigned int i = 0; i < edit.at(0).size(); i++){
 		indices.insert(i);
 		}
-	  //go through the hamming vector for each bipartition
+	  //go through the edit vector for each bipartition
 	  //find the min, then remove that index from indices
 	  //also add it to the total
 
 
 	  int min = 0;
-	  for(unsigned int i = 0; i < hamming.size(); i++){
-		min = hamming.at(i).at(* (indices.begin()) );
+	  for(unsigned int i = 0; i < edit.size(); i++){
+		min = edit.at(i).at(* (indices.begin()) );
 		int index = *( indices.begin() ); //holds where we find the min from this row	
 		//cout << "min is: " << min << " index is: " << index << endl;	
-		//printVectorCompact(hamming.at(i));
+		//printVectorCompact(edit.at(i));
 	
 		for(set<unsigned int>::iterator j = indices.begin(); j!=indices.end(); j++){
-			if(hamming.at(i).at(*j) < min) {
-				min = hamming.at(i).at(*j);
+			if(edit.at(i).at(*j) < min) {
+				min = edit.at(i).at(*j);
 				index = *j;
 				}
 			}
-		//now we've gotten the min hamming distance from bipartition i. 
+		//now we've gotten the min edit distance from bipartition i. 
 		//add its min to to the total and remove index from indices
 		total+= min;
 		set<unsigned int>::iterator it = indices.find(index);
 		if(it==indices.end()){
-			cout << "hamming_distance_greedy error: index not found\n";
+			cout << "edit_distance_greedy error: index not found\n";
 			cout << "index is: " << index << endl;
 			printSetCompactTwo(indices);
-			printVectorCompact(hamming.at(i));
+			printVectorCompact(edit.at(i));
 			cout << endl << endl;
 			}
 		else{
@@ -686,12 +725,12 @@ unsigned int hamming_distance_greedy(unsigned int tree1, unsigned int tree2){
 }
 
 
-double hamming_distance_average(unsigned int tree1, unsigned int tree2){
-  return hamming_distance_total(tree1, tree2) /  (double)rfDistance(tree1, tree2);
+double edit_distance_average(unsigned int tree1, unsigned int tree2){
+  return edit_distance_total(tree1, tree2) /  (double)rfDistance(tree1, tree2);
 }
 
 
-unsigned int hamming_distance_minimum(unsigned int tree1, unsigned int tree2){
+unsigned int edit_distance_minimum(unsigned int tree1, unsigned int tree2){
 
  pair<set<unsigned int>, set<unsigned int>> rfs = rfDistanceSet(tree1, tree2);
  set<unsigned int> rf, rf2;
@@ -700,10 +739,10 @@ unsigned int hamming_distance_minimum(unsigned int tree1, unsigned int tree2){
 
   if(rf.size()!=0){
 
-  	vector< set <int> > hamming = hammingDistanceMatrixSet(rf, rf2);
+  	vector< set <int> > edit = editDistanceMatrixSet(rf, rf2);
 	 //now we have the a vector of sets for each bipartition. Take the min from each set (i.e. first element)
 	  unsigned int acc = 0;
-	  for(vector<set<int>>::iterator i = hamming.begin(); i!=hamming.end(); i++){
+	  for(vector<set<int>>::iterator i = edit.begin(); i!=edit.end(); i++){
 		if((*i).size()>0){
 			acc+=*((*i).begin());
 			}
@@ -715,26 +754,26 @@ unsigned int hamming_distance_minimum(unsigned int tree1, unsigned int tree2){
 	}
 }
 
-double hamming_distance_minimum_coverage(unsigned int tree1, unsigned int tree2){
-//returns the minimum hamming distance AND what proportion of the columns were covered
+double edit_distance_minimum_coverage(unsigned int tree1, unsigned int tree2){
+//returns the minimum edit distance AND what proportion of the columns were covered
 
 	pair<set<unsigned int>, set<unsigned int>> rfs = rfDistanceSet(tree1, tree2);
 	set<unsigned int> rf, rf2;
 	rf = rfs.first; rf2 = rfs.second;
-	set<unsigned int> coverSet; //keeps track of which biparts in rf2 have had their hamming distance added to total;
+	set<unsigned int> coverSet; //keeps track of which biparts in rf2 have had their edit distance added to total;
 	  if(rf.size()!=0 && rf2.size()!=0){
 		 //now, calculate the XOR matrix
-		 vector< vector <int> > hamming = hammingDistanceMatrixVector(rf, rf2);
+		 vector< vector <int> > edit = editDistanceMatrixVector(rf, rf2);
 
 		 //now we have the a vector of sets for each bipartition. Take the min from each set (i.e. first element)
-		  for(unsigned int i = 0; i < hamming.size(); i++){
-			//printVectorCompact(hamming.at(i));
-			int min = hamming.at(i).at(0);
+		  for(unsigned int i = 0; i < edit.size(); i++){
+			//printVectorCompact(edit.at(i));
+			int min = edit.at(i).at(0);
 			int minIndex = 0;		
-			for(unsigned int j = 0; j < hamming.at(i).size(); j++){
-				if(hamming.at(i).at(j) < min){
+			for(unsigned int j = 0; j < edit.at(i).size(); j++){
+				if(edit.at(i).at(j) < min){
 					minIndex = j;
-					min = hamming.at(i).at(j);
+					min = edit.at(i).at(j);
 					}
 				}
 				coverSet.insert(minIndex);
@@ -762,9 +801,9 @@ unsigned int rfDistance(int tree1, int tree2){
 
 }
 
-vector<set<int>> hammingDistanceMatrixSet(set<unsigned int> rf, set<unsigned int> rf2){
-  //calculate the all-to-all hamming distance between bipartitions in rf and rf2
-  vector< set<int> > hamming;
+vector<set<int>> editDistanceMatrixSet(set<unsigned int> rf, set<unsigned int> rf2){
+  //calculate the all-to-all edit distance between bipartitions in rf and rf2
+  vector< set<int> > edit;
   for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
   	set<int> h;
 	boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
@@ -781,14 +820,14 @@ vector<set<int>> hammingDistanceMatrixSet(set<unsigned int> rf, set<unsigned int
 			}
 		h.insert(XORdistance);
 		}
-	hamming.push_back(h); //add new row to the hamming matrix
+	edit.push_back(h); //add new row to the edit matrix
 	}
-  return hamming;
+  return edit;
 }
 
-vector<vector<int>> hammingDistanceMatrixVector(set<unsigned int> rf, set<unsigned int> rf2){	 
+vector<vector<int>> editDistanceMatrixVector(set<unsigned int> rf, set<unsigned int> rf2){	 
 
-  vector< vector <int> > hamming;
+  vector< vector <int> > edit;
 	 for(set<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){ //unique biparts to tree 1 are rows
 	  	vector<int> h;
 		boost::dynamic_bitset<> bi = biparttable.non_trunc_bitstring(*i);
@@ -805,9 +844,9 @@ vector<vector<int>> hammingDistanceMatrixVector(set<unsigned int> rf, set<unsign
 			}
 			h.push_back(XORdistance);
 			}
-		hamming.push_back(h); //add new row to the hamming matrix
+		edit.push_back(h); //add new row to the edit matrix
 		}
-	return hamming;
+	return edit;
 }
 
 pair<set<unsigned int>, set<unsigned int>> rfDistanceSet(int tree1, int tree2){
@@ -834,7 +873,7 @@ void printRFset(int tree1, int tree2){
 void testDistance(){
  testIsBifurcating();
 //testCalculateC();
-//testHamming();
+//testEdit();
 //testNewick();
 //testDepthVariance();
 
@@ -842,21 +881,21 @@ void testDistance(){
 }
 
 
-void testHamming(){
+void testEdit(){
  for(int i = 250; i < 300; i++){
 	for(int j = 1000; j < 1050; j++){
 		unsigned int rf, min;
-		cout << "\nTesting hamming for " << i << " " << j << ":\n";
+		cout << "\nTesting edit for " << i << " " << j << ":\n";
                 cout << "	rf distance = " << (rf = rfDistance(i, j));
-		cout << ", HDG = " << hamming_distance_greedy(i,j);
-	//hamming_distance_greedy(i,j);
-	//hamming_distance_total(i,j);
-	//hamming_distance_total(i,j);
-		cout << ", HDT = " << hamming_distance_total(i,j);
-		cout << ", HDA = " << hamming_distance_average(i,j);
-		cout << ", HDM = " << (min = hamming_distance_minimum(i,j));
+		cout << ", HDG = " << edit_distance_greedy(i,j);
+	//edit_distance_greedy(i,j);
+	//edit_distance_total(i,j);
+	//edit_distance_total(i,j);
+		cout << ", HDT = " << edit_distance_total(i,j);
+		cout << ", HDA = " << edit_distance_average(i,j);
+		cout << ", HDM = " << (min = edit_distance_minimum(i,j));
 		cout << "\n HDM ave = " << (double)min/(double)rf;
-		cout << "HDMC: " << hamming_distance_minimum_coverage(i,j);
+		cout << "HDMC: " << edit_distance_minimum_coverage(i,j);
 		}
 	//cout << "done with " << i << endl;
 	}

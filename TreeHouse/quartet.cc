@@ -860,7 +860,7 @@ unsigned int numConflictingQuartets(int bipart1, int bipart2){
   return (sharedOnes*unsharedOnes) * (sharedZeros*unsharedZeros);
 }
 
-unsigned long conflictingQuartetDistance(int tree1, int tree2){
+unsigned long OldConflictingQuartetDistance(int tree1, int tree2){
   unsigned long total = 0;
   vector<unsigned int> rf, rf2;
   //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
@@ -876,7 +876,47 @@ unsigned long conflictingQuartetDistance(int tree1, int tree2){
   return total;
 }
 
-unsigned long conflictingQuartetDistance(int tree1, int tree2, bipartDistances b){
+double OldModifiedConflictingQuartetDistance(int tree1, int tree2){
+  double total = 0;
+  vector<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = biparttable.inverted_index.at(tree1); //bipartitions in tree1
+  vector<unsigned int> t2 = biparttable.inverted_index.at(tree2); //bipartitions in tree2
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+
+  for(vector<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){
+ 	 unsigned long rowTotal = 0;	
+	for(vector<unsigned int>::iterator j = rf2.begin(); j != rf2.end(); j++){
+		rowTotal += numConflictingQuartets(*i, *j);
+		}
+	total+= rowTotal/rf.size();
+	}
+  return total;
+}
+
+double conflictingQuartetDistance(int tree1, int tree2){
+  double total = 0;
+  vector<unsigned int> rf, rf2;
+  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+  vector<unsigned int> t1 = biparttable.inverted_index.at(tree1); //bipartitions in tree1
+  vector<unsigned int> t2 = biparttable.inverted_index.at(tree2); //bipartitions in tree2
+  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+
+  for(vector<unsigned int>::iterator i = rf.begin(); i!=rf.end(); i++){
+ 	 unsigned long rowMax = 0;	
+	for(vector<unsigned int>::iterator j = rf2.begin(); j != rf2.end(); j++){
+		unsigned long x = numConflictingQuartets(*i, *j);
+		rowMax = (x > rowMax) ? x : rowMax;		
+		}
+	total+= rowMax;
+	}
+  return total;
+}
+
+
+unsigned long OldConflictingQuartetDistance(int tree1, int tree2, bipartDistances b){
   unsigned long total = 0;
   vector<unsigned int> rf, rf2;
   //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
@@ -932,24 +972,54 @@ vector<quartet> generateSameQuartets(int bipartA, int bipartB){
    boost::dynamic_bitset<> A = biparttable.non_trunc_bitstring(bipartA);
    boost::dynamic_bitset<> B = biparttable.non_trunc_bitstring(bipartB);
    boost::dynamic_bitset<> C;
-   boost::dynamic_bitset<> D;
    
-  C = A & B;
-  D = A ^ B;
+  C = A ^ B;
   
   vector<int> ones;
   vector<int> zeros;
+
+  int countShared = 0;
  
  for(unsigned int i = 0; i < A.size(); i++){
 	if (C[i] == true){
-		ones.push_back(i);
+		countShared++;
 	}
-	if (D[i] == true){
-		zeros.push_back(i);
 	}
- }
+
+  if(countShared > (A.size()/2)){ //one bipart doesn't need to be inverted.
+	//now, look at which elements are shared 
+	for(unsigned int i = 0; i < A.size(); i++){
+		if(C[i]==true){
+			if(C[i]==1){
+				ones.push_back(i);
+				}
+			else{
+				zeros.push_back(i);
+				}
+			}
+		}
+
+	}
+  else{
+	for(unsigned int i = 0; i < A.size(); i++){
+		if(C[i]==false){
+			if(A[i]==1){
+				ones.push_back(i);
+				}
+			else{
+				zeros.push_back(i);
+				}
+			}
+		}
+
+	}
+ 
  
  return generateQuartetsFromOnesZeros(ones, zeros);
+}
+
+void printSameQuartets(int a, int b){
+	printQuartets(generateSameQuartets(a,b));
 }
 
 
@@ -1163,13 +1233,31 @@ unsigned int getNumDifferentQuartets(boost::dynamic_bitset<> a, boost::dynamic_b
 //TODO- check if inverting the 1s and 0s produces a different result
 }
 
+unsigned int numOverlappingQuartets(int a, int b){
+  return getNumSameQuartets(a,b) + numConflictingQuartets(a,b);
+}
+
+void getOnesZeros(boost::dynamic_bitset<> x, vector<int> &ones, vector<int> &zeros){
+	for(int i = 0; i < x.size(); i++){
+		if(x[i]==1){
+			ones.push_back(i);
+			}
+		else{
+			zeros.push_back(i);
+
+			}
+		}	
+	
+}
+
 unsigned int getNumQuartets(int b){
   //takes the index of a bipartition and counts the number of quartets implied by it
   int nOnes = biparttable.number_of_ones(b);
   int nZeros = biparttable.number_of_zeros(b) + ::biparttable.lm.size() - biparttable.bitstring_size(b);
+
   //quartets = (nOnes choose 2) * (nZeros choose 2) 
 //cout << "num ones is: " << nOnes << ", number of 0s is " << nZeros << endl;
-  return(getNumQuartets(nOnes,nZeros));
+   return(getNumQuartets(nOnes,nZeros));
 
 }
 
@@ -1488,11 +1576,16 @@ for(int i = 2; i < 26; i++){
 
 void TESTSTUFF(){
 
+	//cout << biparttable.lm.size() << endl << endl;
 	//testGenerateDifferentQuartetsFromTrees();
 	//testIterateThroughQuartets(8);
         //testHungarian();
 	//testConflictingQuartetDistance();
-	//testConflictingQuartetsBigDemo();
+
+	testModifiedConflictingQuartetDistance();
+	
+
+//testConflictingQuartetsBigDemo();
 	//testCQS();
 	//testGenerateConflictingQuartets();
 	//testNumConflictingQuartets();
@@ -1566,7 +1659,7 @@ void testConflictingQuartetsBigDemo(){
   for (int i = 0; i < 200; i++){
 	for(int j = 0; j < 10; j++){ 
 	//cout << i << endl;
-	conflictingQuartetDistance(j, i, d);
+	//conflictingQuartetDistance(j, i, d);
 		}
  	}
 
@@ -1605,6 +1698,41 @@ void testConflictingQuartetDistance(){
 	
 
 }
+
+void testModifiedConflictingQuartetDistance(){
+  srand (time(NULL)); //initialize random seed
+  set<int> rangeOne, rangeTwo;
+  for(int i = 0; i <20 ; i++){
+	rangeOne.insert(rand() % biparttable.NumTrees);
+	rangeTwo.insert(rand() % biparttable.NumTrees);
+	}
+
+
+  double CQD = 0;
+  unsigned int qDist = 0; 
+  unsigned int rf = 0;
+		ofstream myfile;
+		myfile.open("outty.txt");
+  for(set<int>::iterator i = rangeOne.begin(); i!=rangeOne.end(); i++){
+	for(set<int>::iterator j = rangeTwo.begin(); j!=rangeTwo.end(); j++){
+		//CQD = modifiedConflictingQuartetDistance(*i, *j);
+		CQD = conflictingQuartetDistance(*i, *j);
+		cout << CQD << endl;
+		qDist = generateDifferentQuartetsFromTrees3(*i,*j).size();
+		rf = rfDistance(*i, *j);	  
+		cout << "Trees " << *i << " and " << *j << ": qDist is " << qDist << ", CQ distance is " << CQD << ", rf is: " << rf << ", ratio is: " << (double)CQD/(double)qDist/1.0 << endl;
+		//write the CQ distance and ratio to a file
+
+		myfile << CQD << " " << (double)CQD/(double)qDist << "\n";
+		  }
+	}
+	myfile.close();
+	
+
+}
+
+
+
 	
 
 
