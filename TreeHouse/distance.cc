@@ -562,30 +562,38 @@ int sumPair(pair<int, int> x){
 
 vector<vector<unsigned int>> distanceWrapper(set<unsigned int> in, int mode){
   vector< unsigned int> trees(in.begin(), in.end());
-  
+  cout << "trees size is: " << trees.size() << endl;
+  cout << "AT SWITCH, MODE IS " << mode << endl;
   vector<vector<unsigned int>> retVal;
-  
+  vector<unsigned int> containers;
+  for(int i = 0; i < trees.size(); i++){
+	retVal.push_back(containers);
+	}
+   
   for(unsigned int i = 0; i < trees.size() - 1; i++){
 	for(unsigned int j = i + 1; j < trees.size(); j++){
-		if(mode==21){ //conflicting quartet distance
+		if(mode==20){ //quartet distance
+			retVal.at(i).push_back( quartet_distance(trees.at(i), trees.at(j)) );
+			}
+
+		else if(mode==21){ //conflicting quartet distance
 			retVal.at(i).push_back( conflictingQuartetDistance(trees.at(i), trees.at(j)) );
 			}
-		else if(mode==20){ //quartet distance
-			retVal.at(i).push_back( quartet_distance(trees.at(i), trees.at(j)) );
+		else if(mode==22){ //edit distance greedy
+
+			retVal.at(i).push_back( edit_distance_greedy(trees.at(i), trees.at(j)) );
 			}
 		else if(mode==23){ //edit distance total
 			retVal.at(i).push_back( edit_distance_total(trees.at(i), trees.at(j)) );
 			}
-		else if(mode==22){ //edit distance greedy
-			retVal.at(i).push_back( edit_distance_greedy(trees.at(i), trees.at(j)) );
-			}
+
 		else if(mode==24){ //edit distance min
 			retVal.at(i).push_back( edit_distance_minimum(trees.at(i), trees.at(j)) );
 			}
 		
 		}
 	}
-
+cout << "retval's first vector's size is: " << retVal.at(0).size() << endl;
   return retVal;
 
 }

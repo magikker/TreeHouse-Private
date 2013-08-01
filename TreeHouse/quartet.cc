@@ -464,7 +464,7 @@ calculate();
 
 void bPair::invertB(){
   B.flip();
-  cout << "bPair: B inverted\n";
+  //cout << "bPair: B inverted\n";
 
 
 }
@@ -1386,8 +1386,16 @@ set<quartet> generateSameQuartetsFromTrees(int a, int b){
 }
 
 unsigned int quartet_distance(int tree1, int tree2){
+	set<quartet> qDist = generateDifferentQuartetsFromTrees3(tree1, tree2);
+	return qDist.size();
+
+
+//THE CODE BELOW ISN'T WORKING
+
+/*
 //first, get set of non-trivial bipartitions which are shared by the trees
 
+  cout << "asdf" << endl;
   vector<unsigned int> biparts1 = ::biparttable.inverted_index.at(tree1);
   vector<unsigned int> biparts2 = ::biparttable.inverted_index.at(tree2);
   
@@ -1422,7 +1430,7 @@ unsigned int quartet_distance(int tree1, int tree2){
   for(unsigned int i = 0; i < b1Unique.size(); i++){
         
   	for(int k = 0; k < sharedBiparts.size(); k++){
-		total=getNumDifferentQuartets(i,k);
+		total+=getNumDifferentQuartets(i,k);
 		}  
 	for(unsigned int j = i+1; j<b1Unique.size(); j++){
 		total+=getNumDifferentQuartets(i,j);
@@ -1431,6 +1439,8 @@ unsigned int quartet_distance(int tree1, int tree2){
 
 
   return total;
+*/
+
 }
 
 
@@ -1507,7 +1517,6 @@ void testOperatorsForQuartets(){
   cout << "is A less than B? " << (A < B) << endl;
   cout << "is C less than D? " << (C < D) << endl;
 
- // set<quartet> Qset;
   //set<quartet> result;
   //Qset.insert(A);
   //Qset.insert(B);
@@ -1576,13 +1585,29 @@ for(int i = 2; i < 26; i++){
 
 void TESTSTUFF(){
 
+	cout << "printing quartet distance from generate different quartets from trees:\n";
+
+for(int i = 0; i < 3; i++){
+ 	set<quartet> qDist = generateDifferentQuartetsFromTrees3(i, 10);
+	     unsigned int size = qDist.size();
+	cout << size << endl;
+}
+
+	cout << "printing quartet distance from quartet_distance\n";
+
+for(int i = 0; i < 3; i++){
+ 
+	cout << quartet_distance(i, 10) << endl;
+}
+
+
 	//cout << biparttable.lm.size() << endl << endl;
 	//testGenerateDifferentQuartetsFromTrees();
 	//testIterateThroughQuartets(8);
         //testHungarian();
 	//testConflictingQuartetDistance();
 
-	testModifiedConflictingQuartetDistance();
+	//testModifiedConflictingQuartetDistance();
 	
 
 //testConflictingQuartetsBigDemo();
