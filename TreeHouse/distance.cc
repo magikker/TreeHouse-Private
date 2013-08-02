@@ -568,32 +568,51 @@ vector<vector<unsigned int>> distanceWrapper(set<unsigned int> in, int mode){
   vector<unsigned int> containers;
   for(int i = 0; i < trees.size(); i++){
 	retVal.push_back(containers);
+	for(int j = 0; j < trees.size(); j++){
+		retVal.at(i).push_back(0);
+		}
 	}
-  int zerosToPush = 1;
-  for(unsigned int i = 0; i < trees.size() - 1; i++){
-	for(int z = zerosToPush; z > 0; z--){
-		retVal.at(i).push_back(0); //initial 0 of self to self comparison
-		}	
+ 
+
+  for(int i = 0; i < trees.size(); i++){
+
+ // int zerosToPush = 1;
+  //for(unsigned int i = 0; i < trees.size() - 1; i++){
+//	for(int z = zerosToPush; z > 0; z--){
+//		retVal.at(i).push_back(0); //initial 0 of self to self comparison
+//		}	
 
 	for(unsigned int j = i + 1; j < trees.size(); j++){
 		if(mode==20){ //quartet distance
-			retVal.at(i).push_back( quartet_distance(trees.at(i), trees.at(j)) );
+			unsigned int distance = quartet_distance(trees.at(i), trees.at(j));		
+			//retVal.at(i).push_back( quartet_distance(trees.at(i), trees.at(j)) );
+			retVal.at(i).at(j) = distance;
+			retVal.at(j).at(i) = distance;
 			}
 
 		else if(mode==21){ //conflicting quartet distance
-			retVal.at(i).push_back( conflictingQuartetDistance(trees.at(i), trees.at(j)) );
+			unsigned int distance = conflictingQuartetDistance(trees.at(i), trees.at(j));		
+			retVal.at(i).at(j) = distance;
+			retVal.at(j).at(i) = distance;
 			}
 		else if(mode==22){ //edit distance greedy
-
-			retVal.at(i).push_back( edit_distance_greedy(trees.at(i), trees.at(j)) );
+			unsigned int distance = edit_distance_greedy(trees.at(i), trees.at(j));		
+			//retVal.at(i).push_back( edit_distance_greedy(trees.at(i), trees.at(j)) );
+			retVal.at(i).at(j) = distance;		
+			retVal.at(j).at(i) = distance;	
 			}
 		else if(mode==23){ //edit distance total
-			retVal.at(i).push_back( edit_distance_total(trees.at(i), trees.at(j)) );
-			}
+			unsigned int distance = edit_distance_total(trees.at(i), trees.at(j));		
+			//retVal.at(i).push_back( edit_distance_total(trees.at(i), trees.at(j)) );
+			retVal.at(i).at(j) = distance;
+			retVal.at(j).at(i) = distance;			
+}
 
 		else if(mode==24){ //edit distance min
-			retVal.at(i).push_back( edit_distance_minimum(trees.at(i), trees.at(j)) );
-			}
+			unsigned int distance = edit_distance_minimum(trees.at(i), trees.at(j));		
+			//retVal.at(i).push_back( edit_distance_minimum(trees.at(i), trees.at(j)) );
+			retVal.at(i).at(j) = distance;	
+			retVal.at(j).at(i) = distance;			}
 		
 		}
 	}
@@ -601,7 +620,7 @@ vector<vector<unsigned int>> distanceWrapper(set<unsigned int> in, int mode){
 //now, we have the upper triangle of a matrix. Make it square:
 
 for(int i = 0; i < retVal.at(0).size(); i++){
-	cout << "retval's size at: " << i << " is: " << retVal.at(0).size() << endl;
+	//cout << "retval's size at: " << i << " is: " << retVal.at(0).size() << endl;
 	}
   return retVal;
 
