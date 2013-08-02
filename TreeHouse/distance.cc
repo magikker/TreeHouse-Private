@@ -569,8 +569,12 @@ vector<vector<unsigned int>> distanceWrapper(set<unsigned int> in, int mode){
   for(int i = 0; i < trees.size(); i++){
 	retVal.push_back(containers);
 	}
-   
+  int zerosToPush = 1;
   for(unsigned int i = 0; i < trees.size() - 1; i++){
+	for(int z = zerosToPush; z > 0; z--){
+		retVal.at(i).push_back(0); //initial 0 of self to self comparison
+		}	
+
 	for(unsigned int j = i + 1; j < trees.size(); j++){
 		if(mode==20){ //quartet distance
 			retVal.at(i).push_back( quartet_distance(trees.at(i), trees.at(j)) );
@@ -593,7 +597,12 @@ vector<vector<unsigned int>> distanceWrapper(set<unsigned int> in, int mode){
 		
 		}
 	}
-cout << "retval's first vector's size is: " << retVal.at(0).size() << endl;
+
+//now, we have the upper triangle of a matrix. Make it square:
+
+for(int i = 0; i < retVal.at(0).size(); i++){
+	cout << "retval's size at: " << i << " is: " << retVal.at(0).size() << endl;
+	}
   return retVal;
 
 }
