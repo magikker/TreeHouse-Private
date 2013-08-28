@@ -47,6 +47,7 @@ public:
 	unsigned int get_tree(int index);
 	boost::dynamic_bitset<> get_bitstring();
 	float get_ave_branchlength();
+	float get_branchlength(int index);
 	vector<float> get_branchlengths();
 	vector<unsigned int> get_ones_indices();
 	bool in_bitstring(int len);

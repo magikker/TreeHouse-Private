@@ -310,7 +310,7 @@ vector<unsigned int> get_tree_data(unsigned int tree_id, vector<boost::dynamic_b
 	//cout<< "welcome to get_tree_data" <<endl;
 	vector <unsigned int> bipart_indices; //which bipartitions we're returning
 	for (unsigned int i = 0; i < ::biparttable.BipartTable.size(); i++) {
-		if (::biparttable.treetable[i][tree_id]) { //if the bipartitin is in the tree_id
+		if (::biparttable.treetable[i][tree_id]) { //if the bipartition is in the tree_id
 			tree_bipartitions.push_back(::biparttable.get_bitstring(i));
 		}
 	}

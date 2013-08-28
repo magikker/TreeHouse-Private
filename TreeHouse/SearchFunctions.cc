@@ -37,13 +37,100 @@ set<unsigned int> get_superset_trees(int tree){ //return trees which have all of
   return retSet;
 }
 
+set<unsigned int> clade_search(vector<int> required, bool strict){
+	set<unsigned int> trees;
+	vector<unsigned int> matchingtrees;
+	
+	
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //Each bipartition in the treeset		
+		if (required.size() == 0){ 
+			continue;
+		}
+		if (::biparttable.are_ones(i, required) ) { 
+			if(strict){
+				if (::biparttable.number_of_ones(i) != required.size()){
+					continue;
+				}
+			}
+			matchingtrees = ::biparttable.get_trees(i);
+		}
+		trees.insert(matchingtrees.begin(), matchingtrees.end());
+	}
+	return trees;
+}
+
+set<unsigned int> clade_search(vector<string> RequiredTaxa, bool strict) {
+	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
+	return clade_search(required, strict);
+}
+
+set<unsigned int> clade_size_search(vector<int> required, int size){
+	//out << "entering clade_size_search" << endl;
+	set<unsigned int> trees;
+	vector<unsigned int> matchingtrees;
+	
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //Each bipartition in the treeset		
+		if (required.size() == 0){ 
+			continue;
+		}
+		if (::biparttable.are_ones(i, required) ) { 
+			if (::biparttable.number_of_ones(i) != size){
+				continue;
+			}
+			matchingtrees = ::biparttable.get_trees(i);
+		}
+		trees.insert(matchingtrees.begin(), matchingtrees.end());
+	}
+	return trees;
+}
+
+set<unsigned int> clade_size_search(vector<string> RequiredTaxa, int size) {
+	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
+	return clade_size_search(required, size);
+}
 
 
-set<unsigned int> clade_size_search(vector<int> required, int size)
+set<unsigned int> smallest_clade_search(vector<int> required){
+	set<unsigned int> trees;
+	int smallest = ::biparttable.lm.size();
+	vector<int> matchingbiparts;
+	
+	vector<unsigned int> matchingtrees;
+	
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //Each bipartition in the treeset		
+		if (required.size() == 0){ 
+			continue;
+		}
+		if (::biparttable.are_ones(i, required) ) { 
+			if (::biparttable.number_of_ones(i) < smallest){
+				smallest = ::biparttable.number_of_ones(i);
+				matchingbiparts.clear();
+				matchingbiparts.push_back(i);
+			}
+			if (::biparttable.number_of_ones(i) == smallest){
+				matchingbiparts.push_back(i);
+			}
+		}
+	}
+	
+	for (unsigned int i = 0; i < matchingbiparts.size(); i++){ //Each bipartition which defines a min sized clade for the taxa	
+		matchingtrees = ::biparttable.get_trees(matchingbiparts[i]);
+		trees.insert(matchingtrees.begin(), matchingtrees.end());
+	}
+	cout << "The smallest clade containing the input taxa is of size: " << smallest << endl;
+	return trees;
+}
+
+set<unsigned int> smallest_clade_search(vector<string> RequiredTaxa) {
+	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
+	return smallest_clade_search(required);
+}
+
+
+
+set<unsigned int> halfbi_size_search(vector<int> required, int size)
 {
 	set<unsigned int> retSet;
-		
-	
 	struct goodBiparts {
 		vector<int> goodBipartitions;
 		vector<bool> heteroMode;
@@ -151,12 +238,12 @@ set<unsigned int> clade_size_search(vector<int> required, int size)
 }
 
 //wrapper function for if we're given a set of strinsg
-set<unsigned int> clade_size_search(vector<string> RequiredTaxa, int size) {
+set<unsigned int> halfbi_size_search(vector<string> RequiredTaxa, int size) {
 	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
-	return clade_size_search(required, size);
+	return halfbi_size_search(required, size);
 }
 
-set<unsigned int> smallest_clade(vector<int> required){
+set<unsigned int> smallest_halfbi(vector<int> required){
 
 
 	set<unsigned int> retSet;
@@ -283,9 +370,9 @@ set<unsigned int> smallest_clade(vector<int> required){
 }
 
 
-set<unsigned int> smallest_clade(vector<string> RequiredTaxa){
+set<unsigned int> smallest_halfbi(vector<string> RequiredTaxa){
 	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
-	return smallest_clade(required);
+	return smallest_halfbi(required);
 }
 
 set<unsigned int> get_trees_with_taxa(vector<int> required){

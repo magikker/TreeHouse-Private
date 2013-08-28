@@ -28,7 +28,7 @@ public:
     std::string label;
     UnkownLabelEx(std::string l) : label(l) {}
   };
-
+  //void del(std::string label);
   size_t push(std::string label) throw(AlreadyPushedEx);
   size_t push2(std::string label);
   size_t add(std::string label);

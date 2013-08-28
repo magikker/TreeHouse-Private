@@ -314,6 +314,15 @@ int num_taxa_in_tree(int treeindex){
 		return BipartTable[bitstringindex].is_zero(position);
 	}
 
+	bool are_zeros(int bitstringindex, vector<int> positions){
+		for (unsigned int i = 0; i < positions.size(); i++){
+			if(is_one(bitstringindex, positions[i])){
+				return false;
+			}
+		}
+		return true;
+	}
+
 	bool same_bitstring_value(int bitstringindex, int position1, int position2){
 		return BipartTable[bitstringindex].same_bitstring_value(position1, position2);
 	}
@@ -345,6 +354,15 @@ int num_taxa_in_tree(int treeindex){
 	
 	bool is_one(int bitstringindex, int position){
 		return BipartTable[bitstringindex].is_one(position);
+	}
+
+	bool are_ones(int bitstringindex, vector<int> positions){
+		for (unsigned int i = 0; i < positions.size(); i++){
+			if(is_zero(bitstringindex, positions[i])){
+				return false;
+			}
+		}
+		return true;
 	}
 
 	unsigned int get_bipart_table_size(){
@@ -424,6 +442,23 @@ int num_taxa_in_tree(int treeindex){
 	}
 	*/
 	
+	void print_clade(int index){
+		for (unsigned int i = 0; i < BipartTable[index].bitstring_size(); i++){
+			if (BipartTable[index].is_one(i)){
+				cout << lm.name(i) << ' ' ;
+			}
+		}
+	}
+	
+	void print_clade_table(){
+		for (unsigned int i = 0; i < BipartTable.size(); i++){
+			print_clade(i);
+			cout << ": ";
+			BipartTable[i].print_trees(true);
+			}
+	}
+	
+	
 	void print_bitstring(int index){
 		BipartTable[index].print_bitstring(true);
 	}
@@ -450,6 +485,7 @@ int num_taxa_in_tree(int treeindex){
 	void print_bitstring_and_trees(int index){
 		BipartTable[index].print_line();
 	}
+	
 	
 	void print_treetable() {
 	  for (unsigned int i = 0; i < treetable.size(); i++) {
@@ -535,72 +571,82 @@ int num_taxa_in_tree(int treeindex){
 		
 	}
 	
-	void apply_taxa_mask(vector<unsigned int> taxa_mask){
-		//vector < vector < unsigned int > > searchtable;
-		//vector < bool * > treetable;
-		//vector < bool * > bipartitions;
-		//vector< unsigned int> length_of_bitstrings;
-		//vector< float > branches;
-		//vector< vector <float> > tree_branches;
-
-	/*	for (unsigned int i = 0; i < bipartitions.size(); i++){ //for each bipartition
-			bool *bs = new bool[length_of_bitstrings[i]];
-			for(unsigned int j = 0; j < length_of_bitstrings[i]; j++){ //for each bit
-				unsigned int place_in_bs = 0;
-				if (std::find(taxa_mask.begin(), taxa_mask.end(), j)!=taxa_mask.end()){ //if it's in mask
-					continue;
-				}
-				else{
-					bs[place_in_bs] = bipartitions[i][j];
-					place_in_bs++;
+	vector<unsigned int> homog_taxa(){
+		vector<unsigned int> taxa_indices; 
+		
+		for(unsigned int i = 0; i < lm.size(); i++ ){
+			bool flag = true;
+			for(unsigned int j = 0; j < taxa_in_trees.size(); j++ ){
+				if (taxa_in_trees[j][i] == 0){ //a tree doesn't have it
+					flag = false;
+					break;
 				}
 			}
-			bipartitions[i] = bs;
+			if (flag == false){
+				taxa_indices.push_back(i);
+			}
 		}
-	}*/
+		
+		return taxa_indices;
+	  //cout << "the taxa not contained by all trees are "<< endl;
+		
+	  //for (unsigned int i = 0; i < taxa_indices.size(); i++){
+      //      cout << taxa_indices[i] << " ";
+      //}
 	
-	/*bool* apply_taxa_mask(bool* bitstring, unsigned int bitstringSize, vector<unsigned int> taxa_mask){
-	bool *bs = new bool[::NUM_TAXA];
-	
-	unsigned int j = 0;
-	for (unsigned int i = 0; i < bitstringSize(); i++){
-		if (std::find(taxa_mask.begin(), taxa_mask.end(), i)!=taxa_mask.end()){
-			bs[j] = bitstring[i];
-			j++;
-		}
-		else{
-			continue;
-		}
+		
 	}
 	
-	return bs;
-}
-
-BipartitionTable make_taxa_masked_bipart_table(vector<unsigned int> taxa_mask){
 	
-	std::sort(taxa_mask.begin(), taxa_mask.end(), std::greater<unsigned int>());
+	void apply_taxa_mask(vector<unsigned int> taxa_mask){
+		for (unsigned int i = 0; i < BipartTable.size(); i++){ //for each bipartition
+			for (unsigned int j = 0; j < taxa_mask.size(); j++){
+				BipartTable[i].set(taxa_mask[j],0);
+			}
+		}
+		
+		
+		for (unsigned int i = 0; i < BipartTable.size(); i++){ //for each bipartition
+			vector<unsigned int> matches;
+			for (unsigned int j = i+1; j < BipartTable.size(); j++){
+				if(BipartTable[i].getOnes() == BipartTable[j].getOnes()){
+					cout << "found a match between" << endl;
+					BipartTable[i].print_line();
+					BipartTable[j].print_line();
+					matches.push_back(j);
+					for(unsigned int k = 0; k < BipartTable[j].trees_size(); k++){
+						BipartTable[i].add_tree(BipartTable[j].get_tree(k),BipartTable[j].get_branchlength(k));
+					}
+					
+				}
+				if(BipartTable[j].number_of_ones() == 0){
+					matches.push_back(j);
+				}
+				
+			}
+			
+			while (!matches.empty()){
+				unsigned int match = matches.back();
+				//for(unsigned int k = 0; k < BipartTable[match].trees_size(); k++){
+				//	BipartTable[i].add_tree(BipartTable[match].get_tree(k),BipartTable[match].get_branchlength(k));
+				//}
+				matches.pop_back();
+				BipartTable.erase(BipartTable.begin()+match);
+			}
 	
-	BipartitionTable masked_bt;
-	for (unsigned int i = 0; i < ::biparttable.get_size(); i++){ //for each bipartition
-		bool *tempBitstring = ::biparttable.bipartitions[i];
+		}
 		
 		
-		//for ( unsigned int j = 0; j < taxa_mask.size(); j++ ){
-		//	tempBitstring.erase(tempBitstring.begin() + taxa_mask[j]);
-		//} 
-		
-		masked_bt.bipartitions.push_back(apply_taxa_mask(::biparttable.bipartitions[i],masked_bt.length_of_bitstrings[i], taxa_mask));
-		masked_bt.branches.push_back(1.0);
-		//masked_bt.length_of_bitstrings.push_back(tempBitstring.size());
-		
+		treetable.clear();
+		for (unsigned int i = 0; i < BipartTable.size(); i++){ //for each bipartition
+			boost::dynamic_bitset<> bits(NumTrees); 
+			vector<unsigned int> trees = BipartTable[i].get_trees();
+			for (unsigned int j = 0; j < trees.size(); j++){
+				bits.set(trees[j],1);
+			}
+			treetable.push_back(bits);
+		}
 	}
-	masked_bt.print_hashtable();
-	return masked_bt;
-	* */
-}
-	
-	
-	
 };
 
 #endif

@@ -259,7 +259,7 @@ pqlsymbol * u_clade_size_search(vector< pqlsymbol * > arglist) {
 	return result;
 }
 
-pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
+pqlsymbol * u_smallest_clade_search(vector< pqlsymbol * > arglist) {
 	pqlsymbol * result;
 
 	//make sure we have two arguments: first is a vector of ints, second is an int
@@ -274,7 +274,7 @@ pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
 		else{
-			result = new pqlsymbol(smallest_clade(temp) );
+			result = new pqlsymbol(smallest_clade_search(temp) );
 		}
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_string()) {
@@ -283,12 +283,12 @@ pqlsymbol * u_smallest_clade(vector< pqlsymbol * > arglist) {
 			result = new pqlsymbol(ERROR, missedTaxaErrorMessage(missednames));
 		}
 		else{
-			result = new pqlsymbol(smallest_clade(arglist[0]->get_string_vect()) );
+			result = new pqlsymbol(smallest_clade_search(arglist[0]->get_string_vect()) );
 		}
 
 	}
 	else if (arglist[0]->is_vect() && arglist[0]->is_int()) {
-		result = new pqlsymbol(smallest_clade(arglist[0]->get_int_vect()) );
+		result = new pqlsymbol(smallest_clade_search(arglist[0]->get_int_vect()) );
 	}
 	else {
 		cout << "smallest_clade expects a StringVec/Intvec. " << "Found " << get_arg_types(move(arglist)) << endl;
@@ -1086,6 +1086,21 @@ pqlsymbol * u_burnin_clust(vector <pqlsymbol *> arglist){
 	return result;
 }
 
+pqlsymbol * u_clade_search(vector <pqlsymbol *> arglist){
+	pqlsymbol * result = new pqlsymbol();
+
+	bool strict = false;
+	if(arglist.size() == 2){
+		 string st = arglist[1]->get_string();
+		 if (boost::iequals(st, "strict")){
+			 strict = true;
+		 }
+	}
+
+	result = new pqlsymbol(clade_search(arglist[0]->get_string_vect(),strict));
+	return result;
+}
+
 // takes an int. Returns the ints which share the same topology. 
 pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist) 
 {  
@@ -1790,12 +1805,25 @@ pqlsymbol * u_tttier(vector<pqlsymbol * > arglist){
 }
 
 pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
-	generate_random_bt();
+	//generate_random_bt();
 	pqlsymbol * result = new pqlsymbol();
+	vector<unsigned int> mask;
+	//mask.push_back(0);
+	//mask.push_back(2);
+	//mask.push_back(4);
+	mask = ::biparttable.homog_taxa();
+	::biparttable.apply_taxa_mask(mask);
 	//pqlsymbol * result = new pqlsymbol(distinguishing_bipart(arglist[0]->get_treeset(), arglist[1]->get_treeset()));
 	return result;
 }
 
+pqlsymbol * u_homogenize(vector<pqlsymbol * > arglist){
+	pqlsymbol * result = new pqlsymbol();
+	vector<unsigned int> mask;
+	mask = ::biparttable.homog_taxa();
+	::biparttable.apply_taxa_mask(mask);
+	return result;
+}
 
 
 pqlsymbol * u_distinguishing_taxa(vector<pqlsymbol * > arglist){
@@ -2448,12 +2476,11 @@ void init_the_functs()
 	add_function("get_trees_without_taxa", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 	add_function("gtwot", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 
-	
+	add_function("clade_search", &u_clade_search, "Returns trees which contain a clade containing the given taxa. This function has an optional strictness value. When turned on the search will only return trees with exact clades. ");
 	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa");
-
 	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa", TYPE_VECT, TYPE_INT);
-
-	add_function("smallest_clade", &u_smallest_clade, "Returns trees with the smallest clade of given taxa", TYPE_VECT);
+	add_function("smallest_clade_search", &u_smallest_clade_search, "Returns trees with the smallest clade of given taxa", TYPE_VECT);
+	
 	add_function("get_trees_with_taxa", &u_get_trees_with_taxa, "Returns the trees that have the input taxa", TYPE_VECT);
 	add_function("gtwt", &u_get_trees_with_taxa, "Returns the trees that have the input taxa", TYPE_VECT);
 	add_function("similarity_search", &u_similarity_search, "Returns the trees that are the most similar to the given tree in that they have the most shared bipartitions.", TYPE_STRING);
@@ -2598,6 +2625,10 @@ void init_the_functs()
 	add_function("get_taxa_in_tree", &u_get_taxa_in_tree, "Returns the taxa in a given tree. Takes a tree index", TYPE_INT);
 	add_function("distinguishing_taxa", &u_distinguishing_taxa, "Takes two Treesets. Returns the taxa that are in of one treeset and none of the other.", TYPE_TREESET, TYPE_TREESET);
 	add_function("proto", &u_prototype, "This is a protype function only use for the function in current developemnt.");
+	add_function("homog", &u_homogenize, "This is a protype function which homogenizes a tree set removing all taxa which do not appear in all of the trees. Extra branches are collasped. This is currently a destructive function and non-reversable.");
+
+	
+
 
 	cout << "Functions loaded into map" << endl;
 

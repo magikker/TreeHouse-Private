@@ -95,6 +95,10 @@ vector<float> Bipartition::get_branchlengths(){
 	return branchlengths;
 }
 
+float Bipartition::get_branchlength(int index){
+	return branchlengths[index];
+}
+
 vector<unsigned int> Bipartition::get_trees(){
 	return trees;
 }
@@ -128,8 +132,12 @@ void Bipartition::set(int place, bool val){
 }
 
 void Bipartition::add_tree(int tree, float branch_len){
-	trees.push_back(tree);
-	branchlengths.push_back(branch_len);
+	if(std::find(trees.begin(), trees.end(), tree) != trees.end()) {
+		cout << "already in the here" << endl;
+	} else {
+		trees.push_back(tree);
+		branchlengths.push_back(branch_len);
+	}		
 }
 
 bool Bipartition::in_bitstring(int len){

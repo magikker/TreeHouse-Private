@@ -28,6 +28,18 @@ LabelMap::add(string label) {
     return _map[label];
 }
 
+//void
+//LabelMap::del(string label) {
+//  if (_map.find(label) == _map.end()){
+//  }
+//  else{
+//	  
+//		_names.erase(std::remove(_names.begin(), _names.end(), label), _names.end());
+//		//_names.erase(label);
+//		_map.erase(label);
+//		_count--;
+//  }
+//}
 
 size_t
 LabelMap::operator[](string label) throw(UnkownLabelEx){

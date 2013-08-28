@@ -15,15 +15,19 @@
 
 using namespace std;
 
+set<unsigned int> clade_search(vector<int> required, bool strict);
+
+set<unsigned int> clade_search(vector<string> RequiredTaxa, bool strict);
+
 set<unsigned int> get_subset_trees(int tree);
 
 set<unsigned int> get_superset_trees(int tree);
 
 set<unsigned int> clade_size_search(vector<int> required, int size);
 
-set<unsigned int> smallest_clade(vector<int> required);
+set<unsigned int> smallest_clade_search(vector<int> required);
 
-set<unsigned int> smallest_clade(vector<string> RequiredTaxa);
+set<unsigned int> smallest_clade_search(vector<string> RequiredTaxa);
 
 set<unsigned int> clade_size_search(vector<string> RequiredTaxa, int size);
 
