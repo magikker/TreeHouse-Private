@@ -48,7 +48,7 @@ double edit_distance_average(unsigned int tree1, unsigned int tree2);
 pair<set<unsigned int>, set<unsigned int>> rfDistanceSet(int tree1, int tree2);
 vector< set<int> > editDistanceMatrixSet(set<unsigned int> rf, set<unsigned int> rf2);
 vector<vector<int>> editDistanceMatrixVector(set<unsigned int> rf, set<unsigned int> rf2);
-unsigned int rfDistance(int tree1, int tree2);
+float rfDistance(int tree1, int tree2);
 void printRFset(int tree1, int tree2);
 
 void testDistance();

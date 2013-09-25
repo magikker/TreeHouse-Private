@@ -824,8 +824,7 @@ double edit_distance_minimum_coverage(unsigned int tree1, unsigned int tree2){
 
 
 
-unsigned int rfDistance(int tree1, int tree2){
-
+float rfDistance(int tree1, int tree2){
   unsigned long total = 0;
   vector<unsigned int> rf, rf2;
   //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
@@ -833,8 +832,7 @@ unsigned int rfDistance(int tree1, int tree2){
   vector<unsigned int> t2 = biparttable.inverted_index.at(tree2);
   set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
   set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
-  return (rf.size() + rf2.size()) / 2;
-
+  return (rf.size() + rf2.size()) / 2.0;
 }
 
 vector<set<int>> editDistanceMatrixSet(set<unsigned int> rf, set<unsigned int> rf2){

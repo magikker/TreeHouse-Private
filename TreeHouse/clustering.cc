@@ -29,6 +29,51 @@ vector<float> diff_to_own_clusters(vector< set <unsigned int> > inputclusts, vec
 }
 
 
+//Returns the average distance for each tree to the cluster with the smallest average distance from the tree (silhouette helper)
+vector<float> external_cluster_diffs(vector  < set < unsigned int> > inputclusts, vector < vector < unsigned int> > distances){
+	unsigned int offset = 0;
+	vector < float > diffs;
+	diffs.resize(distances[0].size(), 100);
+	for(unsigned int i = 0; i < inputclusts.size(); i++){//For each cluster
+		if(i > 0){
+			//offset used for tracking change from cluster to cluster
+			offset += inputclusts[i-1].size();
+		}
+		for(unsigned int j = offset; j < inputclusts[i].size() + offset; j++){//For each tree in cluster
+			for(unsigned int k = 0; k < inputclusts.size(); k++){//for each cluster
+				//not interested in the cluster containing the tree
+
+				float tempsum = 0;
+				//koffset used for tracking place in second cluster
+				unsigned int koffset;
+
+				if(k==0){
+					koffset = 0;
+				}
+				else{
+					koffset += inputclusts[k-1].size();
+				}
+				if(k == i){
+					continue;
+				}
+				for(unsigned int l = koffset; l < inputclusts[k].size() + koffset; l++){//For each tree in cluster
+					tempsum += distances[j][l];
+				}
+
+				//computes and stores the minimum average distance
+				//to another cluster
+				float tempaverage;
+				tempaverage = tempsum /inputclusts[i].size();
+				if(tempaverage < diffs[j]){
+					diffs.insert(diffs.begin() + (j), tempaverage);
+				}
+			}
+		}
+	}
+	return diffs;
+}
+
+
 
 //Returns the average distance for each tree to the cluster with the smallest average distance from the tree (silhouette helper)
 vector<float> neighboring_cluster_diffs(vector  < set < unsigned int> > inputclusts, vector < vector < unsigned int> > distances){

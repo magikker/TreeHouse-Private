@@ -1766,6 +1766,24 @@ pqlsymbol * u_print_biparttable(vector<pqlsymbol * > arglist) {
 	return result;
 }
 
+pqlsymbol * u_print_cladetable(vector<pqlsymbol * > arglist) {
+	pqlsymbol * result = new pqlsymbol();
+	::biparttable.print_clade_table();
+	return result;
+}
+
+pqlsymbol * u_print_bipartitions(vector<pqlsymbol * > arglist) {
+	pqlsymbol * result = new pqlsymbol();
+	::biparttable.print_bipartitions(arglist[0]->get_int());
+	return result;
+}
+
+pqlsymbol * u_print_clades(vector<pqlsymbol * > arglist) {
+	pqlsymbol * result = new pqlsymbol();
+	::biparttable.print_clades(arglist[0]->get_int());
+	return result;
+}
+
 pqlsymbol * u_print_inverted_index(vector<pqlsymbol * > arglist) {
 	pqlsymbol * result = new pqlsymbol();
 	::biparttable.print_inverted_index();
@@ -2626,6 +2644,9 @@ void init_the_functs()
 	add_function("distinguishing_taxa", &u_distinguishing_taxa, "Takes two Treesets. Returns the taxa that are in of one treeset and none of the other.", TYPE_TREESET, TYPE_TREESET);
 	add_function("proto", &u_prototype, "This is a protype function only use for the function in current developemnt.");
 	add_function("homog", &u_homogenize, "This is a protype function which homogenizes a tree set removing all taxa which do not appear in all of the trees. Extra branches are collasped. This is currently a destructive function and non-reversable.");
+	add_function("print_cladetable", &u_print_cladetable, " ");
+	add_function("print_bipartitions", &u_print_bipartitions, " ");
+	add_function("print_clades", &u_print_clades, " ");
 
 	
 

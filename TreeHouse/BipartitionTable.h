@@ -448,6 +448,7 @@ int num_taxa_in_tree(int treeindex){
 				cout << lm.name(i) << ' ' ;
 			}
 		}
+		cout << endl;
 	}
 	
 	void print_clade_table(){
@@ -458,10 +459,31 @@ int num_taxa_in_tree(int treeindex){
 			}
 	}
 	
+	void print_bipartitions(int index){
+		cout << "Tree " << index << " contains:" <<endl; 
+		for (unsigned int i = 0; i < treetable.size(); i++ ){
+			if(treetable[i][index] == 1){
+				print_bitstring(i);
+			}
+		}
+	}
+
+	void print_clades(int index){
+		cout << "Tree " << index << " contains:" <<endl; 
+		for (unsigned int i = 0; i < treetable.size(); i++ ){
+			if(treetable[i][index] == 1){
+				print_clade(i);
+			}
+		}
+	}
+	
+	
 	
 	void print_bitstring(int index){
 		BipartTable[index].print_bitstring(true);
 	}
+
+
 
 	boost::dynamic_bitset<> non_trunc_bitstring(int bitstringindex){ //gives the full bitstring (i.e. with 0s at the end)
 		boost::dynamic_bitset<> returnVal(lm.size());
@@ -599,13 +621,14 @@ int num_taxa_in_tree(int treeindex){
 	
 	
 	void apply_taxa_mask(vector<unsigned int> taxa_mask){
+		//remove taxa from bipartitions
 		for (unsigned int i = 0; i < BipartTable.size(); i++){ //for each bipartition
 			for (unsigned int j = 0; j < taxa_mask.size(); j++){
 				BipartTable[i].set(taxa_mask[j],0);
 			}
 		}
 		
-		
+		//removed now duplicated bipartitions
 		for (unsigned int i = 0; i < BipartTable.size(); i++){ //for each bipartition
 			vector<unsigned int> matches;
 			for (unsigned int j = i+1; j < BipartTable.size(); j++){
@@ -636,7 +659,15 @@ int num_taxa_in_tree(int treeindex){
 	
 		}
 		
-		
+		//Fix taxa in trees
+		for(unsigned int i = 0; i < taxa_in_trees.size(); i++){
+			for(unsigned int j = 0; j <  taxa_mask.size(); j++){
+				taxa_in_trees[i].set(taxa_mask[j],0);
+			}
+			
+		}
+
+		//Fix treetable
 		treetable.clear();
 		for (unsigned int i = 0; i < BipartTable.size(); i++){ //for each bipartition
 			boost::dynamic_bitset<> bits(NumTrees); 
@@ -646,6 +677,7 @@ int num_taxa_in_tree(int treeindex){
 			}
 			treetable.push_back(bits);
 		}
+		hetero = false;
 	}
 };
 
