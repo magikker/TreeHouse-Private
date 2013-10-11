@@ -4,6 +4,8 @@
 #include <vector>
 #include <stack>
 #include <iomanip> //Formatting output
+#include <math.h>
+
 
 //Global Vars like the hashtable.
 #include "THGlobals.h"
@@ -33,6 +35,7 @@ vector < vector < unsigned int>> compute_distances(set <unsigned int> treeset, s
 vector < vector <unsigned int>> compute_distances(vector <unsigned int> treevect, string dist_type);
 
 void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned int tree, int iterations, string folder);
-   
+
+void psupport(vector < set < unsigned int > > treesets);
 
 #endif

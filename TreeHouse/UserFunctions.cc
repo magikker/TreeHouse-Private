@@ -1823,15 +1823,9 @@ pqlsymbol * u_tttier(vector<pqlsymbol * > arglist){
 }
 
 pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
-	//generate_random_bt();
+	cout << "entering the prototype function" << endl;
 	pqlsymbol * result = new pqlsymbol();
-	vector<unsigned int> mask;
-	//mask.push_back(0);
-	//mask.push_back(2);
-	//mask.push_back(4);
-	mask = ::biparttable.homog_taxa();
-	::biparttable.apply_taxa_mask(mask);
-	//pqlsymbol * result = new pqlsymbol(distinguishing_bipart(arglist[0]->get_treeset(), arglist[1]->get_treeset()));
+	psupport(arglist[0]->get_treeset_vect());
 	return result;
 }
 

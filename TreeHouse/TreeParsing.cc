@@ -846,7 +846,7 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 		//cout << endl;
     }
    
-	//debugstatement("Hey! you got to the end of the parsing from file function. Nice.");
+	debugstatement("Hey! you got to the end of the parsing from file function. Nice.");
    
 } 
 

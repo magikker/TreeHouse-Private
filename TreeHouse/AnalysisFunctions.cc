@@ -14,6 +14,143 @@
  * other. 
  */
 
+
+void psupport(vector < set < unsigned int > > treesets){
+	
+	vector<float> bipartition_percent;
+	vector<float> bipartition_psupport;
+
+	set<unsigned int> trees_we_care_about;
+	
+	for(unsigned int i = 0; i < treesets.size(); i++){
+		trees_we_care_about.insert(treesets[i].begin(), treesets[i].end());
+	}
+
+	cout << "trees_we_care_about.size = " << trees_we_care_about.size() << endl;
+
+	for(unsigned int i = 0; i< biparttable.biparttable_size(); i++){
+		
+		cout << "At bipart " << i << endl;
+		
+		vector<unsigned int> trees_at_bipart = biparttable.get_trees(i);
+		set<unsigned int> res_set;
+		std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), trees_we_care_about.begin(), trees_we_care_about.end(),  std::inserter(res_set, res_set.end()));
+		
+		cout << "res_set.size()/float(trees_we_care_about.size()) = " << res_set.size()/float(trees_we_care_about.size()) << endl;
+		
+		bipartition_percent.push_back(res_set.size()/float(trees_we_care_about.size()));
+		
+		unsigned int supportingClusts = 0;
+		
+		for(unsigned int j = 0; j < treesets.size(); j++){
+			res_set.clear();
+			std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), treesets[j].begin(), treesets[j].end(),  std::inserter(res_set, res_set.end()));
+			if(res_set.size() > (treesets[j].size()/2.0)){
+				supportingClusts++;
+			}
+		}
+		
+		cout << "supportingClusts = " << supportingClusts << endl;
+
+		
+		bipartition_psupport.push_back(supportingClusts/float(treesets.size()));
+	}
+	
+	for(unsigned int i = 0; i < biparttable.biparttable_size(); i++){
+		cout << i << " " << bipartition_percent[i] << " " << bipartition_psupport[i] << endl;
+		
+	}
+	
+	
+}
+
+
+
+float entropy(vector <set < unsigned int >> treesets){
+	float ent_result = 0.0;
+	
+	unsigned int set_size = 0;
+	
+	for (unsigned int i = 0; i < treesets.size(); i++ ){
+		set_size += treesets[i].size();
+	}
+	
+	for (unsigned int i = 0; i < treesets.size(); i++ ){
+		ent_result += (-1) * (treesets[i].size() / float(set_size)) * (log2(treesets[i].size() / float(set_size)) );
+	}
+	
+	return ent_result;
+}
+
+
+float info_gain(vector <set < unsigned int >> treesets, unsigned int bpid){
+	
+	float ent_of_s = entropy(treesets);
+
+	vector<unsigned int> trees_at_bipart = biparttable.get_trees(bpid);
+
+	unsigned int set_size = 0;
+	for (unsigned int i = 0; i < treesets.size(); i++ ){
+		set_size += treesets[i].size();
+	}
+	
+	for (unsigned int i = 0; i < treesets.size(); i++ ){
+	
+		set<unsigned int> have_set;
+		std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), treesets[i].begin(), treesets[i].end(),  std::inserter(have_set, have_set.end()));
+	
+		set<unsigned int> havenot_set;
+		std::set_difference(treesets[i].begin(), treesets[i].end(), have_set.begin(), have_set.end(),  std::inserter(havenot_set, havenot_set.end()));
+
+		vector<set <unsigned int> > haves_and_nots;
+		
+		haves_and_nots.push_back(have_set);
+		haves_and_nots.push_back(havenot_set);
+	
+		ent_of_s -= ( treesets[i].size() / float(set_size)) * entropy(haves_and_nots);
+
+	}
+	return ent_of_s;
+}
+
+
+/*
+float info_gain(set < unsigned int > treeset, unsigned int bpid){
+	float info_gain = 0.0;
+	float ent = entropy(treeset, bpid);
+	vector<unsigned int> trees_at_bipart = biparttable.get_trees(bpid);
+
+	set<unsigned int> have_set;
+	std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), treeset.begin(), treeset.end(),  std::inserter(have_set, have_set.end()));
+	float s_have = (have_set.size()/float(treeset.size())) *  entropy(have_set, bpid);
+
+	
+	set<unsigned int> have_not_set;
+	std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), treeset.begin(), treeset.end(),  std::inserter(have_not_set, have_not_set.end()));
+	float s_have_not = (have_not_set.size()/float(treeset.size())) *  entropy(have_not_set, bpid);
+
+	info_gain = ent - ( s_have + s_have_not);
+	
+	return info_gain;
+}
+
+
+float bipart_entropy(set < unsigned int > treeset, unsigned int bpid){
+	float ent_result = 0.0;
+	
+	vector<unsigned int> trees_at_bipart = biparttable.get_trees(bpid);
+	set<unsigned int> res_set;
+	std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), treeset.begin(), treeset.end(),  std::inserter(res_set, res_set.end()));
+
+	ent_result = (-1)*(res_set.size()/float(treeset.size())) * log2(res_set.size()/float(treeset.size())) + (-1)*((treeset.size()-res_set.size())/float(treeset.size())) * log2((treeset.size()-res_set.size())/float(treeset.size()));
+		
+	return ent_result;
+}
+*/
+
+
+
+
 void generate_random_bt(){
 	BipartitionTable rand_bt;
 	rand_bt.create_random_bt();
