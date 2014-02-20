@@ -1,21 +1,33 @@
 // ConsensusFunctions.cc
 #include "ConsensusFunctions.h"
 
-//should really phase out
-void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< boost::dynamic_bitset<> > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes){
-	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //for each bipartition
-		vector<unsigned int> temp = ::biparttable.get_trees(i);
+//GRB NEW
+//Lets do a Het safe clade based consensus.... 
+//No lengths yet
+vector< boost::dynamic_bitset<> > get_consensus_clades(set<unsigned int> inputtrees, unsigned int threshold){
+	vector< boost::dynamic_bitset<> > consensus_clades;
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+	for(clade_it_type iter = biparttable.CladeMap.begin(); iter != biparttable.CladeMap.end(); iter++) {
+		set<unsigned int> temp = biparttable.get_trees(iter);
 		set<unsigned int> sinter;
 		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter( sinter, sinter.begin() ) );
-		
+	
 		if (sinter.size() >= threshold){
-			consensus_bs.push_back(::biparttable.get_bitstring(i));
-			//consensus_branchs.push_back(::biparttable.get_branchlengths(i));
-			consensus_bs_sizes.push_back(::biparttable.bitstring_size(i));
-			//GRB Do we need a branch length? 
-			consensus_branchs.push_back(1.0);
+			consensus_clades.push_back(::biparttable.get_bitstring(iter));
 		}
 	}
+	return consensus_clades;
+}
+
+boost::dynamic_bitset<> whole_taxa_bs(vector< boost::dynamic_bitset<> > clades){
+	boost::dynamic_bitset<> alltaxa;
+	
+	for(size_t i = 0; i < clades.size(); i++){
+		alltaxa |= clades[i]; 
+	}
+	
+	
 }
 
 unsigned int compute_threshold(unsigned int numberofTrees, float threshold){
@@ -33,9 +45,59 @@ unsigned int compute_threshold(unsigned int numberofTrees, float threshold){
 	return returnvalue;
 }
 
+
+string clade_consensus(set<unsigned int> inputtrees, float percent){
+	unsigned int threshold; 
+	vector< boost::dynamic_bitset<> > consensus_clades;
+	string consensus_tree;
+
+	threshold = compute_threshold(inputtrees.size(), percent);
+	
+	consensus_clades = get_consensus_clades(inputtrees, threshold);
+	
+	//consensus_tree = compute_tree(::biparttable.lm, consensus_clades); 
+	
+	
+	//consensus_tree = compute_tree(::lm, consensus_bs, consensus_branchs, 0, false, consensus_bs_sizes); // change false to true to enable branch lengths.
+	
+	//for (unsigned int i=0; i<consensus_bs.size(); i++) {
+	//	for (unsigned int j=0; j<consensus_bs_sizes[i]; j++)
+	//		cout << consensus_bs[i][j];
+	//	cout << endl;
+	//}
+
+	return consensus_tree;
+}
+
+
+
+
+
+
+
+
+//should really phase out
+void bitpartitions_by_frequency(set<unsigned int> inputtrees, float threshold, vector< boost::dynamic_bitset<> > &consensus_bs, vector< float > &consensus_branchs, vector< unsigned int> &consensus_bs_sizes){
+	for (unsigned int i = 0; i < ::biparttable.biparttable_size(); i++){ //for each bipartition
+		vector<unsigned int> temp = ::biparttable.get_trees(i);
+		set<unsigned int> sinter;
+		set_intersection (temp.begin(), temp.end(), inputtrees.begin(), inputtrees.end(), std::inserter( sinter, sinter.begin() ) );
+		
+		if (sinter.size() >= threshold){
+			consensus_bs.push_back(::biparttable.get_bitstring(i));
+			//consensus_branchs.push_back(::biparttable.get_branchlengths(i));
+			consensus_bs_sizes.push_back(::biparttable.bitstring_size(i));
+			//GRB Do we need a branch length? 
+			consensus_branchs.push_back(1.0);
+		}
+	}
+}
+
+
+
 string consen(set<unsigned int> inputtrees, float percent){
 	int threshold; 
-	vector<Bipartition> consensus_bipartitions;
+	//vector<Bipartition> consensus_bipartitions;
 	vector< boost::dynamic_bitset<> > consensus_bs;
 	vector< float > consensus_branchs;
 	vector< unsigned int> consensus_bs_sizes;

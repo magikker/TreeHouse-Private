@@ -330,7 +330,9 @@ void decode_bitstring(string bitstring, boost::dynamic_bitset<> &bs, unsigned in
 } 
 
 
-string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstrings, vector< float > my_branches, unsigned id, bool branch) {
+
+
+string compute_tree_bl( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstrings, vector< float > my_branches) {
 	vector<vector<SCNode*> > vvec_distinctClusters2;
 
 	//update distinct clusters
@@ -347,14 +349,15 @@ string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstring
 	}
   
 
-  /* for (unsigned int npos = 0; npos < vvec_distinctClusters2.size(); ++npos) { 
+  for (unsigned int npos = 0; npos < vvec_distinctClusters2.size(); ++npos) { 
     for (unsigned int x = 0; x < vvec_distinctClusters2[npos].size(); ++x) { 
       cout << vvec_distinctClusters2[npos][x]->name << " ";
     }
     cout << endl;
   }
-  exit(0);
-  */
+  
+  //exit(0);
+  
   //if (vvec_distinctClusters2.size() != (NUM_TAXA-2)){
   //  fprintf(stderr, "ERROR!: Tree %d has only %d bipartitions!!\n Exiting...\n", id, vvec_distinctClusters2.size());
   //  exit(0);
@@ -374,7 +377,190 @@ string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstring
 			// 2. Push all the node* in the root's children
 			// 3. Push all the nodes in the tree's nodelist.
 			// 4. Push all the nodes' parent in the tree's parentlist.
+			cout << "are we assuming the first vvec_distinctClusters2 has all the taxa in it?" << endl;
+			cout << "vvec_distinctClusters2[pos].size() = "<< vvec_distinctClusters2[pos].size() << endl;
+			for (unsigned int i=0; i < vvec_distinctClusters2[pos].size(); ++i) {
+				vvec_distinctClusters2[pos][i]->parent = scTree->root;
+				scTree->root->children.push_back(vvec_distinctClusters2[pos][i]);
+				scTree->nodelist.push_back(vvec_distinctClusters2[pos][i]);
+				assert(scTree->nodelist[0]->name == "root");
+				scTree->parentlist2.insert(map<string,int>::value_type(vvec_distinctClusters2[pos][i]->name, 0));
+			}
+			addedRoot = true;
+		}
+		else {
+			// For the next biggest cluster,
+			// 1. Find node list to move (= vvec_distinctClusters2[itr->second]) and
+			//    Get the parent node of the to-go nodes.
+			// 2. Make an internal node.
+			// 3. Insert the node in the nodelist of the tree and update the parentlist accordingly
+			// 4. Adjust the to-go nodes' parent link.
+			// 5. Adjust the parent node's link to children (delete the moved nodes from children).
       
+			// 1. --------------------------------------------------------------------------
+			SCNode* theParent = NULL;
+			theParent = scTree->nodelist[scTree->parentlist2[vvec_distinctClusters2[pos][0]->name]];
+			assert(theParent != NULL);
+			assert(theParent->name != "");
+      
+			// 2. --------------------------------------------------------------------------
+			//		string newIntNodeName = "int" + itostr(intNodeNum, 10);
+			
+			string newIntNodeName = "int" + std::to_string(intNodeNum);
+			SCNode* newIntNode = new SCNode();
+			vec_garbageCan.push_back(newIntNode);
+			newIntNode->name = newIntNodeName;
+			newIntNode->parent = theParent;
+			
+			newIntNode->bl = my_branches[pos];
+			
+			// 3. --------------------------------------------------------------------------
+			assert(newIntNodeName.size() != 0);
+			scTree->nodelist.push_back(newIntNode);
+			assert(scTree->nodelist[scTree->nodelist.size()-1]->name == newIntNode->name);
+      
+			scTree->parentlist2.insert(map<string, unsigned>::value_type(newIntNodeName, scTree->nodelist.size()-1));
+      
+			for (unsigned int i=0; i<vvec_distinctClusters2[pos].size(); ++i) {
+				// 4. --------------------------------------------------------------------------
+				vvec_distinctClusters2[pos][i]->parent = newIntNode;
+	
+				// We have to update parentlist in the tree.
+				assert(vvec_distinctClusters2[pos][i]->parent->name == scTree->nodelist[scTree->nodelist.size()-1]->name);
+	
+				scTree->parentlist2[vvec_distinctClusters2[pos][i]->name] = scTree->nodelist.size()-1;
+				newIntNode->children.push_back(vvec_distinctClusters2[pos][i]);
+	
+				// 5. --------------------------------------------------------------------------
+				// Delete the moved nodes from parent's children.
+				vector<SCNode*>::iterator itr2;
+	
+				for (itr2 = theParent->children.begin(); itr2 != theParent->children.end(); ++itr2) {
+					if (vvec_distinctClusters2[pos][i]->name == (*itr2)->name) {
+						theParent->children.erase(itr2);
+						break;
+					}
+				}
+			}
+			theParent->children.push_back(newIntNode);
+			intNodeNum++;
+		}
+	}
+  
+	//GET STRING
+  
+	string mytree;
+
+	mytree = scTree->GetTreeString(true);
+
+	
+	//CLEAN UP
+	
+	//scTree->DrawOnTerminal(true);
+   
+	for (unsigned int i = 0; i < vvec_distinctClusters2.size(); ++i) {
+		for (unsigned int j=0; j<vvec_distinctClusters2[i].size(); ++j) {
+			SCNode * tmp = vvec_distinctClusters2[i][j];
+			delete tmp;
+			vvec_distinctClusters2[i][j] = NULL;
+		}
+	}
+
+	for (unsigned i=0; i<vec_garbageCan.size(); ++i) {
+		if (vec_garbageCan[i]) {
+			SCNode* temp = vec_garbageCan[i];
+			delete temp;
+			vec_garbageCan[i] = NULL;
+		}
+	}
+  
+	if (scTree->root) {
+		SCNode * tmp = scTree->root;
+		delete tmp;
+		scTree->root = NULL;
+	}
+	
+	scTree->nodelist.clear();
+	scTree->parentlist2.clear();
+	delete scTree;
+
+	return mytree;
+		
+}
+
+
+
+
+
+
+
+
+
+
+
+
+string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstrings, vector< float > my_branches, unsigned id, bool branch) {
+	vector<vector<SCNode*> > vvec_distinctClusters2;
+
+	boost::dynamic_bitset<> alltaxa(::biparttable.lm.size());
+	
+	for(size_t i = 0; i < my_bitstrings.size(); i++){
+		alltaxa |= my_bitstrings[i]; 
+	}
+	my_bitstrings.insert(my_bitstrings.begin(),alltaxa);
+	
+	//update distinct clusters
+	for (unsigned int i = 0; i < my_bitstrings.size(); ++i) {
+		vector<SCNode*> vec_nodes2;
+		
+		//Trival clades don't seem to matter
+		if (my_bitstrings[i].count() == 1){
+			continue;
+		}
+		
+		//I need the bit strings to come in sorted by size biggest first. The first bit string needs to set the clades for the whole tree. 
+		
+		for (unsigned int j = 0; j < my_bitstrings[i].size(); j++) {
+			if (my_bitstrings[i][j]) {
+				SCNode* aNode = new SCNode();
+				aNode->name = lm.name(j);
+				vec_nodes2.push_back(aNode);
+			}
+		}
+		vvec_distinctClusters2.push_back(vec_nodes2);
+	}
+  
+
+  for (unsigned int npos = 0; npos < vvec_distinctClusters2.size(); ++npos) { 
+    for (unsigned int x = 0; x < vvec_distinctClusters2[npos].size(); ++x) { 
+      cout << vvec_distinctClusters2[npos][x]->name << " ";
+    }
+    cout << endl;
+  }
+  
+  //exit(0);
+  //if (vvec_distinctClusters2.size() != (NUM_TAXA-2)){
+  //  fprintf(stderr, "ERROR!: Tree %d has only %d bipartitions!!\n Exiting...\n", id, vvec_distinctClusters2.size());
+  //  exit(0);
+  //  }
+  
+  
+	SCTree *scTree = new SCTree();
+	bool addedRoot = false;
+	unsigned int intNodeNum = 0;
+	vector<SCNode*> vec_garbageCan; // for collecting pointers
+    
+	for (unsigned int pos = 0; pos < vvec_distinctClusters2.size(); ++pos) {
+		if (!addedRoot) {
+			// The first cluster has all the taxa.
+			// This constructs a star tree with all the taxa.
+			// 1. Dangle all the taxa as root's children by adjusting parent link.
+			// 2. Push all the node* in the root's children
+			// 3. Push all the nodes in the tree's nodelist.
+			// 4. Push all the nodes' parent in the tree's parentlist.
+			cout << "are we assuming the first vvec_distinctClusters2 has all the taxa in it?" << endl;
+			cout << "vvec_distinctClusters2[pos].size() = "<< vvec_distinctClusters2[pos].size() << endl;
+
 			for (unsigned int i=0; i < vvec_distinctClusters2[pos].size(); ++i) {
 				vvec_distinctClusters2[pos][i]->parent = scTree->root;
 				scTree->root->children.push_back(vvec_distinctClusters2[pos][i]);

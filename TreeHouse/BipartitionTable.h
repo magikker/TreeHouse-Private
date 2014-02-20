@@ -74,6 +74,11 @@ public:
 		return it->second.tree_ids;
 	}
 	
+	boost::dynamic_bitset<> get_bitstring(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		return it->first;
+	}
+	
+	
 	set< unsigned int > decompress(std::map< boost::dynamic_bitset<>, TreeSet >::iterator iter){
 		std::set<unsigned int> result;
 	
