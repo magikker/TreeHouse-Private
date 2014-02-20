@@ -1744,7 +1744,7 @@ void testModifiedConflictingQuartetDistance(){
 		CQD = conflictingQuartetDistance(*i, *j);
 		cout << CQD << endl;
 		qDist = generateDifferentQuartetsFromTrees3(*i,*j).size();
-		rf = rfDistance(*i, *j);	  
+		rf = CRFDistance(*i, *j);	  
 		cout << "Trees " << *i << " and " << *j << ": qDist is " << qDist << ", CQ distance is " << CQD << ", rf is: " << rf << ", ratio is: " << (double)CQD/(double)qDist/1.0 << endl;
 		//write the CQ distance and ratio to a file
 

@@ -15,9 +15,47 @@
 
 using namespace std;
 
-set<unsigned int> clade_search(vector<int> required, bool strict);
+set<unsigned int> search_clade(vector<int> required);
 
-set<unsigned int> clade_search(vector<string> RequiredTaxa, bool strict);
+set<unsigned int> search_clade(vector<string> RequiredTaxa);
+
+set<unsigned int> search_ktet(vector<string> leftside, vector<string> rightside);
+
+set<unsigned int> search_ktet(vector<int> leftside, vector<int> rightside);
+
+set<unsigned int> search_subclade(vector<string> RequiredTaxa);
+
+set<unsigned int> search_subclade(vector<int> required);
+
+
+
+int random_search_ktet(int left, int right, int iterations);
+
+int sucess_search_ktet(int left, int right, int iterations);
+
+int fail_search_ktet(int left, int right, int iterations);
+
+
+int sucess_search_clade(int required, int iterations);
+
+int fail_search_clade(int required, int iterations);
+
+
+int sucess_search_subclade(int required, int iterations);
+
+int fail_search_subclade(int required, int iterations);
+
+int random_search_subclade(int left, int iterations);
+
+int random_search_clade(int size, int iterations);
+
+
+
+int sucessful_search_clade(int size, int iterations);
+
+
+
+
 
 set<unsigned int> get_subset_trees(int tree);
 

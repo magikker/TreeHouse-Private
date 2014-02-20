@@ -1203,9 +1203,9 @@ void printTaxaTierTuples(int tier, int taxa){
 			//cout << "Number of ones = "<< ::biparttable.number_of_ones(j) << endl;
 			::biparttable.print_bitstring(j);
 		}
-		if ( tier == ::biparttable.lm.size() - ::biparttable.number_of_ones(j) && ::biparttable.is_zero(j, taxa) ){
-			::biparttable.print_bitstring(j);
-		}
+		//if ( tier == ::biparttable.lm.size() - ::biparttable.number_of_ones(j) && ::biparttable.is_zero(j, taxa) ){
+		//	::biparttable.print_bitstring(j);
+		//}
 	}
 	
 }
@@ -1218,10 +1218,10 @@ int TaxaTierTuplesCount(int tier, int taxa){
 			//::biparttable.print_bitstring(j);
 			count += 1;
 		}
-		if ( tier == ::biparttable.lm.size() - ::biparttable.number_of_ones(j) && ::biparttable.is_zero(j, taxa) ){
-			count += 1;
-			//::biparttable.print_bitstring(j);
-		}
+		//if ( tier == ::biparttable.lm.size() - ::biparttable.number_of_ones(j) && ::biparttable.is_zero(j, taxa) ){
+		//	count += 1;
+		//	//::biparttable.print_bitstring(j);
+		//}
 	}
 	return count;
 }
@@ -1240,11 +1240,69 @@ float TaxaTierEntropy(vector<int> counts){
 	return E;
 }
 
+
+
 void rateTierRogueness(int tier){
+	
+	cout << "new and improved" << endl;
+	
+	vector<int> numofclades;
+	vector<int> summaryvect;
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+		
 	for (unsigned int i = 0; i < ::biparttable.lm.size(); i++){
-		cout << "taxa " << i << " has  " << TaxaTierTuplesCount(tier, i) << " permutations of tier " << tier << endl;
+		numofclades.push_back(0);
 	}
+	
+	for(clade_it_type iter = biparttable.MapBenchMarks[tier]; iter != biparttable.MapBenchMarks[tier+1]; iter++) {
+	
+		size_t index = iter->first.find_first();
+		while(index != boost::dynamic_bitset<>::npos){
+			numofclades[index] += 1;
+			index = iter->first.find_next(index);
+		}
+	}
+	
+	//for (unsigned int i = 0; i < numofclades.size(); i++){
+	//	cout << "taxa " << i << " has  " << numofclades[i] << " permutations of tier " << tier << endl;
+	//}
+	
+    std::cout << "The largest element is "  << *std::max_element(std::begin(numofclades), std::end(numofclades)) << '\n';
+
+	
+			
+	for (unsigned int i = 0; i < *std::max_element(std::begin(numofclades), std::end(numofclades))+1; i++){
+		summaryvect.push_back(0);
+	}
+	
+	for (unsigned int i = 0; i < numofclades.size(); i++){
+		summaryvect[numofclades[i]] +=1;
+		//cout << "taxa " << i << " has  " << numofclades[i] << " permutations of tier " << tier << endl;
+	}
+	
+	for (unsigned int i = 0; i < summaryvect.size(); i++){
+		cout << summaryvect[i] << " taxa are in " << i << " different relationships of size  " << tier << endl;
+	}
+	
+	cout << biparttable.lm.name(std::distance(numofclades.begin(), std::max_element(std::begin(numofclades), std::end(numofclades)))) << endl;
+
+	
+	//::biparttable.lm.getname();
+	
+	
+	
+
 }
+
+
+
+
+//void rateTierRogueness(int tier){
+//	for (unsigned int i = 0; i < ::biparttable.lm.size(); i++){
+//		cout << "taxa " << i << " has  " << TaxaTierTuplesCount(tier, i) << " permutations of tier " << tier << endl;
+//	}
+//}
 
 void printBipartition(vector<string> leftside, vector<string> rightside)
 {

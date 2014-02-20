@@ -1,6 +1,481 @@
 #include "SearchFunctions.h"
 using namespace std;
 
+//GRB NEW
+set<unsigned int> search_clade(vector<string> RequiredTaxa) {
+	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
+	return search_clade(required);
+}
+
+//GRB NEW // Direct look up in log(n) time. Het Safe
+set<unsigned int> search_clade(vector<int> required){
+	set<unsigned int> result_trees;
+	
+	if (required.size() == 0){ 
+		return result_trees;
+	}
+	
+	boost::dynamic_bitset<> search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = required.begin(); iter != required.end(); iter++){
+		search_bs.set(*iter, true);
+	}
+	
+	map<boost::dynamic_bitset<>,TreeSet>::iterator it=biparttable.CladeMap.find(search_bs);
+	
+	if (it != biparttable.CladeMap.end()){
+		::SetOps += 1;
+		start_clock();
+		result_trees = biparttable.get_trees(it);
+		::SetTime += stop_clockbp();
+		::SetInsertions += result_trees.size();
+		}
+	
+	return result_trees;
+	
+}
+
+//GRB NEW // x direct lookups. x log(n) time. Het Safe
+set<unsigned int> search_by_multiple_clades(vector<vector<int>> required){
+	
+	//cout << "required" << required.size() << endl;
+	
+	vector<vector<int>>::iterator iter =required.begin(); 
+	set<unsigned int> result_trees = search_clade(*iter);
+	iter++;
+	//cout << "Out" << result_trees.size() << endl;
+	for(;iter != required.end(); iter++ ){
+		set<unsigned int> found_trees;
+		set<unsigned int> temp;
+		found_trees = search_clade(*iter);
+		std::set_intersection(result_trees.begin(), result_trees.end(), found_trees.begin(), found_trees.end(),  std::inserter(temp, temp.end()));
+		result_trees.swap(temp);
+		//cout << "In" << result_trees.size() << endl;
+	}
+
+	return result_trees;
+	
+}
+
+//GRB NEW // x direct lookups of log(n) time. X is number of clades in subtree. // het safe
+// Only works with a subtree match, not a full tree. This is because we don't tree a whole tree as a clade, but we capture the "whole tree clade here."
+set<unsigned int> get_trees_by_subtree(string subtree)
+{
+	//cout << "We show the string that repersent the subtree:" << endl;
+	//cout << subtree << endl;
+	
+	set<unsigned int> trees;
+
+	NEWICKTREE *newickTree;
+	int err;
+	char * cs = strdup(subtree.c_str());
+	newickTree = stringloadnewicktree(cs, &err);
+
+	vector< vector < int > > subtrees; 
+
+	if (!newickTree) {
+		switch (err) {
+			case -1:
+			cout << "Out of memory" << endl;
+			break;
+		case -2:
+			cout << "parse error" << endl;
+			break;
+		case -3:
+			cout << "Can't load file" << endl;
+			break;
+		default:
+			cout << "Error " << err << endl;
+		exit(0);
+		}
+    }
+
+    else {
+		//unsigned int numBitstr=0;
+		bool * bs = dfs_compute_bitstrings(newickTree->root, NULL, subtrees);
+		delete[] bs;
+		
+  		//cout << "We show bitstrings that repersent the subtree:" << endl;
+  		//for (unsigned int i = 0; i < subtrees.size(); i++)
+		//{
+    	//	for (unsigned int j = 0; j < subtrees[i].size(); j++)
+		//	{
+      	//		cout << subtrees[i][j] << " " ;
+    	//	}
+    	//	cout << endl;
+  		//}
+		
+		vector< vector < int > >::iterator it = subtrees.begin() ;
+		while(it != subtrees.end() ){
+			if (it->size() == 1){
+				it = subtrees.erase(it);
+			}
+			else{
+				++it;
+			}
+		}
+		
+  		//cout << "We show bitstrings that repersent the subtree:" << endl;
+  		//for (unsigned int i = 0; i < subtrees.size(); i++)
+		//{
+    	//	for (unsigned int j = 0; j < subtrees[i].size(); j++)
+		//	{
+      	//		cout << subtrees[i][j] << " " ;
+    	//	}
+    	//	cout << endl;
+  		//}
+		
+		trees = search_by_multiple_clades(subtrees);
+		//print_vector_of_bs(bitstrings, ::NUM_TAXA);
+		//if (MAXVAL == 0)
+		//{
+		//	MAXVAL = numBitstr -1;
+		//}		
+		killnewicktree(newickTree);
+    }
+    free(cs);
+	return trees;
+}
+
+set<unsigned int> search_ktet(vector<string> leftside, vector<string> rightside){
+	vector<int> leftside_required = ::biparttable.lm.lookUpLabels(leftside);
+	vector<int> rightside_required = ::biparttable.lm.lookUpLabels(rightside);
+
+	return search_ktet(leftside_required, rightside_required);
+}
+
+//GRB NEW
+set<unsigned int> search_subclade(vector<string> RequiredTaxa) {
+	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
+	return search_subclade(required);
+}
+
+//GRB NEW
+set<unsigned int> search_subclade(vector<int> required){
+
+	set<unsigned int> trees;
+	set<unsigned int> matchingtrees;
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+	
+	if (required.size() > biparttable.lm.size() ){
+		cout << "error searching for more taxa than are total in in the set" <<endl;
+		return trees;
+	}
+	
+	boost::dynamic_bitset<> required_search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = required.begin(); iter != required.end(); iter++){
+		//cout << *iter << " ";
+		required_search_bs.set(*iter, true);
+	}
+	
+	boost::dynamic_bitset<> temp_bs(biparttable.lm.size());
+	
+	if(required.size() > 0){
+		for(clade_it_type iter = biparttable.MapBenchMarks[required_search_bs.count()]; iter != biparttable.MapBenchMarks[biparttable.lm.size()]; iter++) {
+		//for(clade_it_type iter = biparttable.MapBenchMarks[0]; iter != biparttable.MapBenchMarks[biparttable.lm.size()]; iter++) {
+		
+		//cout  << "LEFt iter->first.count() = " << iter->first.count() << endl;
+			if (trees.size() == biparttable.NumTrees){
+				break;
+			}
+			if (required_search_bs.is_subset_of(iter->first)){
+				matchingtrees = ::biparttable.get_trees(iter);
+				::SetOps += 1;
+				::SetInsertions += matchingtrees.size();
+				start_clock();
+				trees.insert(matchingtrees.begin(), matchingtrees.end());
+				::SetTime += stop_clockbp();
+			}
+		}
+	}	
+	return trees;
+}
+
+
+
+//GRB NEW
+set<unsigned int> search_ktet(vector<int> leftside, vector<int> rightside){
+	//cout << "We show the bipartitions found by the search and corresponding trees" << endl;
+	//keep in mind that hashtable and hash_lengths are global variables
+	//cout << "hetero = " << ::biparttable.hetero << endl;
+	
+	//cout << "leftside.size() = " << leftside.size() << endl;
+	//for (int i = 0; i < leftside.size(); i++)
+	//	cout << leftside[i] << " ";
+	//cout << endl;
+
+	//cout << "rightside.size() = " << rightside.size() << endl;
+	//for (int i = 0; i < rightside.size(); i++)
+	//	cout << rightside[i] << " ";
+	//cout << endl;
+	
+	//cout << "biparttable.lm.size() = " << biparttable.lm.size() << endl;
+	
+	
+	set<unsigned int> trees;
+	set<unsigned int> matchingtrees;
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+	/*
+	set <unsigned int> all_trees;
+	for(unsigned int i = 0; i < NumTrees; i++){
+		all_trees.insert(i);
+	}
+	*/
+	
+	
+	if (leftside.size() + rightside.size() > biparttable.lm.size() ){
+		cout << "error searching for more taxa than are total in in the set" <<endl;
+		return trees;
+	}
+	
+	boost::dynamic_bitset<> left_search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = leftside.begin(); iter != leftside.end(); iter++){
+		//cout << *iter << " ";
+		left_search_bs.set(*iter, true);
+	}
+	
+	boost::dynamic_bitset<> right_search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = rightside.begin(); iter != rightside.end(); iter++){
+		//cout << *iter << " ";
+		right_search_bs.set(*iter, true);
+	}
+
+	boost::dynamic_bitset<> temp_bs(biparttable.lm.size());
+
+	//cout <<"leftside.size() " <<leftside.size() << "rightside.size() "<< rightside.size()  << endl;
+	
+	if(leftside.size() > 0){
+		for(clade_it_type iter = biparttable.MapBenchMarks[left_search_bs.count()]; iter != biparttable.MapBenchMarks[biparttable.lm.size() - right_search_bs.count() +1  ]; iter++) {
+			//cout  << "LEFt iter->first.count() = " << iter->first.count() << endl;
+			if (trees.size() == biparttable.NumTrees){
+				break;
+			}
+			if (left_search_bs.is_subset_of(iter->first)){
+				temp_bs = right_search_bs;
+				temp_bs &= iter->first;
+				if( !temp_bs.any() ){
+					//cout << "yep " << iter->first << endl;
+					matchingtrees = ::biparttable.get_trees(iter);
+					::SetOps += 1;
+					::SetInsertions += matchingtrees.size();
+					start_clock();
+					trees.insert(matchingtrees.begin(), matchingtrees.end());
+					::SetTime += stop_clockbp();
+
+				}
+			}
+		}
+	}
+	
+	if(rightside.size() > 0){
+		for(clade_it_type iter = biparttable.MapBenchMarks[right_search_bs.count()]; iter != biparttable.MapBenchMarks[biparttable.lm.size() - left_search_bs.count() +1 ]; iter++) {
+			//cout  << "Right iter->first.count() = " << iter->first.count() << endl;
+			if (trees.size() == biparttable.NumTrees){
+				break;
+			}
+			if (right_search_bs.is_subset_of(iter->first)){
+				temp_bs = left_search_bs;
+				temp_bs &= iter->first;
+				if( !temp_bs.any() ){
+					//cout << "yep " << iter->first << endl;
+					matchingtrees = ::biparttable.get_trees(iter);
+					::SetOps += 1;
+					::SetInsertions += matchingtrees.size();
+					start_clock();
+					trees.insert(matchingtrees.begin(), matchingtrees.end());
+					::SetTime += stop_clockbp();
+
+				}
+			}
+		}
+	}	
+	
+	if (::biparttable.hetero == true){ // get the set of trees that contain all searched taxa and do a set difference with matches. 
+		start_clock();
+		vector<int> searched_taxa; 
+		searched_taxa.reserve( leftside.size() + rightside.size() ); // preallocate memory
+		searched_taxa.insert( searched_taxa.end(), leftside.begin(), leftside.end() );
+		searched_taxa.insert( searched_taxa.end(), rightside.begin(), rightside.end() );
+		set<unsigned int> trees_wo_taxa = get_trees_without_taxa(searched_taxa);		
+	
+		std::set<unsigned int> s; 
+
+		std::set_difference(trees.begin(), trees.end(), trees_wo_taxa.begin(), trees_wo_taxa.end(),  std::inserter(s, s.end()));
+ 	
+		//trees.swap(s);
+		trees = s;
+		::HetTime += stop_clockbp();
+	}
+	
+	return trees;
+
+}
+
+//GRB NEW
+//This is a function meant to time a missed search. Does the same work as a miss with any input. 
+set<unsigned int> miss_ktet(vector<int> leftside, vector<int> rightside){
+	//cout << "We show the bipartitions found by the search and corresponding trees" << endl;
+	//keep in mind that hashtable and hash_lengths are global variables
+	//cout << "hetero = " << ::biparttable.hetero << endl;
+	
+	//cout << "leftside.size() = " << leftside.size() << endl;
+	//for (int i = 0; i < leftside.size(); i++)
+	//	cout << leftside[i] << " ";
+	//cout << endl;
+
+	//cout << "rightside.size() = " << rightside.size() << endl;
+	//for (int i = 0; i < rightside.size(); i++)
+	//	cout << rightside[i] << " ";
+	//cout << endl;
+	
+	//cout << "biparttable.lm.size() = " << biparttable.lm.size() << endl;
+	
+	
+	set<unsigned int> trees;
+	set<unsigned int> matchingtrees;
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+	/*
+	set <unsigned int> all_trees;
+	for(unsigned int i = 0; i < NumTrees; i++){
+		all_trees.insert(i);
+	}
+	*/
+	
+	
+	if (leftside.size() + rightside.size() > biparttable.lm.size() ){
+		cout << "error searching for more taxa than are total in in the set" <<endl;
+		return trees;
+	}
+	
+	boost::dynamic_bitset<> left_search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = leftside.begin(); iter != leftside.end(); iter++){
+		//cout << *iter << " ";
+		left_search_bs.set(*iter, true);
+	}
+	
+	boost::dynamic_bitset<> right_search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = rightside.begin(); iter != rightside.end(); iter++){
+		//cout << *iter << " ";
+		right_search_bs.set(*iter, true);
+	}
+
+	boost::dynamic_bitset<> temp_bs(biparttable.lm.size());
+
+	//cout <<"leftside.size() " <<leftside.size() << "rightside.size() "<< rightside.size()  << endl;
+	
+	if(leftside.size() > 0){
+		for(clade_it_type iter = biparttable.MapBenchMarks[left_search_bs.count()]; iter != biparttable.MapBenchMarks[biparttable.lm.size() - right_search_bs.count() +1  ]; iter++) {
+			//cout  << "LEFt iter->first.count() = " << iter->first.count() << endl;
+			
+			if (left_search_bs.is_subset_of(iter->first)){
+				temp_bs = right_search_bs;
+				temp_bs &= iter->first;
+				if( !temp_bs.any() ){
+					//cout << "yep " << iter->first << endl;
+					//matchingtrees = ::biparttable.get_trees(iter);
+					//::SetOps += 1;
+					//::SetInsertions += matchingtrees.size();
+					//start_clock();
+					//trees.insert(matchingtrees.begin(), matchingtrees.end());
+					//::SetTime += stop_clockbp();
+
+				}
+			}
+		}
+	}
+	
+	if(rightside.size() > 0){
+		for(clade_it_type iter = biparttable.MapBenchMarks[right_search_bs.count()]; iter != biparttable.MapBenchMarks[biparttable.lm.size() - left_search_bs.count() +1 ]; iter++) {
+			//cout  << "Right iter->first.count() = " << iter->first.count() << endl;
+			if (right_search_bs.is_subset_of(iter->first)){
+				temp_bs = left_search_bs;
+				temp_bs &= iter->first;
+				if( !temp_bs.any() ){
+					//cout << "yep " << iter->first << endl;
+					//matchingtrees = ::biparttable.get_trees(iter);
+					//::SetOps += 1;
+					//::SetInsertions += matchingtrees.size();
+					//start_clock();
+					//trees.insert(matchingtrees.begin(), matchingtrees.end());
+					//::SetTime += stop_clockbp();
+				}
+			}
+		}
+	}	
+	
+	//if (::biparttable.hetero == true){ // get the set of trees that contain all searched taxa and do a set difference with matches. 
+	//	start_clock();
+	//	vector<int> searched_taxa; 
+	//	searched_taxa.reserve( leftside.size() + rightside.size() ); // preallocate memory
+	//	searched_taxa.insert( searched_taxa.end(), leftside.begin(), leftside.end() );
+	//	searched_taxa.insert( searched_taxa.end(), rightside.begin(), rightside.end() );
+	//	set<unsigned int> trees_wo_taxa = get_trees_without_taxa(searched_taxa);		
+	
+	//	std::set<unsigned int> s; 
+
+	//	std::set_difference(trees.begin(), trees.end(), trees_wo_taxa.begin(), trees_wo_taxa.end(),  std::inserter(s, s.end()));
+ 	
+		//trees.swap(s);
+	//	trees = s;
+	//	::HetTime += stop_clockbp();
+	//}
+	
+	return trees;
+
+}
+
+
+//GRB NEW
+//This is a function meant to time a missed search. Does the same work as a miss with any input. 
+set<unsigned int> miss_subclade(vector<int> leftside){
+	
+	set<unsigned int> trees;
+	set<unsigned int> matchingtrees;
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+	
+	if (leftside.size() > biparttable.lm.size() ){
+		cout << "error searching for more taxa than are total in in the set" <<endl;
+		return trees;
+	}
+	
+	boost::dynamic_bitset<> left_search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = leftside.begin(); iter != leftside.end(); iter++){
+		//cout << *iter << " ";
+		left_search_bs.set(*iter, true);
+	}
+	
+	boost::dynamic_bitset<> temp_bs(biparttable.lm.size());
+
+	if(leftside.size() > 0){
+		for(clade_it_type iter = biparttable.MapBenchMarks[left_search_bs.count()]; iter != biparttable.MapBenchMarks[biparttable.lm.size()]; iter++) {
+		//for(clade_it_type iter = biparttable.MapBenchMarks[1]; iter != biparttable.MapBenchMarks[biparttable.lm.size()]; iter++) {
+			if (left_search_bs.is_subset_of(iter->first)){
+				continue;
+			}
+		}
+	}
+	
+	return trees;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 set<unsigned int> get_subset_trees(int tree){ //return trees which are subsets of the given tree, 
 						//i.e. trees whose only bipartitions are contained within the given tree
   set<unsigned int> retSet;
@@ -37,6 +512,7 @@ set<unsigned int> get_superset_trees(int tree){ //return trees which have all of
   return retSet;
 }
 
+/*
 set<unsigned int> clade_search(vector<int> required, bool strict){
 	set<unsigned int> trees;
 	vector<unsigned int> matchingtrees;
@@ -63,7 +539,7 @@ set<unsigned int> clade_search(vector<string> RequiredTaxa, bool strict) {
 	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
 	return clade_search(required, strict);
 }
-
+*/
 set<unsigned int> clade_size_search(vector<int> required, int size){
 	//out << "entering clade_size_search" << endl;
 	set<unsigned int> trees;
@@ -542,6 +1018,7 @@ set<unsigned int> search_hashtable_ktets(vector < vector < int > > subtrees){
   return total_trees;
 }
 
+/*
 set<unsigned int> get_trees_by_subtree(string subtree)
 {
 	//cout << "We show the string that repersent the subtree:" << endl;
@@ -598,6 +1075,8 @@ set<unsigned int> get_trees_by_subtree(string subtree)
     free(cs);
 	return trees;
 }
+*/
+
 
 /*
 set<unsigned int> search_hashtable_strict_old(vector<int> leftside, vector<int> rightside, int side){
@@ -1004,6 +1483,714 @@ vector<int> random_nums_generated2(unsigned int number, std::uniform_int_distrib
 	return v;
 }
 */
+
+
+//int random_search_clade(int size, int iterations);
+
+//int sucessful_search_clade(int size, int iterations);
+
+
+int fail_search_ktet(int left, int right, int iterations){
+	cout<< "Entering sucessful_search_ktet" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+
+	vector<vector<unsigned int>> L_to_draw_from;
+	vector<vector<unsigned int>> R_to_draw_from;
+
+	for(map<boost::dynamic_bitset<>,TreeSet>::iterator iter = biparttable.MapBenchMarks[left]; iter != biparttable.MapBenchMarks[biparttable.lm.size() - right +1 ]; iter++) {
+		vector <unsigned int> left_indices; 
+		vector <unsigned int> right_indices; 
+
+		for (unsigned int i = 0; i < biparttable.lm.size(); i++){
+			if (iter->first.test(i)){
+				left_indices.push_back(i);
+			}
+			else{
+				right_indices.push_back(i);
+			}
+		}
+		L_to_draw_from.push_back(left_indices);
+		R_to_draw_from.push_back(right_indices);		
+	}
+	
+	if (L_to_draw_from.size() == 0){
+		cout << "no successful searches of this size could be made for this data set" << endl;
+		return SucessSearch;
+	}
+
+	for (int i = 0; i < iterations; i++){
+		int curpos = i%L_to_draw_from.size();
+		random_shuffle ( L_to_draw_from[curpos].begin(), L_to_draw_from[curpos].end() );
+		random_shuffle ( R_to_draw_from[curpos].begin(), R_to_draw_from[curpos].end() );
+		
+		//cout << "L_to_draw_from[curpos].size() = " << L_to_draw_from[curpos].size() << " left = " << left << endl;
+		//cout << "R_to_draw_from[curpos].size() = " << R_to_draw_from[curpos].size() << " right = " << right << endl;
+
+
+		std::vector<int> leftside(L_to_draw_from[curpos].begin(), L_to_draw_from[curpos].begin() + left);		
+		std::vector<int> rightside(R_to_draw_from[curpos].begin(), R_to_draw_from[curpos].begin() +right);
+
+		//cout << "about to run a search"<<endl;
+		start_clock();
+		trees = miss_ktet(leftside, rightside);
+		::AHetTime += stop_clockbp();
+		
+		
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+		
+	}
+	
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
+
+
+int fail_search_subclade(int required, int iterations){
+	cout<< "Entering sucessful_search_ktet" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+
+	vector<vector<unsigned int>> to_draw_from;
+
+	for(map<boost::dynamic_bitset<>,TreeSet>::iterator iter = biparttable.MapBenchMarks[required]; iter != biparttable.MapBenchMarks[biparttable.lm.size()]; iter++) {
+		vector <unsigned int> indices; 
+
+		for (unsigned int i = 0; i < biparttable.lm.size(); i++){
+			if (iter->first.test(i)){
+				indices.push_back(i);
+			}
+		}
+		to_draw_from.push_back(indices);
+	}
+	
+	if (to_draw_from.size() == 0){
+		cout << "no successful searches of this size could be made for this data set" << endl;
+		return SucessSearch;
+	}
+
+	for (int i = 0; i < iterations; i++){
+		int curpos = i%to_draw_from.size();
+		random_shuffle ( to_draw_from[curpos].begin(), to_draw_from[curpos].end() );
+
+		std::vector<int> requiredTaxa(to_draw_from[curpos].begin(), to_draw_from[curpos].begin() + required);		
+	
+		//cout << "about to run a search"<<endl;
+		start_clock();
+		trees = miss_subclade(requiredTaxa);
+		::AHetTime += stop_clockbp();
+		
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+	}
+	
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
+
+int sucess_search_subclade(int required, int iterations){
+	cout<< "Entering sucessful_search_ktet" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+
+	vector<vector<unsigned int>> to_draw_from;
+
+	for(map<boost::dynamic_bitset<>,TreeSet>::iterator iter = biparttable.MapBenchMarks[required]; iter != biparttable.MapBenchMarks[biparttable.lm.size()]; iter++) {
+		vector <unsigned int> indices; 
+
+		for (unsigned int i = 0; i < biparttable.lm.size(); i++){
+			if (iter->first.test(i)){
+				indices.push_back(i);
+			}
+		}
+		to_draw_from.push_back(indices);
+	}
+	
+	if (to_draw_from.size() == 0){
+		cout << "no successful searches of this size could be made for this data set" << endl;
+		return SucessSearch;
+	}
+
+	for (int i = 0; i < iterations; i++){
+		int curpos = i%to_draw_from.size();
+		random_shuffle ( to_draw_from[curpos].begin(), to_draw_from[curpos].end() );
+
+		std::vector<int> requiredTaxa(to_draw_from[curpos].begin(), to_draw_from[curpos].begin() + required);		
+	
+		//cout << "about to run a search"<<endl;
+		start_clock();		
+		trees = search_subclade(requiredTaxa);
+		::AHetTime += stop_clockbp();
+
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+	}
+	
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
+
+int sucess_search_clade(int required, int iterations){
+	cout<< "Entering sucessful_search_ktet" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+
+	vector<vector<unsigned int>> to_draw_from;
+
+	for(map<boost::dynamic_bitset<>,TreeSet>::iterator iter = biparttable.MapBenchMarks[required]; iter != biparttable.MapBenchMarks[required+1]; iter++) {
+		vector <unsigned int> indices; 
+
+		for (unsigned int i = 0; i < biparttable.lm.size(); i++){
+			if (iter->first.test(i)){
+				indices.push_back(i);
+			}
+		}
+		to_draw_from.push_back(indices);
+	}
+	
+	if (to_draw_from.size() == 0){
+		cout << "no successful searches of this size could be made for this data set" << endl;
+			cout << "ExeTime = " << stop_clockbp() << endl;
+			cout << "SetTime = " << ::SetTime << endl;
+			cout << "HetTime = " << ::HetTime << endl;
+			cout << "AHetTime = " << ::AHetTime << endl;
+			cout << "SetOps = " << ::SetOps << endl;
+			cout << "SetInsertions = " << ::SetInsertions << endl;
+			cout << "TreesFound = " << TreesFound << endl;
+			cout << "SucessfulSearches = " << SucessSearch << endl;
+			cout << "ding" << endl;
+	
+		return SucessSearch;
+	}
+
+	for (int i = 0; i < iterations; i++){
+		int curpos = i%to_draw_from.size();
+		//random_shuffle ( to_draw_from[curpos].begin(), to_draw_from[curpos].end() );
+
+		std::vector<int> requiredTaxa(to_draw_from[curpos].begin(), to_draw_from[curpos].end());		
+	
+		//cout << "about to run a search"<<endl;
+		start_clock();		
+		trees = search_clade(requiredTaxa);
+		::AHetTime += stop_clockbp();
+
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+	}
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
+//GRB NEW // Direct look up in log(n) time. Het Safe
+set<unsigned int> miss_clade(vector<int> required){
+	set<unsigned int> result_trees;
+	
+	if (required.size() == 0){ 
+		return result_trees;
+	}
+	
+	boost::dynamic_bitset<> search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = required.begin(); iter != required.end(); iter++){
+		search_bs.set(*iter, true);
+	}
+	
+	map<boost::dynamic_bitset<>,TreeSet>::iterator it=biparttable.CladeMap.find(search_bs);
+	
+	//if (it != biparttable.CladeMap.end()){
+	//	result_trees = biparttable.get_trees(it);
+	//}
+	
+	return result_trees;
+	
+}
+
+
+int fail_search_clade(int required, int iterations){
+	cout<< "Entering sucessful_search_ktet" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+
+	vector<vector<unsigned int>> to_draw_from;
+
+	for(map<boost::dynamic_bitset<>,TreeSet>::iterator iter = biparttable.MapBenchMarks[required]; iter != biparttable.MapBenchMarks[required+1]; iter++) {
+		vector <unsigned int> indices; 
+
+		for (unsigned int i = 0; i < biparttable.lm.size(); i++){
+			if (iter->first.test(i)){
+				indices.push_back(i);
+			}
+		}
+		to_draw_from.push_back(indices);
+	}
+	
+	if (to_draw_from.size() == 0){
+		cout << "no successful searches of this size could be made for this data set" << endl;
+			cout << "ExeTime = " << stop_clockbp() << endl;
+			cout << "SetTime = " << ::SetTime << endl;
+			cout << "HetTime = " << ::HetTime << endl;
+			cout << "AHetTime = " << ::AHetTime << endl;
+			cout << "SetOps = " << ::SetOps << endl;
+			cout << "SetInsertions = " << ::SetInsertions << endl;
+			cout << "TreesFound = " << TreesFound << endl;
+			cout << "SucessfulSearches = " << SucessSearch << endl;
+			cout << "ding" << endl;
+	
+		return SucessSearch;
+	}
+
+	for (int i = 0; i < iterations; i++){
+		int curpos = i%to_draw_from.size();
+		//random_shuffle ( to_draw_from[curpos].begin(), to_draw_from[curpos].end() );
+
+		std::vector<int> requiredTaxa(to_draw_from[curpos].begin(), to_draw_from[curpos].end());		
+	
+		//cout << "about to run a search"<<endl;
+		start_clock();		
+		trees = miss_clade(requiredTaxa);
+		::AHetTime += stop_clockbp();
+
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+	}
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
+
+
+
+int sucess_search_ktet(int left, int right, int iterations){
+	cout<< "Entering sucessful_search_ktet" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+
+	vector<vector<unsigned int>> L_to_draw_from;
+	vector<vector<unsigned int>> R_to_draw_from;
+
+	for(map<boost::dynamic_bitset<>,TreeSet>::iterator iter = biparttable.MapBenchMarks[left]; iter != biparttable.MapBenchMarks[biparttable.lm.size() - right +1 ]; iter++) {
+		vector <unsigned int> left_indices; 
+		vector <unsigned int> right_indices; 
+
+		for (unsigned int i = 0; i < biparttable.lm.size(); i++){
+			if (iter->first.test(i)){
+				left_indices.push_back(i);
+			}
+			else{
+				right_indices.push_back(i);
+			}
+		}
+		L_to_draw_from.push_back(left_indices);
+		R_to_draw_from.push_back(right_indices);		
+	}
+	
+	if (L_to_draw_from.size() == 0){
+		cout << "no successful searches of this size could be made for this data set" << endl;
+		return SucessSearch;
+	}
+
+	for (int i = 0; i < iterations; i++){
+		int curpos = i%L_to_draw_from.size();
+		random_shuffle ( L_to_draw_from[curpos].begin(), L_to_draw_from[curpos].end() );
+		random_shuffle ( R_to_draw_from[curpos].begin(), R_to_draw_from[curpos].end() );
+		
+		//cout << "L_to_draw_from[curpos].size() = " << L_to_draw_from[curpos].size() << " left = " << left << endl;
+		//cout << "R_to_draw_from[curpos].size() = " << R_to_draw_from[curpos].size() << " right = " << right << endl;
+
+
+		std::vector<int> leftside(L_to_draw_from[curpos].begin(), L_to_draw_from[curpos].begin() + left);		
+		std::vector<int> rightside(R_to_draw_from[curpos].begin(), R_to_draw_from[curpos].begin() +right);
+
+		//cout << "about to run a search"<<endl;
+		start_clock();		
+		trees = search_ktet(leftside, rightside);
+		::AHetTime += stop_clockbp();
+		
+		
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+		
+	}
+	
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
+//GRB NEW
+int random_search_ktet(int left, int right, int iterations){
+	cout<< "Entering random_search_ktet" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+	vector<int> CulRandVect;
+	vector<unsigned int> CulTrees;
+
+	vector<int> randomVect;
+	
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); ++i){
+		randomVect.push_back(i);
+	}
+	
+	cout << "random_search_ktet initialization complete" << endl;
+	
+	
+	for (int i = 0; i < iterations; i++){
+		//vector<int> randomVect;
+
+		set<unsigned int> trees;
+
+		random_shuffle ( randomVect.begin(), randomVect.end() );
+		
+		cout << "suffled" << endl;
+		
+		for (unsigned int j = 0; j < randomVect.size(); j++){
+			CulRandVect.push_back(randomVect[j]);
+		}
+		
+		
+		std::vector<int> leftside(randomVect.begin(), randomVect.begin() + left);
+		std::vector<int> rightside(randomVect.begin() + left, randomVect.begin() + left+right);
+		
+		cout << "left and right side created" << endl;
+		
+		vector <int>::iterator it;
+		for (it=leftside.begin(); it!=leftside.end(); it++)
+			cout << *it << " ";
+		cout << "| ";
+		for (it=rightside.begin(); it!=rightside.end(); it++)
+			cout << *it << " ";
+		cout << endl;    
+
+		
+		//trees = search_hashtable_strict_and_timed(leftside, rightside, side);
+		cout << "about to run a search"<<endl;
+		trees = search_ktet(leftside, rightside);
+		TreesFound += trees.size();
+		
+		
+		set<unsigned int>::iterator myIterator; 
+		for(myIterator = trees.begin(); myIterator != trees.end(); ++myIterator){
+			CulTrees.push_back(*myIterator); 
+		}
+		
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+		
+	}
+	
+	double sum = std::accumulate(CulRandVect.begin(), CulRandVect.end(), 0.0);
+	double mean = sum / CulRandVect.size();
+	double sq_sum = std::inner_product(CulRandVect.begin(), CulRandVect.end(), CulRandVect.begin(), 0.0);
+	double stdev = std::sqrt(sq_sum / CulRandVect.size() - mean * mean);
+	
+	cout << "Minimum element in random is: " << *( std::min_element( CulRandVect.begin(), CulRandVect.end() ) ) << endl;
+	cout << "Maximum element in random is: " << *( std::max_element( CulRandVect.begin(), CulRandVect.end() ) ) << endl;
+	cout << "Sum of random is: " << sum << endl;
+	cout << "mean of random is: " << mean << endl;
+	cout << "sq_sum of random is: " << sq_sum << endl;
+	cout << "stdev of random is: " << stdev << endl;
+
+
+	if (CulTrees.size() > 0){
+		sum = std::accumulate(CulTrees.begin(), CulTrees.end(), 0.0);
+		mean = sum / CulTrees.size();
+
+		sq_sum = std::inner_product(CulTrees.begin(), CulTrees.end(), CulTrees.begin(), 0.0);
+		stdev = std::sqrt(sq_sum / CulTrees.size() - mean * mean);
+		
+		cout << "Minimum element in CulTrees is: " << *( std::min_element( CulTrees.begin(), CulTrees.end() ) ) << endl;
+		cout << "Maximum element in CulTrees is: " << *( std::max_element( CulTrees.begin(), CulTrees.end() ) ) << endl;
+		cout << "Sum of CulTrees is: " << sum << endl;
+		cout << "mean of CulTrees is: " << mean << endl;
+		cout << "sq_sum of CulTrees is: " << sq_sum << endl;
+		cout << "stdev of CulTrees is: " << stdev << endl;
+	}
+
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
+
+
+//GRB NEW
+int random_search_subclade(int left, int iterations){
+	cout<< "Entering random_search_ktet" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+	vector<int> CulRandVect;
+	vector<unsigned int> CulTrees;
+
+	vector<int> randomVect;
+	
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); ++i){
+		randomVect.push_back(i);
+	}
+	
+	cout << "random_search_ktet initialization complete" << endl;
+	
+	
+	for (int i = 0; i < iterations; i++){
+		//vector<int> randomVect;
+
+		set<unsigned int> trees;
+
+		random_shuffle ( randomVect.begin(), randomVect.end() );
+		
+		cout << "suffled" << endl;
+		
+		for (unsigned int j = 0; j < randomVect.size(); j++){
+			CulRandVect.push_back(randomVect[j]);
+		}
+		
+		
+		std::vector<int> leftside(randomVect.begin(), randomVect.begin() + left);
+				
+		vector <int>::iterator it;
+		for (it=leftside.begin(); it!=leftside.end(); it++)
+			cout << *it << " ";
+		cout << " " <<endl;
+		
+		cout << "about to run a search"<<endl;
+		trees = search_subclade(leftside);
+		TreesFound += trees.size();
+		
+		set<unsigned int>::iterator myIterator; 
+		for(myIterator = trees.begin(); myIterator != trees.end(); ++myIterator){
+			CulTrees.push_back(*myIterator); 
+		}
+		
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+		
+	}
+	
+	double sum = std::accumulate(CulRandVect.begin(), CulRandVect.end(), 0.0);
+	double mean = sum / CulRandVect.size();
+	double sq_sum = std::inner_product(CulRandVect.begin(), CulRandVect.end(), CulRandVect.begin(), 0.0);
+	double stdev = std::sqrt(sq_sum / CulRandVect.size() - mean * mean);
+	
+	cout << "Minimum element in random is: " << *( std::min_element( CulRandVect.begin(), CulRandVect.end() ) ) << endl;
+	cout << "Maximum element in random is: " << *( std::max_element( CulRandVect.begin(), CulRandVect.end() ) ) << endl;
+	cout << "Sum of random is: " << sum << endl;
+	cout << "mean of random is: " << mean << endl;
+	cout << "sq_sum of random is: " << sq_sum << endl;
+	cout << "stdev of random is: " << stdev << endl;
+
+
+	if (CulTrees.size() > 0){
+		sum = std::accumulate(CulTrees.begin(), CulTrees.end(), 0.0);
+		mean = sum / CulTrees.size();
+
+		sq_sum = std::inner_product(CulTrees.begin(), CulTrees.end(), CulTrees.begin(), 0.0);
+		stdev = std::sqrt(sq_sum / CulTrees.size() - mean * mean);
+		
+		cout << "Minimum element in CulTrees is: " << *( std::min_element( CulTrees.begin(), CulTrees.end() ) ) << endl;
+		cout << "Maximum element in CulTrees is: " << *( std::max_element( CulTrees.begin(), CulTrees.end() ) ) << endl;
+		cout << "Sum of CulTrees is: " << sum << endl;
+		cout << "mean of CulTrees is: " << mean << endl;
+		cout << "sq_sum of CulTrees is: " << sq_sum << endl;
+		cout << "stdev of CulTrees is: " << stdev << endl;
+	}
+
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
+
+
+
 int random_search2(int left, int right, int side, int iterations){
 	cout<< "entering rsearch2" <<endl;
 	vector<int>::iterator it;

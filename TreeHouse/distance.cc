@@ -560,12 +560,12 @@ int sumPair(pair<int, int> x){
 }
 
 
-vector<vector<unsigned int>> distanceWrapper(set<unsigned int> in, int mode){
+vector<vector<float>> distanceWrapper(set<unsigned int> in, int mode){
   vector< unsigned int> trees(in.begin(), in.end());
   cout << "trees size is: " << trees.size() << endl;
   cout << "AT SWITCH, MODE IS " << mode << endl;
-  vector<vector<unsigned int>> retVal;
-  vector<unsigned int> containers;
+  vector<vector<float>> retVal;
+  vector<float> containers;
   for(int i = 0; i < trees.size(); i++){
 	retVal.push_back(containers);
 	for(int j = 0; j < trees.size(); j++){
@@ -762,7 +762,7 @@ unsigned int edit_distance_greedy(unsigned int tree1, unsigned int tree2){
 
 
 double edit_distance_average(unsigned int tree1, unsigned int tree2){
-  return edit_distance_total(tree1, tree2) /  (double)rfDistance(tree1, tree2);
+  return edit_distance_total(tree1, tree2) /  (double)CRFDistance(tree1, tree2);
 }
 
 
@@ -822,18 +822,147 @@ double edit_distance_minimum_coverage(unsigned int tree1, unsigned int tree2){
 		}
 }
 
+float CRFStringDistance(string tree1, string tree2){
 
+	vector< vector <int > > bipartsone = compute_bitstrings_h(tree1);
+	
+	set<boost::dynamic_bitset<> > bitsone;
+	for(unsigned int i = 0; i < bipartsone.size(); i++){
+		boost::dynamic_bitset<> bi(::biparttable.lm.size());
+		for(unsigned int j = 0; j < bipartsone[i].size(); j++){
+			bi[j] = 1;
+		}
+		bitsone.insert(bi);
+	}
+	
+	vector< vector <int > > bipartstwo = compute_bitstrings_h(tree2); 
+	set<boost::dynamic_bitset<> > bitstwo;
+	for(unsigned int i = 0; i < bipartstwo.size(); i++){
+		boost::dynamic_bitset<> bi(::biparttable.lm.size());
+		for(unsigned int j = 0; j < bipartstwo[i].size(); j++){
+			bi[j] = 1;
+		}
+		bitstwo.insert(bi);
+	}
 
-float rfDistance(int tree1, int tree2){
-  unsigned long total = 0;
-  vector<unsigned int> rf, rf2;
-  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
-  vector<unsigned int> t1 = biparttable.inverted_index.at(tree1);
-  vector<unsigned int> t2 = biparttable.inverted_index.at(tree2);
-  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
-  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+	vector<boost::dynamic_bitset<> > rf, rf2;	
+	set_difference(bitsone.begin(), bitsone.end(), bitstwo.begin(), bitstwo.end(), inserter(rf, rf.begin()));
+	set_difference(bitstwo.begin(), bitstwo.end(), bitsone.begin(), bitsone.end(), inserter(rf2, rf2.begin()));
+	
+	return (rf.size() + rf2.size()) / 2.0;
+	
+} 
+
+float CRFDistance(int tree1, int tree2){
+  set<boost::dynamic_bitset<> > bitsone, bitstwo, rf, rf2;
+  
+  typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+  for(clade_it_type iter = biparttable.MapBenchMarks[2]; iter != biparttable.MapBenchMarks[biparttable.lm.size()]; iter++) {
+	if (biparttable.contains_tree(iter, tree1)){
+		bitsone.insert(iter->first);
+	}
+	if (biparttable.contains_tree(iter, tree2)){
+		bitstwo.insert(iter->first);
+	}
+  }
+  
+  set_difference(bitsone.begin(), bitsone.end(), bitstwo.begin(), bitstwo.end(), inserter(rf, rf.begin()));
+  set_difference(bitstwo.begin(), bitstwo.end(), bitsone.begin(), bitsone.end(), inserter(rf2, rf2.begin()));
   return (rf.size() + rf2.size()) / 2.0;
 }
+
+
+// I need to count the taxa in each tree to make sure they match. 
+float BipartRFStringDistance(string tree1, string tree2){
+	//I'm flipping bitstrings as needed so that the first bit in each is a one. This makes it such that all dups are accounted for and I can do a proper bipartition count across the two trees. 
+
+	vector< vector <int > > bipartsone = compute_bitstrings_h(tree1);	
+	set<boost::dynamic_bitset<> > bitsone;
+	for(unsigned int i = 0; i < bipartsone.size(); i++){
+		boost::dynamic_bitset<> bi(::biparttable.lm.size());
+		for(unsigned int j = 0; j < bipartsone[i].size(); j++){
+			bi[j] = 1;
+		}
+		
+		if ( bi[0] == 0 ){
+			bitsone.insert(bi.flip());
+		}
+		else{
+			bitsone.insert(bi);
+		}	
+	}
+	
+	vector< vector <int > > bipartstwo = compute_bitstrings_h(tree2); 
+	set<boost::dynamic_bitset<> > bitstwo;
+	for(unsigned int i = 0; i < bipartstwo.size(); i++){
+		boost::dynamic_bitset<> bi(::biparttable.lm.size());
+		for(unsigned int j = 0; j < bipartstwo[i].size(); j++){
+			bi[j] = 1;
+		}
+		if ( bi[0] == 0 ){
+			bitstwo.insert(bi.flip());
+		}
+		else{
+			bitstwo.insert(bi);
+		}
+	}
+
+	vector<boost::dynamic_bitset<> > rf, rf2;	
+	set_difference(bitsone.begin(), bitsone.end(), bitstwo.begin(), bitstwo.end(), inserter(rf, rf.begin()));
+	set_difference(bitstwo.begin(), bitstwo.end(), bitsone.begin(), bitsone.end(), inserter(rf2, rf2.begin()));
+	
+	return (rf.size() + rf2.size()) / 2.0;
+} 
+
+//needs to be created. 
+//float BipartRFDistance(int tree1, int tree2){
+//  unsigned long total = 0;
+//  vector<unsigned int> rf, rf2;
+//  //rf is the one sided difference from t1 to t2. rf2 is from t2 to t1
+//  vector<unsigned int> t1 = biparttable.inverted_index.at(tree1);
+//  vector<unsigned int> t2 = biparttable.inverted_index.at(tree2);
+//  set_difference(t1.begin(), t1.end(), t2.begin(), t2.end(), inserter(rf, rf.begin()));
+//  set_difference(t2.begin(), t2.end(), t1.begin(), t1.end(), inserter(rf2, rf2.begin()));
+//  return (rf.size() + rf2.size()) / 4.0;
+//}
+
+float BipartRFDistance(int tree1, int tree2){
+  set<boost::dynamic_bitset<> > bitsone, bitstwo, rf, rf2;
+  
+  typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+  for(clade_it_type iter = biparttable.MapBenchMarks[2]; iter != biparttable.MapBenchMarks[biparttable.lm.size()]; iter++) {
+	if (biparttable.contains_tree(iter, tree1)){
+		boost::dynamic_bitset<> bi(::biparttable.lm.size());
+		
+		bi = iter->first;
+		
+		if(bi[0] == 1){
+			bitsone.insert(bi);
+		}
+		else{
+			bitsone.insert(bi.flip());
+		}
+	}
+	if (biparttable.contains_tree(iter, tree2)){
+		boost::dynamic_bitset<> bi(::biparttable.lm.size());
+	
+		bi = iter->first;
+		if(bi[0] == 1){
+			bitstwo.insert(bi);
+		}
+		else{
+			bitstwo.insert(bi.flip());
+		}
+	}
+  }
+  set_difference(bitsone.begin(), bitsone.end(), bitstwo.begin(), bitstwo.end(), inserter(rf, rf.begin()));
+  set_difference(bitstwo.begin(), bitstwo.end(), bitsone.begin(), bitsone.end(), inserter(rf2, rf2.begin()));
+  return (rf.size() + rf2.size()) / 2.0;
+}
+
+
 
 vector<set<int>> editDistanceMatrixSet(set<unsigned int> rf, set<unsigned int> rf2){
   //calculate the all-to-all edit distance between bipartitions in rf and rf2
@@ -920,7 +1049,7 @@ void testEdit(){
 	for(int j = 1000; j < 1050; j++){
 		unsigned int rf, min;
 		cout << "\nTesting edit for " << i << " " << j << ":\n";
-                cout << "	rf distance = " << (rf = rfDistance(i, j));
+                cout << "	rf distance = " << (rf = CRFDistance(i, j));
 		cout << ", HDG = " << edit_distance_greedy(i,j);
 	//edit_distance_greedy(i,j);
 	//edit_distance_total(i,j);

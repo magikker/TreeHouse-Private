@@ -244,7 +244,6 @@ unsigned int decode(string encoded, unsigned int * found){
   }
   delete[] tmp;
 
-
   //decode the string my ids:
   stringstream splitarray(myids);
   int pos;
@@ -275,6 +274,8 @@ unsigned int decode(string encoded, unsigned int * found){
   }
   return place;
 }
+
+
 void decode_bitstring(string bitstring, boost::dynamic_bitset<> &bs, unsigned int maxLength){
   short bitstring_size = bitstring.size();
   unsigned int j = 0;
@@ -327,7 +328,6 @@ void decode_bitstring(string bitstring, boost::dynamic_bitset<> &bs, unsigned in
   }
   assert(j == maxLength);
 } 
-
 
 
 string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstrings, vector< float > my_branches, unsigned id, bool branch) {
@@ -498,6 +498,10 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 	bipart_count = 0;
 	unsigned int num_unique;
  
+	//GRB
+	//cout << std::numeric_limits<unsigned long>::digits << endl;
+ 
+ 
 	ifstream fin(file.c_str(), ios::binary);
 	if (!fin) {
 		cerr << "cannot open file!\n";
@@ -634,17 +638,18 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
     treeline = str.substr(0, pos);
 
     //process bitstring first
+    // MAYBE REMOVE
     maxLength = get_bitstring_length(bitstring);//determine length of bitstring maxLength
     //GRB the bitset
-    boost::dynamic_bitset<> bs(maxLength);
+    //boost::dynamic_bitset<> bs(maxLength);
+    boost::dynamic_bitset<> bs(Tab.lm.size());
+    
     
     //bool *bs = new bool[maxLength]; //allocate it to be maxLength	
     decode_bitstring(bitstring, bs, maxLength);
+    //TAKEOUT
     Bipartition B(bs);
 
-    
-    //GRB not needed in new system
-    //::biparttable.length_of_bitstrings.push_back(maxLength);
     
     //next, process tree line
     //first, determine the number of TIDs in the line:
@@ -679,9 +684,16 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
       pos = treeline.find_first_of("\n");
       ids = treeline.substr(0, pos);
     }
-
+	
+	//THENEW
+	set<unsigned int> TreeIDs;
+	vector<float> branchLengths;
+	bool Inverse = false;
+	bool NoBranch = true;
+	
     //process tree ids
     if (count == 0){  //bipartition that every tree has
+	Inverse = true;
      for (unsigned int b = 0; b < NumTrees; ++b){ 
 		Tab.inverted_index[b].push_back(bipart_loc);
 		for(unsigned int eachbit = 0; eachbit < bs.size(); eachbit++){
@@ -709,14 +721,18 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 	    decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);
       }
       bipart_count++;      
-    }      
+    }
+    
+         
     else { //count != 0 (so we have tree ids to process)
       my_count = decode(ids, found);
       assert(my_count == count);
 
     if (line_type == "-") { //compressed line
+    Inverse = true;
 		for (unsigned int i = 0; i < count; ++i) {
 			unsigned int temp = found[i];
+			TreeIDs.insert(temp);
 			check[temp] = true;
 		}
 		unsigned int true_id, sec_id;
@@ -765,18 +781,24 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 			decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);			
 		}
       }
+      
+      
+      
       else { //line is not compressed
+      Inverse = false;
 		unsigned int true_id, sec_id;
 		for (unsigned int i = 0; i < count; ++i) { 
 			unsigned int temp = found[i];
 			true_id = true_ids[temp];
 			Tab.inverted_index[true_id].push_back(bipart_loc);
 			my_set_of_ids.push_back(true_id);
+			TreeIDs.insert(true_id);
 			if (Tab.tree_dups[true_id].size() > 0){
 				for (unsigned int j = 0; j < Tab.tree_dups[true_id].size(); j++){
 					sec_id = Tab.tree_dups[true_id][j];
 					Tab.inverted_index[sec_id].push_back(bipart_loc);
 					my_set_of_ids.push_back(sec_id);
+					TreeIDs.insert(sec_id);
 				}
 			}
 		}	 
@@ -816,6 +838,15 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 	//}
 	//cout << endl;
     
+    //THENEW
+    
+    if(!Tab.weighted){
+		Tab.CladeMap.insert(std::make_pair(bs, TreeSet (TreeIDs, Inverse)));
+	}
+	else{
+		Tab.CladeMap.insert(std::make_pair(bs, TreeSet (TreeIDs, Inverse, branchLengths )));
+	}
+    //m_mapFoo->insert(std::make_pair(0, Foo(0)));
     Tab.BipartTable.push_back(B);
     //cout << "This many times through" << counter << endl;
     //::biparttable.bipartitions.push_back(bs);
@@ -824,6 +855,37 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
     bipart_loc++;
     counter++;
   }
+  
+  
+  
+  //set the benchmarks
+  Tab.MapBenchMarks.push_back(Tab.CladeMap.begin());
+  for (unsigned int i = 1; i < Tab.lm.size()+1; i++){
+	Tab.MapBenchMarks.push_back(Tab.CladeMap.end());
+  }
+  
+  unsigned int current = 0;
+  for (std::map<boost::dynamic_bitset<>, TreeSet >::iterator it=Tab.CladeMap.begin(); it!=Tab.CladeMap.end(); ++it){
+	
+	while(it->first.count() > current){
+		current++;
+		Tab.MapBenchMarks[current] = it;
+	}
+	
+	//if(it->first.count() > current){
+	//cout << "it->first.count() = "<<it->first.count() << "current = " << current << endl;
+	//}
+  }
+  
+  
+  for (unsigned int i = Tab.MapBenchMarks.size(); i < Tab.lm.size() +1 ; i++){
+	 Tab.MapBenchMarks.push_back(Tab.CladeMap.end());
+  }
+  Tab.MapBenchMarks.push_back(Tab.CladeMap.end());
+  
+  //cout << "benchmark size = "<<Tab.MapBenchMarks.size() << endl;
+  
+  
   //now that all the trees are loaded, calculate  all trivial bipartitions
   Tab.calculate_trivial_bipartitions();
   cout << "loaded all the trees" << endl;

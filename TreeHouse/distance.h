@@ -19,6 +19,13 @@
 #include "newick.h"
 //#include "hungarian.h"
 
+
+float CRFDistance(int tree1, int tree2);
+float BipartRFDistance(int tree1, int tree2);
+float BipartRFStringDistance(string tree1, string tree2);
+float CRFStringDistance(string tree1, string tree2);
+
+
 double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2);
 double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2, set<unsigned int> treeSet);
 int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
@@ -35,7 +42,7 @@ int sumPair(pair<int, int> x);
 bool isBifurcating(string nw);
 bool isBifurcating(string nw, int depth);
 
-vector < vector < unsigned int > > distanceWrapper (set < unsigned int >, int);
+vector < vector < float > > distanceWrapper (set < unsigned int >, int);
 
 double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2);
 double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2, set<unsigned int> treeSet);

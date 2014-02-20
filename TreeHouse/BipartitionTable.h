@@ -7,6 +7,7 @@
 #include <string>
 #include <iostream>
 #include "Bipartition.h"
+#include "TreeSet.h"
 
 using namespace std;
 
@@ -14,8 +15,25 @@ class BipartitionTable {
 
 private:
 	
+struct classcomp {
+	bool operator() (const boost::dynamic_bitset<>& lhs, const boost::dynamic_bitset<>& rhs) const{ 
+		if(lhs.count() ==  rhs.count()){
+			if(lhs.size() ==  rhs.size()){
+				return lhs<rhs;
+			}
+			else{return lhs.size()<rhs.size();}
+		}
+		else{return lhs.count()<rhs.count();}
+	}
+};
+
 	
 public:
+
+	std::map< boost::dynamic_bitset<>, TreeSet, classcomp > CladeMap;
+	std::vector<std::map< boost::dynamic_bitset<>, TreeSet >::iterator > MapBenchMarks;
+	
+
 
 	vector<Bipartition> BipartTable;
 	LabelMap lm;
@@ -48,6 +66,62 @@ public:
 	unsigned int NumTrees; //NumTrees as a replacement to NUM_TREES for now... Not sure if it's actually needed. 
 	bool weighted;
 	bool hetero;
+	
+	set< unsigned int > get_trees(	std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		if (it->second.is_inverse == true){
+			return decompress(it);
+		}
+		return it->second.tree_ids;
+	}
+	
+	set< unsigned int > decompress(std::map< boost::dynamic_bitset<>, TreeSet >::iterator iter){
+		std::set<unsigned int> result;
+	
+		std::set<unsigned int>::iterator invit=iter->second.tree_ids.begin(); 
+		unsigned int i = 0;
+		while (i!= NumTrees && invit!=iter->second.tree_ids.end()){
+			if(i < *invit){
+				//std::cout << i << ' ' ;
+				result.insert(i);
+				++i;
+			}
+			else if(*invit < i){
+				++invit;
+			} 
+			else{ 
+				++invit; 
+				++i;
+			}
+		}
+		while (i!= NumTrees){
+			result.insert(i);
+			//std::cout << i << ' ' ;
+			++i;
+		}	
+		return result;
+	}
+	
+	bool contains_tree(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it, unsigned int treeid){
+		
+		if (it->second.is_inverse == true){
+			if(it->second.tree_ids.find(treeid) != it->second.tree_ids.end()){
+				return false;
+			}
+			else{
+				return true;
+			}
+		}
+		else{
+			if(it->second.tree_ids.find(treeid) != it->second.tree_ids.end()){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	
+	
+	
 	
 //I need some work on this one. 
 set <unsigned int> duplicates(int treein){
@@ -273,7 +347,7 @@ int num_taxa_in_tree(int treeindex){
 		}
 		return avebranchlens;
 	}
-	
+		
 	vector< unsigned int> get_trees(int bitstringindex){
 		return BipartTable[bitstringindex].get_trees();
 	}
@@ -478,6 +552,153 @@ int num_taxa_in_tree(int treeindex){
 	}
 	
 	
+	/*
+	void print_CladeMap_trees(){
+		typedef std::map<std::string, std::map<std::string, std::string>>::iterator it_type;
+		for(it_type iterator = m.begin(); iterator != m.end(); iterator++) {
+			// iterator->first = key
+			// iterator->second = value
+			// Repeat if you also want to iterate through the second map.
+		} 
+		
+		if(CladeMap.inverse_ids == false){
+			// std::cout << "myset contains:";
+			for (std::set<unsigned int>::iterator it=CladeMap.tree_ids.begin(); it!=CladeMap.tree_ids.end(); ++it){
+				std::cout << ' ' << *it;
+			}
+			std::cout << '\n';
+		}
+	
+	else{
+		
+	}
+}
+* 
+* 
+* 	while (first1!=last1 && first2!=last2)
+  {
+    if (*first1<*first2) { *result = *first1; ++result; ++first1; }
+    else if (*first2<*first1) ++first2;
+    else { ++first1; ++first2; }
+  }
+  return std::copy(first1,last1,result);
+}
+		
+	
+* 
+*/	
+	
+	void print_data_info(){
+	
+		unsigned int unique_clades = 0;
+		unsigned int ttids = 0;
+		unsigned int storedtid = 0;
+		unsigned int compressedlines = 0;
+		vector<unsigned int> clade_distrobution;
+		typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+		for(unsigned int i = 0; i < lm.size(); i++){
+			clade_distrobution.push_back(0);
+		}
+		
+		for(clade_it_type iterator = CladeMap.begin(); iterator != CladeMap.end(); iterator++) {
+			clade_distrobution[iterator->first.count()] += 1;
+			unique_clades += 1;
+			storedtid += iterator->second.tree_ids.size();
+			if  (iterator->second.is_inverse == true){
+				compressedlines += 1;
+				ttids += (NumTrees - iterator->second.tree_ids.size());
+			}
+			else{
+				ttids += iterator->second.tree_ids.size();
+			}
+		}
+	
+		cout << "unique_clades = " << unique_clades << endl;
+		cout << "ttids = " << ttids << endl;
+		cout << "storedtid = " << storedtid << endl;
+		cout << "compressedlines = " << compressedlines << endl;
+		cout << "numtaxa = " << lm.size() << endl;
+
+		cout << "clade distrobution" << endl;
+		
+		cout << "[";
+		for(unsigned int i = 0; i < lm.size(); i++){
+			cout << i << ",";
+		}
+		cout << "]" << endl;
+		
+		
+		cout << "[";
+		for(unsigned int i = 0; i < lm.size(); i++){
+			cout << clade_distrobution[i] << ",";
+		}
+		cout << "]"<< endl;
+		
+
+	}
+
+	void print_CladeMap(){
+		
+		typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+		set <unsigned int> all_trees;
+		for(unsigned int i = 0; i < NumTrees; i++){
+			all_trees.insert(i);
+		}
+
+		
+		//typedef std::map<std::string, std::map<std::string, std::string>>::iterator it_type;
+		for(clade_it_type iterator = CladeMap.begin(); iterator != CladeMap.end(); iterator++) {
+			cout << iterator->second.tree_ids.size();
+			if  (iterator->second.is_inverse == false){
+				cout << " + "; 
+			}
+			if (iterator->second.is_inverse == true){
+				cout << " - "; 
+			}
+			
+			cout << iterator->first;
+			cout << " : [";
+			if(iterator->second.is_inverse == true){
+				//cout << "in a -";
+				std::set<unsigned int>::iterator invit=iterator->second.tree_ids.begin(); 
+				std::set<unsigned int>::iterator allit = all_trees.begin(); 
+		
+				while (allit!= all_trees.end() && invit!=iterator->second.tree_ids.end()){
+					//cout << "in the loop";
+					if(*allit < *invit){
+						std::cout << *allit << ' ' ;
+						++allit;
+					}
+					else if(*invit < *allit){
+						++invit;
+					} 
+					else{ 
+						++invit; 
+						++allit;
+					}
+				}
+				while (allit!= all_trees.end()){
+					std::cout << *allit << ' ' ;
+					++allit;
+				}	
+			}
+			else{
+				//cout << "IN a +";
+				for (std::set<unsigned int>::iterator it=iterator->second.tree_ids.begin(); it!=iterator->second.tree_ids.end(); ++it){
+					std::cout << *it << ' ' ;
+				}				
+			}
+			cout << "]" << endl; 
+		// iterator->second = value
+		// Repeat if you also want to iterate through the second map.
+		} 
+	print_data_info();
+	}
+	
+	
+	
 	
 	void print_bitstring(int index){
 		BipartTable[index].print_bitstring(true);
@@ -507,6 +728,8 @@ int num_taxa_in_tree(int treeindex){
 	void print_bitstring_and_trees(int index){
 		BipartTable[index].print_line();
 	}
+	
+
 	
 	
 	void print_treetable() {

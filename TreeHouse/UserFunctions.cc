@@ -56,12 +56,36 @@ string get_arg_types(vector<pqlsymbol * > arglist) {
 }
 
 
+//needs type checking
 pqlsymbol * u_get_trees_by_subtree(vector< pqlsymbol * > arglist) {  
-
 	return new pqlsymbol(get_trees_by_subtree(arglist[0]->get_string() ) );
-
-
 }
+
+pqlsymbol * u_rf_dist_clade(vector< pqlsymbol * > arglist) { 
+	if (arglist.size() == 2 ){
+		if (arglist[0]->is_string() && arglist[1]->is_string()  ) {
+			return new pqlsymbol(CRFStringDistance(arglist[0]->get_string(), arglist[1]->get_string() ) );
+		}
+		else if (arglist[0]->is_int() && arglist[1]->is_int()  ) {
+			return new pqlsymbol(CRFDistance(arglist[0]->get_int(), arglist[1]->get_int()  ) );
+		}
+	}
+	return new pqlsymbol(ERROR, "Function requires either two ints or two newick strings");
+}
+
+pqlsymbol * u_rf_dist_bipart(vector< pqlsymbol * > arglist) {  
+	if (arglist.size() == 2 ){
+		if (arglist[0]->is_string() && arglist[1]->is_string()  ) {
+			return new pqlsymbol(BipartRFStringDistance(arglist[0]->get_string(), arglist[1]->get_string() ) );
+		}
+		else if (arglist[0]->is_int() && arglist[1]->is_int()  ) {
+			return new pqlsymbol(BipartRFDistance(arglist[0]->get_int(), arglist[1]->get_int() ) );
+		}
+	}
+	return new pqlsymbol(ERROR, "Function requires either two ints or two newick strings");
+}
+
+
 
 pqlsymbol * u_get_trees_by_taxa(vector< pqlsymbol * > arglist){  
 	pqlsymbol * result;
@@ -668,6 +692,157 @@ result = new pqlsymbol(ERROR, "Type Error");
 return result;
 }
 */
+
+pqlsymbol * u_rsk(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	int left = 2;
+	int right = 2;
+	int iterations = 1;
+
+	if (arglist.size() >= 2){
+		left = arglist[0]->get_int();
+		right = arglist[1]->get_int();
+	}
+	if (arglist.size() >= 3){
+		iterations = arglist[2]->get_int();
+	}
+
+	result = new pqlsymbol(random_search_ktet( left, right, iterations ) );
+
+	return result;
+}
+
+pqlsymbol * u_ssk(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	int left = 2;
+	int right = 2;
+	int iterations = 1;
+
+	if (arglist.size() >= 2){
+		left = arglist[0]->get_int();
+		right = arglist[1]->get_int();
+	}
+	if (arglist.size() >= 3){
+		iterations = arglist[2]->get_int();
+	}
+
+	result = new pqlsymbol(sucess_search_ktet( left, right, iterations ) );
+
+	return result;
+}
+
+pqlsymbol * u_fsk(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	int left = 2;
+	int right = 2;
+	int iterations = 1;
+
+	if (arglist.size() >= 2){
+		left = arglist[0]->get_int();
+		right = arglist[1]->get_int();
+	}
+	if (arglist.size() >= 3){
+		iterations = arglist[2]->get_int();
+	}
+
+	result = new pqlsymbol(fail_search_ktet( left, right, iterations ) );
+
+	return result;
+}
+
+pqlsymbol * u_rssc(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	int left = 2;
+	int iterations = 1;
+
+	if (arglist.size() >= 1){
+		left = arglist[0]->get_int();
+	}
+	if (arglist.size() >= 2){
+		iterations = arglist[1]->get_int();
+	}
+
+	result = new pqlsymbol(random_search_subclade( left, iterations ) );
+
+	return result;
+}
+
+pqlsymbol * u_sssc(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	int left = 2;
+	int iterations = 1;
+
+	if (arglist.size() >= 1){
+		left = arglist[0]->get_int();
+	}
+	if (arglist.size() >= 2){
+		iterations = arglist[1]->get_int();
+	}
+
+	result = new pqlsymbol(sucess_search_subclade( left, iterations ) );
+
+	return result;
+}
+
+pqlsymbol * u_fssc(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	int left = 2;
+	int iterations = 1;
+
+	if (arglist.size() >= 1){
+		left = arglist[0]->get_int();
+	}
+	if (arglist.size() >= 2){
+		iterations = arglist[1]->get_int();
+	}
+	result = new pqlsymbol(fail_search_subclade( left, iterations ) );
+
+	return result;
+}
+
+pqlsymbol * u_ssc(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	int left = 2;
+	int iterations = 1;
+
+	if (arglist.size() >= 1){
+		left = arglist[0]->get_int();
+	}
+	if (arglist.size() >= 2){
+		iterations = arglist[1]->get_int();
+	}
+
+	result = new pqlsymbol(sucess_search_clade( left, iterations ) );
+
+	return result;
+}
+
+pqlsymbol * u_fsc(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	int left = 2;
+	int iterations = 1;
+
+	if (arglist.size() >= 1){
+		left = arglist[0]->get_int();
+	}
+	if (arglist.size() >= 2){
+		iterations = arglist[1]->get_int();
+	}
+	result = new pqlsymbol(fail_search_clade( left, iterations ) );
+
+	return result;
+}
+
+
+
 pqlsymbol * u_random_search(vector<pqlsymbol * > arglist) {  
 	pqlsymbol * result;
 
@@ -788,6 +963,60 @@ result = new pqlsymbol(ERROR, "Type Error");
 return result;
 }
 */
+pqlsymbol * u_search_ktet(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result;
+
+	//type check and catch errors and handle any method overloading. 
+
+	vector<int> left;
+	vector<int> right;
+
+	bool LeftIsGood = false;
+	bool RightIsGood = false;
+	int strict = 0;
+
+	if (arglist.size() == 2){
+		if (arglist[0]->is_string() ){
+			if (arglist[0]->is_vect() ){
+				LeftIsGood = true;
+				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string_vect());
+			}
+			else if ( arglist[0]->is_atom() ){
+				LeftIsGood = true;
+				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string());
+			}
+		}
+
+		else if ( arglist[0]->is_emptylist() ){
+			LeftIsGood = true;
+		}
+
+		if (arglist[1]->is_string() ){
+			if (arglist[1]->is_vect() ){
+				RightIsGood = true;
+				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string_vect());
+			}
+			else if ( arglist[1]->is_atom() ){
+				RightIsGood = true;
+				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string());
+			}
+		}
+		else if ( arglist[1]->is_emptylist() ){
+			RightIsGood = true;
+		}
+	}
+
+	if(LeftIsGood && RightIsGood){
+		result = new pqlsymbol(search_ktet( left, right ) );
+	}
+	else{
+		cout << "consensus expects either 2 string vectors. " << "Found " << get_arg_types(arglist) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+
+	return result;
+}
+
 pqlsymbol * u_search_hashtable_strict_and_timed(vector<pqlsymbol * > arglist) {  
 	pqlsymbol * result;
 
@@ -1086,18 +1315,18 @@ pqlsymbol * u_burnin_clust(vector <pqlsymbol *> arglist){
 	return result;
 }
 
-pqlsymbol * u_clade_search(vector <pqlsymbol *> arglist){
+pqlsymbol * u_search_clade(vector <pqlsymbol *> arglist){
 	pqlsymbol * result = new pqlsymbol();
 
-	bool strict = false;
-	if(arglist.size() == 2){
-		 string st = arglist[1]->get_string();
-		 if (boost::iequals(st, "strict")){
-			 strict = true;
-		 }
-	}
+	//bool strict = false;
+	//if(arglist.size() == 1){
+		 //string st = arglist[1]->get_string();
+		 //if (boost::iequals(st, "strict")){
+			// strict = true;
+		// }
+	//}
 
-	result = new pqlsymbol(clade_search(arglist[0]->get_string_vect(),strict));
+	result = new pqlsymbol(search_clade(arglist[0]->get_string_vect()));
 	return result;
 }
 
@@ -1822,12 +2051,25 @@ pqlsymbol * u_tttier(vector<pqlsymbol * > arglist){
 	return result;
 }
 
+
+
+pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
+	cout << "entering the prototype function" << endl;
+	pqlsymbol * result = new pqlsymbol();
+	::biparttable.print_CladeMap();
+	//dTree(arglist[0]->get_treeset_vect());
+	return result;
+}
+
+/*
 pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
 	cout << "entering the prototype function" << endl;
 	pqlsymbol * result = new pqlsymbol();
 	psupport(arglist[0]->get_treeset_vect());
 	return result;
 }
+*/
+
 
 pqlsymbol * u_homogenize(vector<pqlsymbol * > arglist){
 	pqlsymbol * result = new pqlsymbol();
@@ -2484,11 +2726,18 @@ void init_the_functs()
 	//::functionKeys.push_back("");
 
 	//search
+
+	//The New way
+	add_function("search_ktet", &u_search_ktet, "Returns trees which contain the searched ktet");
+	add_function("search_clade", &u_search_clade, "Returns trees which contain a clade containing the given taxa. This function has an optional strictness value. When turned on the search will only return trees with exact clades. ");
+
+
+
+
 	add_function("average_ancestral_distance", &u_average_ancestral_distance, "Returns average distance to common ancestor given two taxa and an optional set of trees (no third input = all trees");
 	add_function("get_trees_without_taxa", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 	add_function("gtwot", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 
-	add_function("clade_search", &u_clade_search, "Returns trees which contain a clade containing the given taxa. This function has an optional strictness value. When turned on the search will only return trees with exact clades. ");
 	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa");
 	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa", TYPE_VECT, TYPE_INT);
 	add_function("smallest_clade_search", &u_smallest_clade_search, "Returns trees with the smallest clade of given taxa", TYPE_VECT);
@@ -2558,12 +2807,12 @@ void init_the_functs()
 	add_function("print_quartet_distance", &u_print_quartet_distance, "Prints differing quartets between two trees.");
 	add_function("conflicting_quartet_distance", &u_conflicting_quartet_distance, "Returns conflicting quartet distance between two trees");
 	//distance
-	add_function("distance_between_taxa", &u_distance_between_taxa, "Returns distance between two specified taxa in a specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
-	add_function("distance_to_common_ancestor", &u_distance_to_common_ancestor, "Returns distance between two specified taxa in a specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
-	add_function("distance_to_root", &u_distance_to_root, "Returns distance to root of specified taxa in specified tree", TYPE_INT, TYPE_INT, TYPE_INT);
+	add_function("distance_between_taxa", &u_distance_between_taxa, "Returns distance between two specified taxa in a specified tree");
+	add_function("distance_to_common_ancestor", &u_distance_to_common_ancestor, "Returns distance between two specified taxa in a specified tree");
+	add_function("distance_to_root", &u_distance_to_root, "Returns distance to root of specified taxa in specified tree");
 
 	add_function("average_depth", &u_average_depth, "Returns the average depth of a specified taxa among all trees");
-	add_function("expected_average_depth", &u_average_depth, "Returns the theoretical expected average depth given a number of taxa", TYPE_INT);
+	add_function("expected_average_depth", &u_average_depth, "Returns the theoretical expected average depth given a number of taxa");
 	add_function("average_distance_between_taxa", &u_average_distance_between_taxa, "Returns the average distance between two taxa among all trees");
 	add_function("is_bifurcating", &u_is_bifurcating, "Returns boolean representing whether inputted tree is bifurcating");
 	add_function("calculate_C", &u_calculate_C, "Returns the value of C (a symmetry measure) for a tree. Input is either an int or a string. Input tree MUST be bifurcating!");
@@ -2572,8 +2821,8 @@ void init_the_functs()
 	add_function("edit_distance_total", &u_edit_distance_total, "Given two trees, returns total edit distance");
 	add_function("edit_distance_average", &u_edit_distance_average, "Given two trees, returns average edit distance");
 
-	add_function("average_depth", &u_average_depth, "Returns the average depth of a specified taxa among all trees",TYPE_TREESET);
-	add_function("average_distance_between_taxa", &u_average_distance_between_taxa, "Returns the average distance between two taxa among all trees",TYPE_INT, TYPE_INT, TYPE_TREESET);
+	//add_function("average_depth", &u_average_depth, "Returns the average depth of a specified taxa among all trees",TYPE_TREESET);
+	//add_function("average_distance_between_taxa", &u_average_distance_between_taxa, "Returns the average distance between two taxa among all trees",TYPE_INT, TYPE_INT, TYPE_TREESET);
 
 	//consensus
 	add_function("consensus", &u_consen, "Returns the newick string for the consensus tree for the input treeset.", TYPE_TREESET);
@@ -2630,6 +2879,9 @@ void init_the_functs()
 	add_function("set_hetero", &u_set_hetero, " ", TYPE_BOOL);
 	add_function("rsearch", &u_random_search, " ");
 	add_function("rsearch2", &u_random_search2, " ");
+	
+	
+	
 	add_function("tier", &u_tier, " ", TYPE_INT);
 	add_function("tttier", &u_tttier, " ", TYPE_INT);
 	add_function("rate_tiers", &u_rate_tiers, " ", TYPE_INT);
@@ -2643,7 +2895,22 @@ void init_the_functs()
 	add_function("print_clades", &u_print_clades, " ");
 
 	
+	
+	//GRB NEW Distances
+	add_function("rf_dist_clade", &u_rf_dist_clade, " ");
+	add_function("rf_dist_bipart", &u_rf_dist_bipart, " ");
 
+	//GRB NEW TESTING FUNCTIONS!
+	add_function("rsk", &u_rsk, " ");
+	add_function("ssk", &u_ssk, " ");
+	add_function("fsk", &u_fsk, " ");
+	
+	add_function("rssc", &u_rssc, " ");
+	add_function("sssc", &u_sssc, " ");
+	add_function("fssc", &u_fssc, " ");
+	
+	add_function("ssc", &u_ssc, " ");
+	add_function("fsc", &u_fsc, " ");	
 
 	cout << "Functions loaded into map" << endl;
 

@@ -52,7 +52,6 @@ void psupport(vector < set < unsigned int > > treesets){
 		
 		cout << "supportingClusts = " << supportingClusts << endl;
 
-		
 		bipartition_psupport.push_back(supportingClusts/float(treesets.size()));
 	}
 	
@@ -63,6 +62,7 @@ void psupport(vector < set < unsigned int > > treesets){
 	
 	
 }
+
 
 
 
@@ -85,7 +85,7 @@ float entropy(vector <set < unsigned int >> treesets){
 
 float info_gain(vector <set < unsigned int >> treesets, unsigned int bpid){
 	
-	float ent_of_s = entropy(treesets);
+	float infogain_of_s = entropy(treesets);
 
 	vector<unsigned int> trees_at_bipart = biparttable.get_trees(bpid);
 
@@ -107,12 +107,125 @@ float info_gain(vector <set < unsigned int >> treesets, unsigned int bpid){
 		haves_and_nots.push_back(have_set);
 		haves_and_nots.push_back(havenot_set);
 	
-		ent_of_s -= ( treesets[i].size() / float(set_size)) * entropy(haves_and_nots);
+		infogain_of_s -= ( treesets[i].size() / float(set_size)) * entropy(haves_and_nots);
 
 	}
-	return ent_of_s;
+	return infogain_of_s;
 }
 
+
+vector<vector<set<unsigned int>>>  split(vector <set < unsigned int >> treesets,  unsigned int bpid){
+	vector<unsigned int> trees_at_bipart = biparttable.get_trees(bpid);
+
+	vector<vector<set<unsigned int>>> splits;
+
+	for (unsigned int i = 0; i < treesets.size(); i++ ){
+	
+		set<unsigned int> have_set;
+		std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), treesets[i].begin(), treesets[i].end(),  std::inserter(have_set, have_set.end()));
+	
+		set<unsigned int> havenot_set;
+		std::set_difference(treesets[i].begin(), treesets[i].end(), have_set.begin(), have_set.end(),  std::inserter(havenot_set, havenot_set.end()));
+
+		vector<set <unsigned int> > haves_and_nots;
+		
+		haves_and_nots.push_back(have_set);
+		haves_and_nots.push_back(havenot_set);
+	
+		splits.push_back(haves_and_nots);
+	}
+	
+	return splits;
+}
+
+/*
+void ID3wrapper(vector <set < unsigned int >> treesets){
+	
+	std::map<unsigned int, unsigned int> MyMap;	
+	
+	for(unsigned int i = 0; i < treesets.size(); i++){				
+		set<unsigned int>::iterator myIterator;
+		for(myIterator = treesets[i].begin(); myIterator != treesets[i].end(); myIterator++){
+			MyMap[*myIterator]=i;
+		}
+	}
+	
+	vector <unsigned int> bipartitions;
+	for(unsigned int i = 0; i < biparttable.biparttable_size(); i++){				
+		bipartitions.push_back(i);
+	}
+}
+* */
+
+/*
+void ID3 (std::map<unsigned int, unsigned int> MyMap, vector <unsigned int> bipartitions){
+
+	if(bipartitions.size() == 0){
+		cout << "We ran out of bipartitions" << endl;
+	}
+	
+	for (auto it=mymap.begin(); it!=mymap.end(); ++it){
+		
+	}
+	
+	for(unsigned int i = 0; i < treesets.size(); i++){		
+		if(MyMap.size() ==  0 )
+		cout << "got to the end of a path" << endl;
+	}		
+	
+	choose_attribute()
+}
+*/
+
+
+
+/*
+void dTree(vector <set < unsigned int >> treesets){
+
+	vector<int> depth;
+	int calls_to_split = 0;
+	
+	int best_depth = 0;
+	
+	vector <vector <set < unsigned int >>> to_split;
+
+	depth.push_back(0);
+	to_split.push_back(treesets);
+	
+	
+	
+	while (! to_split.empty()){
+		vector<set<unsigned int>> working_trees = to_split.pop_back();
+
+		float best_score = 0.0;
+		int best_bip = -1;
+		float score = 0.0;
+		
+		for (unsigned int i = 0; i < biparttable.biparttable_size(); i++){
+			score = info_gain(treesets, i);
+			if (score > best_score){
+				best_score = score;
+				best_bip = i;
+			}
+		}
+		vector<vector<set<unsigned int>>> splits = split(working_trees, best_bip);
+		
+		for (unsigned int i = 0; i < splits.size(); i++){
+			for(unsigned int j = 0; j < splits[i].size(); j++){
+				if(check(splits[i])){
+					
+				}
+				else{
+					
+				}
+				
+			}
+		}
+	}
+
+	cout << "best score = " << best_score << ", best_bip = " << best_bip << endl;
+}
+* */
 
 /*
 float info_gain(set < unsigned int > treeset, unsigned int bpid){
@@ -265,12 +378,16 @@ unsigned int num_unique_biparts(vector < vector < unsigned int > > biparts){
 }
 
 
-//Computes various distance measures based on bipartitions, used to compute the distance matrix of given trees through two wrapper functions
-vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int> > biparts, unsigned int switch_value){
-	//Return Value
-	vector< vector <unsigned int> > distances;
 
-	distances.resize(biparts.size(), vector< unsigned int >(biparts.size(), 0));
+
+
+//Computes various distance measures based on bipartitions, used to compute the distance matrix of given trees through two wrapper functions
+//vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int> > biparts, unsigned int switch_value){
+vector < vector <float> > bipart_distances(vector < vector <unsigned int> > biparts, unsigned int switch_value){
+	//Return Value
+	vector< vector <float> > distances;
+
+	distances.resize(biparts.size(), vector< float >(biparts.size(), 0));
 
 	//To set the switch since strings are intuitive to us but not switch statements
 
@@ -284,7 +401,7 @@ vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int>
 			int b; //# Bipartions in first tree but not second
 			int c; //# Bipartitions in second tree but not first
 			int m; //# Unique Bipartitions
-			int dist;
+			float dist;
 			//Intersection contains all shared bipartitions
 			std::set_intersection(biparts[i].begin(),biparts[i].end(),
 					biparts[j].begin(),biparts[j].end(),
@@ -299,7 +416,7 @@ vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int>
 
 				case 0: //RF distance
 				//	cout << "RF distance" << endl;
-					dist = (b + c) / 2;
+					dist = (b + c) / 2.0;
 					break;
 				case 1: //Euclidean distances
 				//	cout << "EU dist" << endl;
@@ -446,9 +563,9 @@ unsigned int distance_switch(string measure){
 }
 
 //Computes the distance matrix for the given input and measure, input is a treeset, for when order isn't especially important
-vector <vector < unsigned int> > compute_distances(set < unsigned int > treeset, string measure){
+vector <vector < float> > compute_distances(set < unsigned int > treeset, string measure){
 	//Return Value
-	vector < vector <unsigned int> > distances;
+	vector < vector <float> > distances;
 	
 	unsigned int switch_value = distance_switch(measure);
 	if(switch_value < 20){
@@ -470,9 +587,9 @@ vector <vector < unsigned int> > compute_distances(set < unsigned int > treeset,
 
 //Computes the distance matrix for the given input and measure, input is a vector of trees, for when the given order
 //is important (especially for clustering and clustering visualization).
-vector < vector < unsigned int > > compute_distances(vector < unsigned int > treevect, string measure){
+vector < vector < float > > compute_distances(vector < unsigned int > treevect, string measure){
 	//Return Value
-	vector < vector <unsigned int> > distances;
+	vector < vector <float> > distances;
 	
 	unsigned int switch_value = distance_switch(measure);
 

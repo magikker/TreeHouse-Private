@@ -3,7 +3,7 @@
 using namespace std;
 //----------------------Cluster Analysis------------------------------------
 //Returns the average distance for each tree to the cluster containing it (silhouette helper)
-vector<float> diff_to_own_clusters(vector< set <unsigned int> > inputclusts, vector < vector <unsigned int> > distances){
+vector<float> diff_to_own_clusters(vector< set <unsigned int> > inputclusts, vector < vector <float> > distances){
 	unsigned int offset = 0;
 	vector< float > diff;
 	for(unsigned int i = 0; i < inputclusts.size(); i++){//For each cluster
@@ -76,7 +76,7 @@ vector<float> external_cluster_diffs(vector  < set < unsigned int> > inputclusts
 
 
 //Returns the average distance for each tree to the cluster with the smallest average distance from the tree (silhouette helper)
-vector<float> neighboring_cluster_diffs(vector  < set < unsigned int> > inputclusts, vector < vector < unsigned int> > distances){
+vector<float> neighboring_cluster_diffs(vector  < set < unsigned int> > inputclusts, vector < vector < float> > distances){
 	unsigned int offset = 0;
 	vector < float > diffs;
 	diffs.resize(distances[0].size(), 100);
@@ -134,7 +134,7 @@ vector<float> silhouette (vector< set <unsigned int>  > inputclusts, string dist
 	//Stores the average distance for each tree to its neighboring cluster
 	vector< float > neighboring_cluster;
 	//Stores all of the distances
-	vector < vector < unsigned int > > distances;
+	vector < vector < float > > distances;
 
 
 
@@ -407,7 +407,7 @@ float adjusted_rand_index(vector < set < unsigned int > > clusters1, vector < se
 //--------------------------Forming Clusters----------------------------------
 
 //Returns a pair representing the closest neighbor of a cluster, and the distances between the two clusters (agglo_clust helper)
-pair<unsigned int, float> closest_neighbor(unsigned int clustid, set <unsigned int> checkset, vector <vector <unsigned int> > distances){
+pair<unsigned int, float> closest_neighbor(unsigned int clustid, set <unsigned int> checkset, vector <vector <float> > distances){
 	//neighbor to clustid to be returned
 	pair<unsigned int, float> retneighbor;
 
@@ -439,7 +439,7 @@ void  merge(unsigned int clust1, unsigned int clust2,
 }
 
 //Returns a distance matrix where the distances are recomputed for merged clusters (agglo_clust helper)
-void recompute_distances(vector < vector < unsigned int > > &distances, map < unsigned int, set < unsigned int > > clusters, unsigned int clustid, unsigned int clustid2){
+void recompute_distances(vector < vector < float > > &distances, map < unsigned int, set < unsigned int > > clusters, unsigned int clustid, unsigned int clustid2){
 
 	typedef std::map < unsigned int, set <unsigned int> >::iterator it_map;
 	for (it_map iterator = clusters.begin(); iterator != clusters.end(); iterator++){//for each cluster
@@ -462,7 +462,7 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, unsi
 	//Clusters remaining to be compared
 	set <unsigned int> remaining;
 	//Contains the distances (distance matrix)	
-	vector < vector < unsigned int > > distances;
+	vector < vector < float > > distances;
 	//Is used to handle finding pairs to merge more quickly (supposedly)
 	//the first value of the pair is its cluster id, the second is its
 	//distance/similarity measure to its parent in neighbor_stack
@@ -560,8 +560,8 @@ vector < set < unsigned int > > agglo_clust (set <unsigned int> inputtrees, unsi
 }
 
 //Returns the distances for each centroid to each tree (probably not the most efficient method) (kmeans_clust helper)
-void recompute_centroid_distances(vector < vector <unsigned int> > &centroid_distances, 
-		vector< vector< unsigned int> > distances,
+void recompute_centroid_distances(vector < vector <float> > &centroid_distances, 
+		vector< vector< float> > distances,
 	       	unsigned int numtrees, 
 		vector < set <unsigned int> > centroidcluster, vector < set <unsigned int> > oldcluster){
 	
@@ -617,9 +617,9 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 	//Clusters remaining to be compared
 	set <unsigned int> centroids;
 	//Contains the distances (distance matrix)	
-	vector < vector < unsigned int > > tree_distances;
+	vector < vector < float > > tree_distances;
 	//Contains the distance from each tree to each centroid
-	vector < vector < unsigned int > > centroid_distances;
+	vector < vector < float > > centroid_distances;
 
 	//Computes the tree-distances matrix
 //	tree_distances = compute_distancesv(inputtrees, dist_type);
@@ -650,7 +650,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 
 
 	//Initializes the centroid_distance matrix
-	centroid_distances.resize(centroids.size(), vector <unsigned int>(inputtrees.size(), 0));
+	centroid_distances.resize(centroids.size(), vector <float>(inputtrees.size(), 0));
 	for(unsigned int i = 0; i < centroid_distances.size(); i++){//for each centroid
 		for(unsigned int j = 0; j < inputtrees.size(); j++){//for each tree
 			centroid_distances[i].insert(centroid_distances[i].begin() + j, tree_distances[i][j]);
@@ -724,7 +724,7 @@ vector <set <unsigned int > > kmeans_clust(set <unsigned int> inputtrees, unsign
 map <unsigned int, vector <unsigned int> > compute_eps_neighborhoods(set <unsigned int> treeset, unsigned int eps, string dist_type){
 	
 	map <unsigned int, vector < unsigned int> > retmap;
-	vector < vector < unsigned int> > distances;
+	vector < vector < float> > distances;
 	//Computes the distance matrix to be used
 	distances = compute_distances(treeset, dist_type);
 
@@ -842,7 +842,7 @@ vector < set < unsigned int > >dbscan_clust(set <unsigned int> treeset, unsigned
 }
 
 //Recomputes the distance for burnin_clust (burnin_clust helper)
-void recompute_distances(vector < vector < unsigned int > > distances, 
+void recompute_distances(vector < vector < float > > distances, 
 				vector < pair < float, float > > &rem_distances, vector < pair < float, float> > &burned_distances,
 				unsigned int burnedSize, unsigned int remSize, unsigned int treenum, unsigned int setsize){
 
@@ -864,7 +864,7 @@ void recompute_distances(vector < vector < unsigned int > > distances,
 vector < set < unsigned int > > burnin_clust (set <unsigned int> treeset, string dist_type){
 	vector < set < unsigned int> > retset;
 	//Stores and computes the distance matrix
-	vector < vector < unsigned int > > distances;
+	vector < vector < float > > distances;
 	distances = compute_distances(treeset, dist_type);
 	set <unsigned int > burnedset;
 	set <unsigned int > keepset = treeset;
@@ -1022,7 +1022,7 @@ void TestClust(){
 //-------------------Visualizing Trees and Clusters----------------------------
 
 //Writes a distance matrix to a file to be read by another program
-void write_dmatrix(vector <vector < unsigned int > > dmatrix, string filename, bool overwrite){
+void write_dmatrix(vector <vector < float > > dmatrix, string filename, bool overwrite){
 	ofstream cfile;
 	//Checks to see if necessary to overwrite any existing file. Only doesn't overwrite in the case 
 	//of write_dmatrix_dred, which has already overwritten any existing file with a single line we
@@ -1049,7 +1049,7 @@ void write_dmatrix(vector <vector < unsigned int > > dmatrix, string filename, b
 }
 
 //Wrapper function for write_dmatrix that adds an extra line used by dredviz
-void write_dmatrix_dred(vector <vector <unsigned int > > dmatrix, string filename){
+void write_dmatrix_dred(vector <vector <float > > dmatrix, string filename){
 	ofstream cfile;
 	cfile.open("./temp/" + filename, ios::out | ios::trunc);
 	cfile << dmatrix.size() <<endl; //Adds necessary value to top of file for dredviz
@@ -1061,7 +1061,7 @@ void write_dmatrix_dred(vector <vector <unsigned int > > dmatrix, string filenam
 void display_heatmap(set <unsigned int> treeset, string filename, string dist_type){
 
 	//Stores the distance matrix and prints it to a file
-	vector <vector < unsigned int> > distances = compute_distances(treeset, dist_type);
+	vector <vector < float> > distances = compute_distances(treeset, dist_type);
 	string dmatrixfile;
 	dmatrixfile = filename + "_matrix";
 	write_dmatrix(distances, dmatrixfile, true);
@@ -1084,7 +1084,7 @@ void display_heatmap(set <unsigned int> treeset, string filename, string dist_ty
 	cfile.open("./temp/dis_heatmap.p", ios::out | ios::trunc);
 //Commands for gnuplot script to run
 	//Sets file output type and name
-	cfile << "# set terminal png transparent nocrop enhanced font arial 8 size 420, 320" << endl;	
+	cfile << "set terminal png transparent nocrop enhanced font arial 8 size 420, 320" << endl;	
 	cfile << "set output '" + filename + ".png'" << endl;
 	//Establishes basic heatmp format
 	cfile << "set bar 1.000000" << endl;
@@ -1116,7 +1116,7 @@ void display_heatmap(set <unsigned int> treeset, string filename, string dist_ty
 	cfile << "set palette rgb 33, 13, 10" << endl;
 	cfile << "splot './temp/" + dmatrixfile +  "' matrix with image" << endl;
 	//Pauses to allow the data to be displayed
-	cfile << "pause -1" << endl;
+	//cfile << "pause -1" << endl;
 	cfile.close();
 	//String runs gnuplot on the script file and displays
 	string cmdstring = "gnuplot \"./temp/dis_heatmap.p\"";
@@ -1128,7 +1128,7 @@ void display_heatmap(set <unsigned int> treeset, string filename, string dist_ty
 //takes in a vector for its treeset because order matters
 void compute_mds(vector <unsigned int> treevect, string type, string filename, string dist_type){
 	//computes the distances, function should probably accept a distance type input
-	vector < vector < unsigned int > > distances = compute_distances(treevect, dist_type);
+	vector < vector < float > > distances = compute_distances(treevect, dist_type);
 	string dmatrixfile;
 	//Creates a filename for the matrix file that must be written
 	dmatrixfile = filename + "_matrix";
