@@ -133,7 +133,7 @@ void Bipartition::set(int place, bool val){
 
 void Bipartition::add_tree(int tree, float branch_len){
 	if(std::find(trees.begin(), trees.end(), tree) != trees.end()) {
-		cout << "already in the here" << endl;
+		cout << "Tree already added to this bipartition" << endl;
 	} else {
 		trees.push_back(tree);
 		branchlengths.push_back(branch_len);

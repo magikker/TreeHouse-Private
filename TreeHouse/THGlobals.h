@@ -36,6 +36,9 @@ typedef std::map<std::string, afptr> argFuncts;
 
 extern bool DEBUGMODE;
 
+//extern bool PRETTYPRINTRANGES;
+
+
 extern BipartitionTable biparttable;
 //extern TreeTable treetable;
 

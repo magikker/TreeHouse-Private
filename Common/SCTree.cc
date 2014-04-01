@@ -151,10 +151,11 @@ SCTree::GetTreeRecurse(
 	// trees might have same tree strings
 	// as other trees, we want to distinguish
 	// between them in covSEARCH
-	if (node->support) {
-		char buf[16];
-		sprintf(buf, "%d", node->support);
-		ret = ret + buf;
+	if (numChildren!= 1 && node->lab == true) {
+		//char buf[16];
+		//sprintf(buf, "%d", node->label);
+		//ret = ret + buf;
+		ret = ret + node->label;
 	}
 
 	ret = ret + "" + distance;	

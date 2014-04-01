@@ -37,14 +37,18 @@ public:
 	vector<SCNode*> children;
 	
 	double bl;
-
+	bool lab;
+	string label;
+	
 	// obsolete
-	unsigned int support;
+	//unsigned int support;
 	
 
 	bool IsLeaf();
 	bool IsRoot();
 	void SetDistance(double distance);
+	void SetLabel(string l);
+
 	double GetDistance() const;
 	void ClearChildren();
 			

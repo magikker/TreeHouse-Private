@@ -17,6 +17,7 @@ using namespace std;
 
 //vector<int> shuffledTaxa;
 bool DEBUGMODE;
+//bool PRETTYPRINTRANGES = 1;
 
 
 BipartitionTable biparttable;

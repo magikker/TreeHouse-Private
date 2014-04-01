@@ -1928,6 +1928,24 @@ pqlsymbol * u_write_trz(vector<pqlsymbol * > arglist) {
 	}
 	return result;
 }
+pqlsymbol * u_write_tre(vector<pqlsymbol * > arglist) {  
+	pqlsymbol * result = new pqlsymbol();
+	if (arglist.size() != 2 || !(arglist[1]->is_string())) {
+		cout << "write_tre expects one IntVect, Int, or Treeset argument, and one file path. " << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	} else if (arglist[0]->is_treeset()) {
+		write_tre_file(arglist[0]->get_treeset(), arglist[1]->get_string());
+	} else if (arglist[0]->get_data_type() == INT && arglist[0]->get_object_type() == LIST) {
+		write_tre_file(arglist[0]->get_int_vect(), arglist[1]->get_string());
+	} else if (arglist[0]->get_data_type() == INT && arglist[0]->get_object_type() == ATOM) {
+		write_tre_file(arglist[0]->get_int(), arglist[1]->get_string());
+	} else {
+		cout << "write_tre expects one IntVect, Int, or Treeset argument, and one file path. " << "Found "  << "Found " << get_arg_types(move(arglist)) << endl;
+		result = new pqlsymbol(ERROR, "Type Error");
+	}
+	return result;
+}
+
 
 
 pqlsymbol * u_debug(vector<pqlsymbol * > arglist) {  
@@ -2056,19 +2074,21 @@ pqlsymbol * u_tttier(vector<pqlsymbol * > arglist){
 pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
 	cout << "entering the prototype function" << endl;
 	pqlsymbol * result = new pqlsymbol();
-	::biparttable.print_CladeMap();
+	//::biparttable.print_CladeMap();
+
+	print_summary_stats();
+
 	//dTree(arglist[0]->get_treeset_vect());
 	return result;
 }
 
-/*
-pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
-	cout << "entering the prototype function" << endl;
+
+pqlsymbol * u_psupport(vector<pqlsymbol * > arglist){
+	//cout << "entering the prototype function" << endl;
 	pqlsymbol * result = new pqlsymbol();
-	psupport(arglist[0]->get_treeset_vect());
+	result = new pqlsymbol(psupport(arglist[0]->get_treeset_vect()));
 	return result;
 }
-*/
 
 
 pqlsymbol * u_homogenize(vector<pqlsymbol * > arglist){
@@ -2732,6 +2752,7 @@ void init_the_functs()
 	add_function("search_clade", &u_search_clade, "Returns trees which contain a clade containing the given taxa. This function has an optional strictness value. When turned on the search will only return trees with exact clades. ");
 
 
+	add_function("psupport", &u_psupport, "computes psupport");
 
 
 	add_function("average_ancestral_distance", &u_average_ancestral_distance, "Returns average distance to common ancestor given two taxa and an optional set of trees (no third input = all trees");
@@ -2871,7 +2892,10 @@ void init_the_functs()
 	//add_function("group_filter", &u_group_filter, "Creates a new tree or trees by removing all taxa except the ones in the specified taxonomic groups from the specified tree(s). Original trees are kept intact.");
 	//add_function("delete_tree", &u_delete_tree, "Deletes the specified tree(s) from the working data set.");
 	add_function("write_trz", &u_write_trz, "Writes specified Tree/TreeVect/Treeset to a .trz file with specified filename.");
-
+	add_function("write_tre", &u_write_tre, "Writes specified Tree/TreeVect/Treeset to a .tre file with specified filename.");
+	
+	
+	
 	//Developer Functions
 	add_function("debug", &u_debug, " ");
 	add_function("print_taxa_in_trees", &u_print_taxa_in_trees, " ");

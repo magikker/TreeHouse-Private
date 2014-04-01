@@ -30,13 +30,40 @@ struct classcomp {
 	
 public:
 
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+
+	//A map, each key is a clade stored as a bitset, the value is a compressed set of trees with that clade
 	std::map< boost::dynamic_bitset<>, TreeSet, classcomp > CladeMap;
+
+	//A vector which points to the the place in the Clade map where the clades of a certain size start
+	//For instance, start at MapBenchMarks[2] if you want to skip the trival clades
 	std::vector<std::map< boost::dynamic_bitset<>, TreeSet >::iterator > MapBenchMarks;
-	
 
-
-	vector<Bipartition> BipartTable;
+	//A map between taxa names and they're offset in the bitsets used as CladeMap keys
 	LabelMap lm;
+
+	
+	std::vector<std::vector<std::map< boost::dynamic_bitset<>, TreeSet >::iterator>> InverseIndex;
+
+	void populateInverseIndex(){
+		InverseIndex.clear();
+		
+		for(unsigned int i = 0; i < NumTrees; i++){
+			std::vector<std::map< boost::dynamic_bitset<>, TreeSet >::iterator> vectOfIters;
+			InverseIndex.push_back(vectOfIters);
+		}
+		
+		for(clade_it_type it = CladeMap.begin(); it != CladeMap.end(); it++){
+			set<unsigned int> treesWithClade = get_trees(it);
+			for(set<unsigned int>::iterator iterat = treesWithClade.begin(); iterat != treesWithClade.end(); iterat++){
+				InverseIndex[(*iterat)].push_back(it);
+			}
+		}
+	}
+
+
+	
+	vector<Bipartition> BipartTable;
 
 	//by bipartitions
 	vector < boost::dynamic_bitset<> > treetable; //number of biparts long by number of trees wide
@@ -63,9 +90,10 @@ public:
 
 
 	//NumTaxa ought to be pulled from LM.size()
-	unsigned int NumTrees; //NumTrees as a replacement to NUM_TREES for now... Not sure if it's actually needed. 
+	unsigned int NumTrees; 
 	bool weighted;
 	bool hetero;
+	
 	
 	set< unsigned int > get_trees(	std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
 		if (it->second.is_inverse == true){
@@ -73,18 +101,144 @@ public:
 		}
 		return it->second.tree_ids;
 	}
+	set< unsigned int > get_trees(	std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		if (rit->second.is_inverse == true){
+			return decompress(rit);
+		}
+		return rit->second.tree_ids;
+	}
+
+	string get_clade_string(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		string cladename = "[";
+		vector<unsigned int> taxa_ids = get_bitarray_indexes(it);
+		for(unsigned int i = 0; i < taxa_ids.size(); i++){
+			cladename.append(lm.name(taxa_ids[i]));
+			if(i < (taxa_ids.size()-1)){
+				cladename.append(", ");
+			}
+		}
+		cladename.append("]");
+		return cladename;
+	}
+	
+
+	vector<unsigned int> get_bitarray_indexes(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		vector<unsigned int> taxa_ids;
+			int i = it->first.find_first();
+			while(i != string::npos){
+				taxa_ids.push_back(i);
+				i = it->first.find_next(i);
+			}
+		return taxa_ids;
+	}
+	vector<unsigned int> get_bitarray_indexes(std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		vector<unsigned int> taxa_ids;
+			int i = rit->first.find_first();
+			while(i != string::npos){
+				taxa_ids.push_back(i);
+				i = rit->first.find_next(i);
+			}
+		return taxa_ids;
+	}
+
+	unsigned int get_num_of_trees(	std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		if (it->second.is_inverse == true){
+			return NumTrees - it->second.tree_ids.size();
+		}
+		return it->second.tree_ids.size();
+	}
+	unsigned int get_num_of_trees(	std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		if (rit->second.is_inverse == true){
+			return NumTrees - rit->second.tree_ids.size();
+		}
+		return rit->second.tree_ids.size();
+	}
+	
+	vector< float > get_branchlengths(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		vector< float > bls;
+		if (it->second.no_branch_lengths == true){
+			return bls;
+		}
+		return it->second.branch_lengths;
+	}
+	vector< float > get_branchlengths(std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		vector< float > bls;
+		if (rit->second.no_branch_lengths == true){
+			return bls;
+		}
+		return rit->second.branch_lengths;
+	}
+	
+	float get_mean_branchlength(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		double sum = std::accumulate(it->second.branch_lengths.begin(), it->second.branch_lengths.end(), 0.0);
+		double mean = sum / it->second.branch_lengths.size();
+		return mean;
+	}
+	
+	float get_mean_branchlength(std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		double sum = std::accumulate(rit->second.branch_lengths.begin(), rit->second.branch_lengths.end(), 0.0);
+		double mean = sum / rit->second.branch_lengths.size();
+		return mean;
+	}
+	
+	float get_std_branchlength(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		double sum = std::accumulate(it->second.branch_lengths.begin(), it->second.branch_lengths.end(), 0.0);
+		double mean = sum / it->second.branch_lengths.size();
+		double sq_sum = std::inner_product(it->second.branch_lengths.begin(), it->second.branch_lengths.end(), it->second.branch_lengths.begin(), 0.0);
+		double stdev = std::sqrt(sq_sum / it->second.branch_lengths.size() - mean * mean);		
+		return stdev;
+	}
+	
+	float get_std_branchlength(std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		double sum = std::accumulate(rit->second.branch_lengths.begin(), rit->second.branch_lengths.end(), 0.0);
+		double mean = sum / rit->second.branch_lengths.size();
+		double sq_sum = std::inner_product(rit->second.branch_lengths.begin(), rit->second.branch_lengths.end(), rit->second.branch_lengths.begin(), 0.0);
+		double stdev = std::sqrt(sq_sum / rit->second.branch_lengths.size() - mean * mean);
+		return stdev;
+	}
+	
+	
+
 	
 	boost::dynamic_bitset<> get_bitstring(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
 		return it->first;
 	}
-	
-	
+	boost::dynamic_bitset<> get_bitstring(std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		return rit->first;
+	}
 	set< unsigned int > decompress(std::map< boost::dynamic_bitset<>, TreeSet >::iterator iter){
 		std::set<unsigned int> result;
 	
 		std::set<unsigned int>::iterator invit=iter->second.tree_ids.begin(); 
 		unsigned int i = 0;
 		while (i!= NumTrees && invit!=iter->second.tree_ids.end()){
+			if(i < *invit){
+				//std::cout << i << ' ' ;
+				result.insert(i);
+				++i;
+			}
+			else if(*invit < i){
+				++invit;
+			} 
+			else{ 
+				++invit; 
+				++i;
+			}
+		}
+		while (i!= NumTrees){
+			result.insert(i);
+			//std::cout << i << ' ' ;
+			++i;
+		}	
+		return result;
+	}
+		
+	set< unsigned int > decompress(std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator riter){
+		std::set<unsigned int> result;
+	
+		std::set<unsigned int>::iterator invit=riter->second.tree_ids.begin(); 
+		unsigned int i = 0;
+		while (i!= NumTrees && invit!=riter->second.tree_ids.end()){
 			if(i < *invit){
 				//std::cout << i << ' ' ;
 				result.insert(i);
@@ -186,6 +340,17 @@ vector<string> get_taxa_in_tree(unsigned int treeindex){
 	vector<string> taxavect(taxaset.begin(), taxaset.end());
 	return taxavect;
 }
+
+set<unsigned int> get_taxa_in_tree_ids(unsigned int treeindex){
+	set<unsigned int> taxaset;
+	for(unsigned int i = 0; i < lm.size(); i ++ ){
+		if (taxa_in_trees[treeindex][i] == 1){
+			taxaset.insert(i);
+		}
+	}
+	return taxaset;
+}
+
 
 bool are_taxa_in_tree(int treeindex, vector<int> setoftaxa){
 	for(unsigned int i = 0; i < setoftaxa.size(); i++){

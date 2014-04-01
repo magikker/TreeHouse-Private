@@ -2,6 +2,52 @@
 
 using namespace std;
 
+void write_tre_file(vector<string> nwvect, string filename) {
+  filename += ".tre";
+  ifstream isfile(filename);
+  if (isfile.good()) {
+    cout << "'" << filename << "' exists; overwrite? (y/n): ";
+    string yn;
+    getline (cin, yn);
+    if (yn != "y" && yn != "Y") {
+      cout << "Not overwriting '" << filename << "'. Operation aborted." << endl;
+      isfile.close();
+      return;
+    }
+  }
+  isfile.close();
+  ofstream cfile;
+  cfile.open(filename, ios::out | ios::trunc);
+  for (unsigned int i = 0; i < nwvect.size(); i++) {
+    cfile << nwvect[i] << endl;
+  }
+  cfile.close();
+  cout << "Created " << filename << endl;
+  //system(("../TreeZip/treezip "+filename).c_str());
+}
+
+void write_tre_file(int tree, string filename) {
+  vector<string> nwvect;
+  nwvect.push_back(to_newick(tree));
+  write_tre_file(nwvect, filename);
+}
+
+void write_tre_file(vector<int> treevect, string filename) {
+  vector<string> nwvect;
+  for (unsigned int i = 0; i < treevect.size(); i++)
+    nwvect.push_back(to_newick(treevect[i]));
+  write_tre_file(nwvect, filename);
+}
+
+void write_tre_file(set<unsigned int> treeset, string filename) {
+  vector<string> nwvect;
+  for (set<unsigned int>::const_iterator pos = treeset.begin(); pos != treeset.end(); pos++)
+    nwvect.push_back(to_newick(*pos));
+  write_tre_file(nwvect, filename);
+}
+
+
+
 //I need some work on this one. 
 set <unsigned int> duplicates(int treein){
 	//Returns the unique trees in a tree set. 
@@ -42,8 +88,7 @@ set <unsigned int> sample_trees (set <unsigned int> treeset, unsigned int numtre
 }
 
 
-vector<string> to_newick(vector<int> input_from_int) 
-{
+vector<string> to_newick(vector<int> input_from_int){
    vector<string> temp;
    for (unsigned int x = 0; x < input_from_int.size(); x++){
      //temp.push_back(compute_tree(::lm, ::treetable.bipartitions[x], ::treetable.branches[x], x, 0, ::treetable.bs_sizes[x]));
@@ -52,8 +97,7 @@ vector<string> to_newick(vector<int> input_from_int)
    return temp;
 }
 
-vector<string> to_newick(set<unsigned int> inval) 
-{
+vector<string> to_newick(set<unsigned int> inval){
    vector<string> temp;
 	for(set<unsigned int>::const_iterator pos = inval.begin(); pos != inval.end(); ++pos){
 	  //temp.push_back(compute_tree(::lm, ::treetable.bipartitions[*pos], ::treetable.branches[*pos], *pos, 0, ::treetable.bs_sizes[*pos]));
@@ -78,7 +122,7 @@ void show_newick(string nwstr, string title, string cssfile, string mode) {
     system(dispcmd.c_str());
   }
   else if (mode == "ortho") {
-    string dispcmd = "echo \"<td>"+title+"\" >> temp/svg.html && "+"echo \""+nwstr+"\" | ../NwUtils/src/nw_display -s -W 10 -w 500 -l 'font-size:12' -v 20 "+cssfile+" - >> temp/svg.html";
+    string dispcmd = "echo \"<td>"+title+"\" >> temp/svg.html && "+"echo \""+nwstr+"\" | ../NwUtils/src/nw_display -s -W 10 -w 1600 -l 'font-size:12' -v 20  "+cssfile+" - >> temp/svg.html";
     system(dispcmd.c_str());
   } 
   else if (mode == "radial") {

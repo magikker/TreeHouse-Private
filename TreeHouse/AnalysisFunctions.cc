@@ -14,12 +14,131 @@
  * other. 
  */
 
+ //GRB NEW
+ 
+  void print_branchlength_stats(){
 
-void psupport(vector < set < unsigned int > > treesets){
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+ 
+	for(clade_it_type iter = biparttable.MapBenchMarks[1]; iter != biparttable.CladeMap.end(); iter++) {
+		cout << biparttable.get_clade_string(iter) << " " << biparttable.get_mean_branchlength(iter) << endl;
+	}
+ }
+
+ 
+ 
+ void print_summary_stats(){
+
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+ 
+	vector< unsigned int > shared_clades;
 	
+	vector< unsigned int > whos_responsible;
+	vector< unsigned int > taxa_overlap;
+	unsigned int num_overlapping_taxa;
+	
+
+	unsigned int trees_resposible1;
+	unsigned int trees_resposible10;
+
+
+
+	for(size_t i = 0; i < biparttable.NumTrees; i++){
+		shared_clades.push_back(0);
+	}
+
+	for(size_t i = 0; i < biparttable.NumTrees; i++){
+		whos_responsible.push_back(0);
+	}
+
+	for(size_t i = 0; i < biparttable.lm.size(); i++){
+		taxa_overlap.push_back(0);
+	}	
+
+
+	for(clade_it_type iter = biparttable.MapBenchMarks[1]; iter != biparttable.MapBenchMarks[2]; iter++) {
+		
+		set<unsigned int> temp = biparttable.get_trees(iter);
+
+		if(temp.size() > 1){
+			set<unsigned int>::iterator myIterator;
+			for(myIterator = temp.begin(); myIterator != temp.end(); myIterator++){
+				taxa_overlap[iter->first.find_first()]+=1;
+			}
+		}
+	}
+	
+	
+	
+
+	for(clade_it_type iter = biparttable.MapBenchMarks[2]; iter != biparttable.CladeMap.end(); iter++) {
+	
+		set<unsigned int> temp = biparttable.get_trees(iter);
+	
+		shared_clades[temp.size()] += 1;
+		
+		if(temp.size() > 1){
+			set<unsigned int>::iterator myIterator;
+			for(myIterator = temp.begin(); myIterator != temp.end(); myIterator++){
+				whos_responsible[*myIterator]+=1;
+			}
+		}
+	}
+ 
+	for(size_t i = 0; i < biparttable.NumTrees;i++){
+		if(shared_clades[i] > 0){
+			cout << shared_clades[i] << " clades shared by " << i << " trees" << endl;  
+		}
+	}
+
+	for(size_t i = 0; i < biparttable.lm.size();i++){
+		if(taxa_overlap[i] > 0){
+			num_overlapping_taxa+=1;
+			//cout << " taxa " << i << " shared by " << taxa_overlap[i] << " trees" << endl;  
+		}
+	}
+	
+	cout << "The taxa that appears in the most trees appears in " << *std::max_element(taxa_overlap.begin(),taxa_overlap.end())<< " trees" << endl;
+	cout << "Of the " << biparttable.lm.size() << " taxa in the set, " <<  num_overlapping_taxa << " appear in more than one tree." << endl;
+	
+ 	//for(size_t i = 0; i < biparttable.NumTrees;i++){
+	//	if(whos_responsible[i] > 0){
+	//		trees_resposible1 +=1;
+	//		cout << "Tree " << i << " is responsible for " << whos_responsible[i] << " shared clades" << endl;  
+	//	}
+
+	//	if(whos_responsible[i] > 9){
+	//		trees_resposible10 +=1;
+	//	}			
+	//}
+	
+	//cout << "of the " << biparttable.NumTrees << " trees in the set only " <<  trees_resposible1 << " of them are share at least one clade with another tree " << endl;
+	//cout << "of the " << biparttable.NumTrees << " trees in the set only " <<  trees_resposible10 << " of them are share at least 10 clades with another tree " << endl;
+ 
+ 
+	//for(size_t i = 0; i < biparttable.NumTrees;i++){
+	//	cout << "Tree " << i << " has " << get_outgroup_ids(i).size() << " Outgroup Taxa" << endl;
+	//}
+	
+	print_branchlength_stats();
+ }
+ 
+
+ 
+ 
+ 
+ 
+//GRB NEW 
+string psupport(vector < set < unsigned int > > treesets){
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator clade_rit_type;	
 	vector<float> bipartition_percent;
 	vector<float> bipartition_psupport;
 
+	vector<boost::dynamic_bitset<> > maj_clades;
+	vector<string> clade_psupport;
+
+	
+	
 	set<unsigned int> trees_we_care_about;
 	
 	for(unsigned int i = 0; i < treesets.size(); i++){
@@ -28,42 +147,68 @@ void psupport(vector < set < unsigned int > > treesets){
 
 	cout << "trees_we_care_about.size = " << trees_we_care_about.size() << endl;
 
-	for(unsigned int i = 0; i< biparttable.biparttable_size(); i++){
-		
-		cout << "At bipart " << i << endl;
-		
-		vector<unsigned int> trees_at_bipart = biparttable.get_trees(i);
+	int counter = 0;
+	
+	for(clade_rit_type riter = biparttable.CladeMap.rbegin(); riter != biparttable.CladeMap.rend(); riter++) {
+		set<unsigned int> trees_at_bipart = biparttable.get_trees(riter);
 		set<unsigned int> res_set;
 		std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), trees_we_care_about.begin(), trees_we_care_about.end(),  std::inserter(res_set, res_set.end()));
 		
-		cout << "res_set.size()/float(trees_we_care_about.size()) = " << res_set.size()/float(trees_we_care_about.size()) << endl;
+		cout << counter << " ";
 		
-		bipartition_percent.push_back(res_set.size()/float(trees_we_care_about.size()));
+		float majsup = res_set.size()/float(trees_we_care_about.size());
+		bipartition_percent.push_back(majsup);
+		
+		cout << majsup << " ";		
 		
 		unsigned int supportingClusts = 0;
 		
 		for(unsigned int j = 0; j < treesets.size(); j++){
 			res_set.clear();
 			std::set_intersection(trees_at_bipart.begin(), trees_at_bipart.end(), treesets[j].begin(), treesets[j].end(),  std::inserter(res_set, res_set.end()));
+			
+			cout << (res_set.size() / (float)treesets[j].size()) << " ";
+			
 			if(res_set.size() > (treesets[j].size()/2.0)){
 				supportingClusts++;
 			}
 		}
-		
 		cout << "supportingClusts = " << supportingClusts << endl;
 
-		bipartition_psupport.push_back(supportingClusts/float(treesets.size()));
+		bipartition_psupport.push_back(supportingClusts/float(treesets.size()));		
+		
+		if(majsup > .5){
+			maj_clades.push_back(biparttable.get_bitstring(riter));
+			
+			std::ostringstream ss;
+			ss << "b" << counter << "_" << (100 * supportingClusts/float(treesets.size())) << "%";
+			//std::string s(ss.str());
+			
+			
+			clade_psupport.push_back(ss.str());
+		}
+		counter++;
 	}
 	
-	for(unsigned int i = 0; i < biparttable.biparttable_size(); i++){
-		cout << i << " " << bipartition_percent[i] << " " << bipartition_psupport[i] << endl;
-		
-	}
+	//for(unsigned int i = 0; i < biparttable.biparttable_size(); i++){
+	//	cout << i << " " << bipartition_percent[i] << " " << bipartition_psupport[i] << endl;
+	//}
+	
+	
+	
+	cout << maj_clades.size() << endl;
+	
+	//string newick = compute_tree_sup(::biparttable.lm, maj_clades, clade_psupport);
+	
+	string newick = compute_tree_labels(::biparttable.lm, maj_clades, clade_psupport);
+	
+	
+	cout << newick << endl;
+	//string newick;
+	return newick;
 	
 	
 }
-
-
 
 
 float entropy(vector <set < unsigned int >> treesets){
@@ -360,263 +505,10 @@ std::vector<int> distinguishing_bipart(set<unsigned int> inputtrees1, set<unsign
 	return result;
 }
 
-//Returns the number of unique bipartitions (essentially counts each bipartition once, 
-//ignoring duplicates as it goes)
-unsigned int num_unique_biparts(vector < vector < unsigned int > > biparts){
-	unsigned int retvalue;
-	set<unsigned int > tempset;
-
-	//Add the bipartitions to a set which does not store duplicates
-	for(unsigned int i = 0; i < biparts.size(); i++){//for each trees bipartitions
-		for(unsigned int j = 0; j < biparts[i].size(); j++){//for ech bipartition
-			tempset.insert(biparts[i][j]);
-		}
-	}
-	//Size of the set is the number of unique bipartitions
-	retvalue = tempset.size();
-	return retvalue;
-}
 
 
 
 
-
-//Computes various distance measures based on bipartitions, used to compute the distance matrix of given trees through two wrapper functions
-//vector < vector <unsigned int> > bipart_distances(vector < vector <unsigned int> > biparts, unsigned int switch_value){
-vector < vector <float> > bipart_distances(vector < vector <unsigned int> > biparts, unsigned int switch_value){
-	//Return Value
-	vector< vector <float> > distances;
-
-	distances.resize(biparts.size(), vector< float >(biparts.size(), 0));
-
-	//To set the switch since strings are intuitive to us but not switch statements
-
-
-	for(unsigned int i = 0; i < biparts.size() - 1; i++){//for each tree's bipartitions
-		for (unsigned int j = 1; j < biparts.size(); j++){//for all others
-			//a, b, & c values come from Suzanne Matthews Dissertation
-			//and the method of computing distances from bipartitions found there
-			int a; //Bipartitions in both trees
-			vector<unsigned int> temp;
-			int b; //# Bipartions in first tree but not second
-			int c; //# Bipartitions in second tree but not first
-			int m; //# Unique Bipartitions
-			float dist;
-			//Intersection contains all shared bipartitions
-			std::set_intersection(biparts[i].begin(),biparts[i].end(),
-					biparts[j].begin(),biparts[j].end(),
-					std::inserter(temp, temp.end()));
-			//Stores the differences for each
-			a = temp.size();
-			b = biparts[i].size() - temp.size();
-			c = biparts[j].size() - temp.size();
-			m = num_unique_biparts(biparts);
-			//Computes the distance and stores it based on multiple distance types
-			switch (switch_value){
-
-				case 0: //RF distance
-				//	cout << "RF distance" << endl;
-					dist = (b + c) / 2.0;
-					break;
-				case 1: //Euclidean distances
-				//	cout << "EU dist" << endl;
-					dist = sqrt(b + c);
-					break;
-				case 2: //Jaccard-Tanimoto distance
-					//cout << "Jaccard-Tanimoto dist" << endl;
-					dist = a / (a + b + c);
-					break;
-				case 3: //Dice distance
-					dist = (2 * a) / ((2 * a) + b + c);
-					break;
-				case 4: //Russel-Rao distance
-					dist = (a / m);
-					break;
-				case 5: //Sokal-Sneath
-					dist = (a) / (a + (2*b) + (2 * c));
-					break;
-				case 6: //Ochai
-					dist = a / (sqrt((a + b) * (a + c)));
-					break;
-				case 7: //Forbes
-					dist = (a * m) / ((a + b) * (a + c));
-					break;
-				case 8: //Mountford 
-					dist = a / (.5 * ((a*b) + (a*c)) + (b*c));
-					break;
-				case 9: //Sorgenfrei
-					dist = (a* a) / ((a+b) * (a + c));
-					break;
-				case 10://Tarwid
-					dist = ((m * a) - (a + b) * (a + c)) / ((m * a) + (a + b) * (a + c));
-					break;
-				case 11://Johnson
-					dist = (a / (a + b)) + (a / ( a + c));
-					break;
-				case 12://Driver-Kroeber
-					dist = (a/2)*((1/(a+b)) + (1/(a+c)));
-					break;
-				case 13://Fager-McGowan
-					dist = (a / sqrt((a+b)*(a+c)))- (max(a+b,a+c)/2);
-					break;
-				case 14://Gilbert & Wells 
-					dist = log(a) - log(m) - log((a+b)/m) - log((a + c)/m);
-					break;
-				case 15://Lance-Williams
-					dist = (b+c)/(2*a + b + c);
-					break;
-				default: //No proper distance measure given
-					cout << "Unknown Distance measure given.";
-					break;
-			}
-			distances[i][j] = dist;
-			distances[j][i] = dist;
-		}
-	}
-	/*Prints the distances (for various testing purposes)
-	for(unsigned int i = 0; i < distances.size(); i++){//for each tree
-		cout << "Tree : " << std::setw(2) << i << ": ";
-		for (unsigned int k = 0; k < i; k++){//tabs white space
-			cout << "  ";
-		}	
-		for (unsigned int j = i; j < distances.size(); j++){//for each other tree
-			cout << distances[i][j] << " ";
-		}
-		cout << endl;
-	}*/
-	return distances;
-}
-
-//The if statement which converts distance strings to integers necessary for later switch
-unsigned int distance_switch(string measure){
-	//Holds the string converted to a switch value
-	unsigned int switch_value;
-
-	if (measure == "rf" || measure == "RF" || measure == "Rf"){
-		switch_value = 0;
-	}
-	else if (measure == "eu" || measure == "EU" || measure == "Eu" || measure == "euclidean"
-			|| measure == "Euclidean"){
-		switch_value = 1;
-	}
-	else if (measure == "j-t" || measure == "jaccard-tanimoto"){
-		switch_value = 2;
-	}
-	else if (measure == "dice" || measure == "Dice"){
-		switch_value = 3;
-	}
-	else if (measure == "r-r" || measure == "russel-rao"){
-		switch_value = 4;
-	}
-	else if (measure == "sokal-sneath"){
-		switch_value = 5;
-	}
-	else if (measure == "ochai"){
-		switch_value = 6;
-	}
-	else if (measure == "forbes"){
-		switch_value = 7;
-	}
-	else if (measure == "mountford"){
-		switch_value = 8;
-	}
-	else if (measure == "sorgenfrei"){
-		switch_value = 9;
-	}
-	else if (measure == "tarwid"){
-		switch_value = 10;
-	}
-	else if (measure == "johnson"){
-		switch_value = 11;
-	}
-	else if (measure == "driver-kroeber"){
-		switch_value = 12;
-	}
-	else if (measure == "fager-mcgowan"){
-		switch_value = 13;
-	}
-	else if (measure == "gilbertwells"){
-		switch_value = 14;
-	}
-	else if (measure == "lance-williams"){
-		switch_value = 15;
-	}
-	else if (measure == "quartet" || measure == "qd"){
-		switch_value = 20;
-	}
-	else if (measure == "conflicting-quartet" || measure == "cqd"){
-		switch_value = 21;
-	}
-	else if (measure == "editg" || measure == "greedy-edit"){
-		switch_value = 22;
-	}
-	else if (measure == "editt" || measure == "total-edit"){
-		switch_value = 23;
-	}
-	else if (measure == "editm" || measure == "minimum-edit"){
-		switch_value = 24;
-	}
-	else if (measure == "editm" || measure == "minimum-edit"){
-		switch_value = 25;
-	}
-	return switch_value;
-}
-
-//Computes the distance matrix for the given input and measure, input is a treeset, for when order isn't especially important
-vector <vector < float> > compute_distances(set < unsigned int > treeset, string measure){
-	//Return Value
-	vector < vector <float> > distances;
-	
-	unsigned int switch_value = distance_switch(measure);
-	if(switch_value < 20){
-		vector < vector < unsigned int> > biparts;
-	
-		for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
-			biparts.push_back(::biparttable.inverted_index.at(*pos));
-		}	
-		distances = bipart_distances(biparts, switch_value);
-	}
-
-	else {
-		//Quartet and Edit distances
-		distances = distanceWrapper(treeset, switch_value);
-	}
-	return distances;
-
-}
-
-//Computes the distance matrix for the given input and measure, input is a vector of trees, for when the given order
-//is important (especially for clustering and clustering visualization).
-vector < vector < float > > compute_distances(vector < unsigned int > treevect, string measure){
-	//Return Value
-	vector < vector <float> > distances;
-	
-	unsigned int switch_value = distance_switch(measure);
-
-	if(switch_value < 20){
-	vector < vector < unsigned int> > biparts;	
-	
-		for(unsigned int i = 0; i < treevect.size(); i++){//for each tree
-			biparts.push_back(::biparttable.inverted_index.at(treevect[i]));
-		}
-		
-		distances = bipart_distances(biparts, switch_value);
-	}
-
-
-
-
-	return distances;
-}	
-
-//Various tests that have been used for the distance functions
-void TestDist(){
-	set < unsigned int > test_trees;
-	test_trees.insert(1);
-	test_trees.insert(2);
-	test_trees.insert(3);
-	test_trees.insert(4);
-}
 
 //Returns the vector of taxa which are present in all of the input trees
 std::vector<string> taxa_in_all_trees(set<unsigned int> inputtrees){
@@ -843,3 +735,29 @@ void test_trait_correlation(int t1ind, int t1val, int t2ind, int t2val, unsigned
 	cout << "Total measurements recorded: " << dists_target.size() << endl;
 
 }
+
+set <unsigned int> get_outgroup_ids(unsigned int tree){
+		
+	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
+	
+	//get indexes for all taxa in tree
+	set<unsigned int> taxa_ids = biparttable.get_taxa_in_tree_ids(tree);
+	unsigned int numtaxa = taxa_ids.size();
+	unsigned int cladesused = 0;
+	
+	for(clade_it_type iter = biparttable.MapBenchMarks[2]; iter != biparttable.CladeMap.end(); iter++) {
+		if (biparttable.contains_tree(iter, tree)){
+			cladesused++;
+			//boost:dynamic_bitset<> bitset = iter->first.size();
+			int i = iter->first.find_first();
+			while(i != string::npos){
+				taxa_ids.erase(i);
+				i = iter->first.find_next(i);
+			}
+		}
+	}
+	cout << "Tree has " << cladesused << " clades and " << numtaxa << " taxa" <<  endl;
+	return taxa_ids;
+}
+
+

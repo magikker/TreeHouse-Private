@@ -20,23 +20,18 @@
 //#include "hungarian.h"
 
 
+vector < vector < float>> compute_distances(set <unsigned int> treeset, string dist_type);
+
+vector < vector <float>> compute_distances(vector <unsigned int> treevect, string dist_type);
+
+ vector<vector<float>> taxaSimilarityMatrix(set<unsigned int> in);
+
 float CRFDistance(int tree1, int tree2);
 float BipartRFDistance(int tree1, int tree2);
 float BipartRFStringDistance(string tree1, string tree2);
 float CRFStringDistance(string tree1, string tree2);
 
 
-double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2);
-double average_ancestral_distance(unsigned int taxon1, unsigned int taxon2, set<unsigned int> treeSet);
-int distance_between_taxa(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
-int distance_to_common_ancestor(unsigned int taxon1, unsigned int taxon2, unsigned int tree);
-unsigned int distance_to_root(unsigned int taxon1, unsigned int tree);
-double average_depth(unsigned int tree);
-double average_depth(set<unsigned int> trees);
-double expected_average_depth(unsigned int n);
-double depth_variance(unsigned int tree);
-double calculate_C(unsigned int tree);
-double calculate_C(string nw);
 pair<int, int> numLeftRight(string nw, unsigned int &total );
 int sumPair(pair<int, int> x);
 bool isBifurcating(string nw);
@@ -44,8 +39,6 @@ bool isBifurcating(string nw, int depth);
 
 vector < vector < float > > distanceWrapper (set < unsigned int >, int);
 
-double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2);
-double average_distance_between_taxa(unsigned int taxon1, unsigned int taxon2, set<unsigned int> treeSet);
 unsigned int edit_distance_greedy(unsigned int tree1, unsigned int tree2);
 double edit_distance_total(unsigned int tree1, unsigned int tree2);
 unsigned int edit_distance_minimum(unsigned int tree1, unsigned int tree2);

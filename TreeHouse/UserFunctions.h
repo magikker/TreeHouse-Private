@@ -17,6 +17,8 @@
 #include "ConsensusFunctions.h"
 #include "clustering.h"
 #include "distance.h"
+#include "TreeMeasures.h"
+
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/variant.hpp>

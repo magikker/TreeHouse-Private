@@ -2189,6 +2189,114 @@ int random_search_subclade(int left, int iterations){
 }
 
 
+//GRB NEW
+int random_search_clade(int left, int iterations){
+	cout<< "Entering random_search_clade" <<endl;
+	vector<int>::iterator it;
+	set<unsigned int> trees;		
+	
+	::SetInsertions = 0;	
+	::SetOps = 0;
+	::SetTime = 0;
+	::HetTime = 0;
+	::AHetTime = 0;	
+	int TreesFound = 0;
+	int SucessSearch = 0;
+	
+	start_clock();
+	srand ( time(NULL) );
+	//std::uniform_int_distribution<> d(0, ::NUM_TAXA-1);
+	//std::minstd_rand g(time(NULL));
+	vector<int> CulRandVect;
+	vector<unsigned int> CulTrees;
+
+	vector<int> randomVect;
+	
+	for (unsigned int i = 0; i < ::biparttable.lm.size(); ++i){
+		randomVect.push_back(i);
+	}
+	
+	cout << "random_search_clade initialization complete" << endl;
+	
+	
+	for (int i = 0; i < iterations; i++){
+		//vector<int> randomVect;
+
+		set<unsigned int> trees;
+
+		random_shuffle ( randomVect.begin(), randomVect.end() );
+		
+		cout << "shuffled" << endl;
+		
+		for (unsigned int j = 0; j < randomVect.size(); j++){
+			CulRandVect.push_back(randomVect[j]);
+		}
+		
+		
+		std::vector<int> leftside(randomVect.begin(), randomVect.begin() + left);
+				
+		vector <int>::iterator it;
+		for (it=leftside.begin(); it!=leftside.end(); it++)
+			cout << *it << " ";
+		cout << " " <<endl;
+		
+		cout << "about to run a search"<<endl;
+		trees = search_clade(leftside);
+		TreesFound += trees.size();
+		
+		set<unsigned int>::iterator myIterator; 
+		for(myIterator = trees.begin(); myIterator != trees.end(); ++myIterator){
+			CulTrees.push_back(*myIterator); 
+		}
+		
+		if (trees.size() > 0){
+			SucessSearch +=1;
+		}
+		
+	}
+	
+	double sum = std::accumulate(CulRandVect.begin(), CulRandVect.end(), 0.0);
+	double mean = sum / CulRandVect.size();
+	double sq_sum = std::inner_product(CulRandVect.begin(), CulRandVect.end(), CulRandVect.begin(), 0.0);
+	double stdev = std::sqrt(sq_sum / CulRandVect.size() - mean * mean);
+	
+	cout << "Minimum element in random is: " << *( std::min_element( CulRandVect.begin(), CulRandVect.end() ) ) << endl;
+	cout << "Maximum element in random is: " << *( std::max_element( CulRandVect.begin(), CulRandVect.end() ) ) << endl;
+	cout << "Sum of random is: " << sum << endl;
+	cout << "mean of random is: " << mean << endl;
+	cout << "sq_sum of random is: " << sq_sum << endl;
+	cout << "stdev of random is: " << stdev << endl;
+
+
+	if (CulTrees.size() > 0){
+		sum = std::accumulate(CulTrees.begin(), CulTrees.end(), 0.0);
+		mean = sum / CulTrees.size();
+
+		sq_sum = std::inner_product(CulTrees.begin(), CulTrees.end(), CulTrees.begin(), 0.0);
+		stdev = std::sqrt(sq_sum / CulTrees.size() - mean * mean);
+		
+		cout << "Minimum element in CulTrees is: " << *( std::min_element( CulTrees.begin(), CulTrees.end() ) ) << endl;
+		cout << "Maximum element in CulTrees is: " << *( std::max_element( CulTrees.begin(), CulTrees.end() ) ) << endl;
+		cout << "Sum of CulTrees is: " << sum << endl;
+		cout << "mean of CulTrees is: " << mean << endl;
+		cout << "sq_sum of CulTrees is: " << sq_sum << endl;
+		cout << "stdev of CulTrees is: " << stdev << endl;
+	}
+
+	
+	cout << "ExeTime = " << stop_clockbp() << endl;
+	cout << "SetTime = " << ::SetTime << endl;
+	cout << "HetTime = " << ::HetTime << endl;
+	cout << "AHetTime = " << ::AHetTime << endl;
+	cout << "SetOps = " << ::SetOps << endl;
+	cout << "SetInsertions = " << ::SetInsertions << endl;
+	cout << "TreesFound = " << TreesFound << endl;
+	cout << "SucessfulSearches = " << SucessSearch << endl;
+	cout << "ding" << endl;
+	
+	return SucessSearch;
+}
+
 
 
 int random_search2(int left, int right, int side, int iterations){

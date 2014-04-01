@@ -114,6 +114,15 @@ void delete_tree(set<unsigned int> treeset);
 
 void delete_tree(vector<int> treevect);
 
+
+void write_tre_file(vector<string> nwvect, string filename);
+
+void write_tre_file(int tree, string filename);
+
+void write_tre_file(vector<int> treevect, string filename);
+
+void write_tre_file(set<unsigned int> treeset, string filename);
+
 void write_trz(vector<string> nwvect, string filename);
 
 void write_trz(int tree, string filename);
@@ -121,6 +130,10 @@ void write_trz(int tree, string filename);
 void write_trz(vector<int> treevect, string filename);
 
 void write_trz(set<unsigned int> treeset, string filename);
+
+
+
+
 
 int num_labels_in_newick(string newick);
 

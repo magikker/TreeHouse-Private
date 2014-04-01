@@ -46,7 +46,7 @@ void populate_integrals(unsigned int * hold_integrals, string branches_int, unsi
     treeval = 0;
   }
 }
-
+/*
 void decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_set_of_ids, Bipartition &B, string branches_frac){
   unsigned int myplace = 0;
   unsigned int numer = 0;
@@ -101,6 +101,70 @@ void decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_se
     }
   }
 }
+*/
+
+
+//new
+vector<float> decompress_branch(unsigned int * hold_integrals, vector<unsigned int> my_set_of_ids, Bipartition &B, string branches_frac){
+  vector<float> branchlengths;
+  unsigned int myplace = 0;
+  unsigned int numer = 0;
+  unsigned int denom = 100;
+  float weight = 0;
+  unsigned char v;
+  unsigned int val;
+  unsigned int count = my_set_of_ids.size();
+  if (count < ::biparttable.NumTrees){
+    for (unsigned int i = 0; i < count; ++i){
+      unsigned int temp = my_set_of_ids[i];
+      while (numer != 3){
+	    v = branches_frac[myplace];
+	    val = v;
+	    val -= 33;
+	    weight += (float)val/denom;
+	    denom*=100;
+	    myplace++;
+	    numer++;
+      }
+      weight+=hold_integrals[temp];
+      //printf("%f\n", weight);
+      hold_integrals[temp] = 0;
+      //bitstrings_branches.push_back(weight);
+      B.add_tree(temp, weight);
+      ::biparttable.tree_branches[temp].push_back(weight);
+      branchlengths.push_back(weight);
+      numer = 0;
+      denom = 100;
+      weight = 0;
+    }
+  }
+  else{
+    for (unsigned int i = 0; i < ::biparttable.NumTrees; ++i){
+      while (numer != 3){
+	    v = branches_frac[myplace];
+	    val = v;
+	    val -= 33;
+	    weight += (float)val/denom;
+	    denom*=100;
+	    myplace++;
+	    numer++;
+      }
+      weight+=hold_integrals[i];
+      //printf("%f\n", weight);
+      hold_integrals[i] = 0;
+      //bitstrings_branches.push_back(weight);
+      B.add_tree(i, weight);
+      ::biparttable.tree_branches[i].push_back(weight);
+      branchlengths.push_back(weight);
+      numer = 0;
+      denom = 100;
+      weight = 0;
+    }
+  }
+  return branchlengths;
+}
+
+
 
 
 unsigned int get_bitstring_length(string bitstring){ //determines the size of the bitstring 
@@ -332,16 +396,31 @@ void decode_bitstring(string bitstring, boost::dynamic_bitset<> &bs, unsigned in
 
 
 
-string compute_tree_bl( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstrings, vector< float > my_branches) {
+
+string compute_tree_labels( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstrings, vector< string > labs) {
 	vector<vector<SCNode*> > vvec_distinctClusters2;
 
+	boost::dynamic_bitset<> alltaxa(::biparttable.lm.size());
+	
+	for(size_t i = 0; i < my_bitstrings.size(); i++){
+		alltaxa |= my_bitstrings[i]; 
+	}
+	
+	if(alltaxa.count() > my_bitstrings[0].count()){
+		my_bitstrings.insert(my_bitstrings.begin(),alltaxa);
+		labs.insert(labs.begin(),"");
+	}
+	
+	cout <<"my_bitstrings size = " << my_bitstrings.size() << " labs.size()" << labs.size() << endl;
+	
+	
 	//update distinct clusters
 	for (unsigned int i = 0; i < my_bitstrings.size(); ++i) {
 		vector<SCNode*> vec_nodes2;
 		for (unsigned int j = 0; j < my_bitstrings[i].size(); j++) {
 			if (my_bitstrings[i][j]) {
 				SCNode* aNode = new SCNode();
-				aNode->name = lm.name(j);
+				aNode->name = "taxa_"+lm.name(j);
 				vec_nodes2.push_back(aNode);
 			}
 		}
@@ -349,12 +428,12 @@ string compute_tree_bl( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstr
 	}
   
 
-  for (unsigned int npos = 0; npos < vvec_distinctClusters2.size(); ++npos) { 
-    for (unsigned int x = 0; x < vvec_distinctClusters2[npos].size(); ++x) { 
-      cout << vvec_distinctClusters2[npos][x]->name << " ";
-    }
-    cout << endl;
-  }
+  //for (unsigned int npos = 0; npos < vvec_distinctClusters2.size(); ++npos) { 
+  //  for (unsigned int x = 0; x < vvec_distinctClusters2[npos].size(); ++x) { 
+  //    cout << vvec_distinctClusters2[npos][x]->name << " ";
+  //  }
+  //  cout << endl;
+  //}
   
   //exit(0);
   
@@ -412,7 +491,10 @@ string compute_tree_bl( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstr
 			newIntNode->name = newIntNodeName;
 			newIntNode->parent = theParent;
 			
-			newIntNode->bl = my_branches[pos];
+			//newIntNode->SetSupport(supvals[pos]);
+			newIntNode->SetLabel(labs[pos]);
+			//newIntNode->bl = my_branches[pos];
+			newIntNode->bl = 50;
 			
 			// 3. --------------------------------------------------------------------------
 			assert(newIntNodeName.size() != 0);
@@ -488,17 +570,6 @@ string compute_tree_bl( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstr
 		
 }
 
-
-
-
-
-
-
-
-
-
-
-
 string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstrings, vector< float > my_branches, unsigned id, bool branch) {
 	vector<vector<SCNode*> > vvec_distinctClusters2;
 
@@ -507,7 +578,11 @@ string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstring
 	for(size_t i = 0; i < my_bitstrings.size(); i++){
 		alltaxa |= my_bitstrings[i]; 
 	}
-	my_bitstrings.insert(my_bitstrings.begin(),alltaxa);
+	
+	if(alltaxa.count() > my_bitstrings[0].count()){
+		my_bitstrings.insert(my_bitstrings.begin(),alltaxa);
+	}
+	
 	
 	//update distinct clusters
 	for (unsigned int i = 0; i < my_bitstrings.size(); ++i) {
@@ -904,7 +979,7 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 		}
 	    my_set_of_ids.resize(NumTrees);
 	    //GRB
-	    decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);
+	    branchLengths = decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);
       }
       bipart_count++;      
     }
@@ -964,7 +1039,7 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 				populate_integrals(hold_integrals, branches_int, encode_size);
 			}
 			//GRB
-			decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);			
+			branchLengths = decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);			
 		}
       }
       
@@ -1010,7 +1085,7 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 				populate_integrals(hold_integrals, branches_int, encode_size);
 			}
 			//GRB
-			decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);
+			branchLengths = decompress_branch(hold_integrals, my_set_of_ids, B, branches_frac);
 		}
       }
       bipart_count++;
@@ -1044,7 +1119,7 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
   
   
   
-  //set the benchmarks
+  //Set the benchmarks
   Tab.MapBenchMarks.push_back(Tab.CladeMap.begin());
   for (unsigned int i = 1; i < Tab.lm.size()+1; i++){
 	Tab.MapBenchMarks.push_back(Tab.CladeMap.end());
@@ -1068,6 +1143,8 @@ void load_data_from_trz_file(string file, BipartitionTable &Tab){
 	 Tab.MapBenchMarks.push_back(Tab.CladeMap.end());
   }
   Tab.MapBenchMarks.push_back(Tab.CladeMap.end());
+  
+  //Benchmarks set!
   
   //cout << "benchmark size = "<<Tab.MapBenchMarks.size() << endl;
   

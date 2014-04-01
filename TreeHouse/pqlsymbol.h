@@ -579,29 +579,53 @@ class pqlsymbol
 				}
 				case TREESET:
 				{
-					//~ cout << "what's here? = ";
-					//~ std::copy(treeset.begin(), treeset.end(), std::ostream_iterator<int>(std::cout, ", ") );
-					//~ cout << endl;
-			
 					out << "{";
-					std::copy(treeset.begin(), treeset.end(), std::ostream_iterator<int>(out, ", "));
-				
-					//~ // pre-increment and pre-decrement are faster than post-increment and post-decrement...
-					//~ for(set<int>::const_iterator pos = treeset.begin(); pos != treeset.end(); ++pos){
-					//~ int temp = *pos;
-					//~ out << (int)*pos << ', ';
-					//~ cout << *pos << endl;
-					//~ }
+					if(true){
+						unsigned int counter;
+						set<unsigned int>::iterator it2; 
+						
+						set<unsigned int>::iterator it = treeset.begin();
+						while(it != treeset.end()){
+							
+							out << *it;
+							unsigned int previous = *it;
+							++it;
+							unsigned int count = 0;
+							while(it != treeset.end()){
+								if(previous + 1 == *it){
+									count++;
+									previous = *it;
+									++it;
+									continue;
+								}
+								else{
+									break;
+								}
+							}
+							if (count == 1){
+								out << ", ";
+							}
+							if (count > 1){
+								out << "..";
+							}
+							if(count > 0){
+							out << previous;
+							}
+							out << ", ";
+						}
+								
+					}
+					
+					else{
+						std::copy(treeset.begin(), treeset.end(), std::ostream_iterator<int>(out, ", "));
+					}
+					//clean up the extra , at the end;
 					string temp = out.str();
-					if (temp.size () > 1)  temp.resize (temp.size () - 2);
-			
-						temp.append("}");
-			
-						//~ out << "}";		
-						//~ string temp = out.str();
-						//~ if (temp.size () > 0)  temp.resize (temp.size () - 2);
-						return temp;
-					//	return out.str();
+					if (temp.size () > 1){  
+						temp.resize (temp.size () - 2);
+					}
+					temp.append("}");
+					return temp;
 
 				}
 				case THE_EMPTY_LIST:

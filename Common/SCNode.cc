@@ -28,7 +28,7 @@ SCNode::SCNode()
 	parent = NULL;
 	ClearChildren();
 	
-	support = 0;
+	lab = false;
 }
 
 
@@ -75,6 +75,16 @@ SCNode::SetDistance(double distance)
 	else
 		bl = distance;
 }
+
+void 
+SCNode::SetLabel(string l)
+{
+	// allowing negative values, not sure if we should, be we are. 
+	lab = true;
+	label = l;
+}
+
+
 
 double 
 SCNode::GetDistance() const
