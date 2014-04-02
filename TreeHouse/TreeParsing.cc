@@ -411,7 +411,7 @@ string compute_tree_labels( LabelMap lm, vector< boost::dynamic_bitset<> > my_bi
 		labs.insert(labs.begin(),"");
 	}
 	
-	cout <<"my_bitstrings size = " << my_bitstrings.size() << " labs.size()" << labs.size() << endl;
+	//cout <<"my_bitstrings size = " << my_bitstrings.size() << " labs.size()" << labs.size() << endl;
 	
 	
 	//update distinct clusters
@@ -456,8 +456,8 @@ string compute_tree_labels( LabelMap lm, vector< boost::dynamic_bitset<> > my_bi
 			// 2. Push all the node* in the root's children
 			// 3. Push all the nodes in the tree's nodelist.
 			// 4. Push all the nodes' parent in the tree's parentlist.
-			cout << "are we assuming the first vvec_distinctClusters2 has all the taxa in it?" << endl;
-			cout << "vvec_distinctClusters2[pos].size() = "<< vvec_distinctClusters2[pos].size() << endl;
+			//cout << "are we assuming the first vvec_distinctClusters2 has all the taxa in it?" << endl;
+			//cout << "vvec_distinctClusters2[pos].size() = "<< vvec_distinctClusters2[pos].size() << endl;
 			for (unsigned int i=0; i < vvec_distinctClusters2[pos].size(); ++i) {
 				vvec_distinctClusters2[pos][i]->parent = scTree->root;
 				scTree->root->children.push_back(vvec_distinctClusters2[pos][i]);
@@ -606,12 +606,12 @@ string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstring
 	}
   
 
-  for (unsigned int npos = 0; npos < vvec_distinctClusters2.size(); ++npos) { 
-    for (unsigned int x = 0; x < vvec_distinctClusters2[npos].size(); ++x) { 
-      cout << vvec_distinctClusters2[npos][x]->name << " ";
-    }
-    cout << endl;
-  }
+  //for (unsigned int npos = 0; npos < vvec_distinctClusters2.size(); ++npos) { 
+  //  for (unsigned int x = 0; x < vvec_distinctClusters2[npos].size(); ++x) { 
+  //    cout << vvec_distinctClusters2[npos][x]->name << " ";
+  //  }
+  //  cout << endl;
+  //}
   
   //exit(0);
   //if (vvec_distinctClusters2.size() != (NUM_TAXA-2)){
@@ -633,8 +633,8 @@ string compute_tree( LabelMap lm, vector< boost::dynamic_bitset<> > my_bitstring
 			// 2. Push all the node* in the root's children
 			// 3. Push all the nodes in the tree's nodelist.
 			// 4. Push all the nodes' parent in the tree's parentlist.
-			cout << "are we assuming the first vvec_distinctClusters2 has all the taxa in it?" << endl;
-			cout << "vvec_distinctClusters2[pos].size() = "<< vvec_distinctClusters2[pos].size() << endl;
+			//cout << "are we assuming the first vvec_distinctClusters2 has all the taxa in it?" << endl;
+			//cout << "vvec_distinctClusters2[pos].size() = "<< vvec_distinctClusters2[pos].size() << endl;
 
 			for (unsigned int i=0; i < vvec_distinctClusters2[pos].size(); ++i) {
 				vvec_distinctClusters2[pos][i]->parent = scTree->root;

@@ -1288,7 +1288,7 @@ float TaxaTierEntropy(vector<int> counts){
 
 void rateTierRogueness(int tier){
 	
-	cout << "new and improved" << endl;
+	//cout << "new and improved" << endl;
 	
 	vector<int> numofclades;
 	vector<int> summaryvect;
@@ -1312,7 +1312,7 @@ void rateTierRogueness(int tier){
 	//	cout << "taxa " << i << " has  " << numofclades[i] << " permutations of tier " << tier << endl;
 	//}
 	
-    std::cout << "The largest element is "  << *std::max_element(std::begin(numofclades), std::end(numofclades)) << '\n';
+    //std::cout << "The largest element is "  << *std::max_element(std::begin(numofclades), std::end(numofclades)) << '\n';
 
 	
 			
@@ -1329,7 +1329,7 @@ void rateTierRogueness(int tier){
 		cout << summaryvect[i] << " taxa are in " << i << " different relationships of size  " << tier << endl;
 	}
 	
-	cout << biparttable.lm.name(std::distance(numofclades.begin(), std::max_element(std::begin(numofclades), std::end(numofclades)))) << endl;
+	//cout << biparttable.lm.name(std::distance(numofclades.begin(), std::max_element(std::begin(numofclades), std::end(numofclades)))) << endl;
 
 	
 	//::biparttable.lm.getname();

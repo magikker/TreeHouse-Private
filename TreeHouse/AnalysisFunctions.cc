@@ -21,10 +21,16 @@
 	typedef std::map< boost::dynamic_bitset<>, TreeSet >::iterator clade_it_type;
  
 	for(clade_it_type iter = biparttable.MapBenchMarks[1]; iter != biparttable.CladeMap.end(); iter++) {
-		cout << biparttable.get_clade_string(iter) << " " << biparttable.get_mean_branchlength(iter) << endl;
+		cout << biparttable.get_clade_string(iter) << " : " << biparttable.get_num_of_trees(iter) << " : " << biparttable.get_mean_branchlength(iter) << " : " << biparttable.get_min_branchlength(iter)<< " : " << biparttable.get_max_branchlength(iter)<< endl;
 	}
  }
 
+ 
+ void print_window_stats(){
+
+	print_branchlength_stats();
+ }
+ 
  
  
  void print_summary_stats(){

@@ -534,7 +534,7 @@ pqlsymbol * u_consen(vector<pqlsymbol * > arglist)
 	else if (arglist.size() > 1){
 		return new pqlsymbol(ERROR, "Type Error, 2nd value");
 	}
-
+	//cout << threshold << endl;
 	if(!::biparttable.is_taxa_homogenious(tset) ){
 		return new pqlsymbol(ERROR, "Consensus can only handle taxa homogenious treesets. Taxa heterogenious trees were found");
 	}
@@ -1330,6 +1330,7 @@ pqlsymbol * u_search_clade(vector <pqlsymbol *> arglist){
 	return result;
 }
 
+
 // takes an int. Returns the ints which share the same topology. 
 pqlsymbol * u_duplicates(vector<pqlsymbol * > arglist) 
 {  
@@ -1455,6 +1456,27 @@ pqlsymbol * u_display_heatmap(vector<pqlsymbol *> arglist){
 
 	return result;
 }
+
+
+pqlsymbol * u_search_bl(vector<pqlsymbol * > arglist){
+	pqlsymbol * result = new pqlsymbol();
+	float threshold = 50.0; 
+
+	//if (arglist.size() != 3){
+	//	return result = new pqlsymbol(ERROR, "Type Error: Needs 3 inputs,  expects a clade, < or >, and a branchlength");
+	//}
+	
+	threshold = (float)arglist[2]->get_double();
+	cout << threshold << endl;
+	//if (arglist[0]->is_string() && arglist[0]->is_vect() && arglist[1]->is_string() && arglist[2]->is_float()) {
+		return new pqlsymbol(search_bl(arglist[0]->get_string_vect(), arglist[1]->get_string(), threshold) );
+	//}
+	//else{
+	//	return result = new pqlsymbol(ERROR, "Type Error: expects a clade, < or >, and a branchlength");
+	//}
+	return result;
+}
+
 
 pqlsymbol * u_show(vector<pqlsymbol * > arglist) {  
 	pqlsymbol * result = new pqlsymbol();
@@ -2081,6 +2103,20 @@ pqlsymbol * u_prototype(vector<pqlsymbol * > arglist){
 	//dTree(arglist[0]->get_treeset_vect());
 	return result;
 }
+
+
+pqlsymbol * u_blstats(vector<pqlsymbol * > arglist){
+	cout << "entering the prototype function" << endl;
+	pqlsymbol * result = new pqlsymbol();
+	//::biparttable.print_CladeMap();
+
+	print_window_stats();
+
+	//dTree(arglist[0]->get_treeset_vect());
+	return result;
+}
+
+
 
 
 pqlsymbol * u_psupport(vector<pqlsymbol * > arglist){
@@ -2936,6 +2972,10 @@ void init_the_functs()
 	add_function("ssc", &u_ssc, " ");
 	add_function("fsc", &u_fsc, " ");	
 
+	add_function("blstats", &u_blstats, " ");
+	add_function("search_bl", &u_search_bl, " ");	
+	
+	
 	cout << "Functions loaded into map" << endl;
 
 

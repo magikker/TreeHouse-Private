@@ -198,7 +198,20 @@ public:
 	}
 	
 	
-
+	float get_min_branchlength(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		return *std::min_element(it->second.branch_lengths.begin(), it->second.branch_lengths.end());
+	}
+	
+	float get_min_branchlength(std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		return *std::min_element(rit->second.branch_lengths.begin(), rit->second.branch_lengths.end());
+	}
+	float get_max_branchlength(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
+		return *std::max_element(it->second.branch_lengths.begin(), it->second.branch_lengths.end());
+	}
+	float get_max_branchlength(std::map< boost::dynamic_bitset<>, TreeSet >::reverse_iterator rit){
+		return *std::max_element(rit->second.branch_lengths.begin(), rit->second.branch_lengths.end());
+	}
+	
 	
 	boost::dynamic_bitset<> get_bitstring(std::map< boost::dynamic_bitset<>, TreeSet >::iterator it){
 		return it->first;

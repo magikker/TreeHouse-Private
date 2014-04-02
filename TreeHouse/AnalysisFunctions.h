@@ -26,6 +26,8 @@ void generate_random_bt();
 
 void print_summary_stats();
 
+void print_window_stats();
+
 std::vector<unsigned int> biparts_in_tree(unsigned int);
 
 std::vector<string> distinguishing_taxa(set<unsigned int> inputtrees1, set<unsigned int> inputtrees2);

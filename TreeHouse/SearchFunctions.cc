@@ -34,6 +34,57 @@ set<unsigned int> search_clade(vector<int> required){
 	
 }
 
+//GRB NEW
+set<unsigned int> search_bl(vector<string> RequiredTaxa, string GreaterOrLessThan, float bl) {
+	vector<int> required = ::biparttable.lm.lookUpLabels(RequiredTaxa);
+	return search_bl(required, GreaterOrLessThan, bl);
+}
+
+//GRB NEW // Direct look up in log(n) time. Het Safe
+set<unsigned int> search_bl(vector<int> required, string GreaterOrLessThan, float bl){
+	set<unsigned int> result_trees;
+	vector<float> branchlengths;
+	
+	if (required.size() == 0){ 
+		return result_trees;
+	}
+	
+	boost::dynamic_bitset<> search_bs(biparttable.lm.size());
+	for (vector<int>::iterator iter = required.begin(); iter != required.end(); iter++){
+		search_bs.set(*iter, true);
+	}
+	
+	map<boost::dynamic_bitset<>,TreeSet>::iterator it=biparttable.CladeMap.find(search_bs);
+	
+	if (it != biparttable.CladeMap.end()){
+		result_trees = biparttable.get_trees(it);
+		branchlengths = biparttable.get_branchlengths(it);
+	}
+
+	if (result_trees.size() != branchlengths.size() ){
+		cout << "something is really wrong" << endl;
+	}
+	
+	vector<unsigned int> temptrees(result_trees.begin(), result_trees.end());
+	result_trees.clear();
+
+	for (unsigned int i =0; i < temptrees.size(); i++){
+		if(GreaterOrLessThan == ">"){
+			//cout << branchlengths[i] << " > " << bl << endl;
+			if (branchlengths[i] > bl){
+				result_trees.insert(temptrees[i]);
+			}
+		}
+		else if(GreaterOrLessThan == "<"){
+			//cout << branchlengths[i] << " < " << bl << endl;
+			if (branchlengths[i] < bl){
+				result_trees.insert(temptrees[i]);
+			}	
+		}
+	}
+	return result_trees;
+}
+
 //GRB NEW // x direct lookups. x log(n) time. Het Safe
 set<unsigned int> search_by_multiple_clades(vector<vector<int>> required){
 	
