@@ -18,6 +18,9 @@
 #include "clustering.h"
 #include "distance.h"
 #include "TreeMeasures.h"
+#include "NewickParser.h"
+
+
 
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
