@@ -1,0 +1,16 @@
+#ifndef GULO_BIDIRECTEDGRAPH_
+#define GULO_BIDIRECTEDGRAPH_
+
+#include "inoutbidirected.hpp"
+#include "vertex.hpp"
+#include "edge.hpp"
+#include "graph.hpp"
+#include "basicgraph.hpp"
+
+namespace Gulo
+{
+    template <typename VertexT, typename EdgeT>
+    using BidirectedGraph = Graph<Bidirected<StoreInOutEdges>, VertexT, EdgeT>;
+}
+
+#endif // GULO_BIDIRECTEDGRAPH_

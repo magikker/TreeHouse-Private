@@ -1,5 +1,6 @@
 #include "UserFunctions.h"
 #include <boost/variant.hpp>
+
 //Return the type of each arg. 
 string get_arg_types(vector<pqlsymbol * > arglist) {
 	string argtypes = "(";
@@ -693,206 +694,206 @@ return result;
 }
 */
 
-pqlsymbol * u_rsk(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_rsk(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	int left = 2;
-	int right = 2;
-	int iterations = 1;
+	//int left = 2;
+	//int right = 2;
+	//int iterations = 1;
 
-	if (arglist.size() >= 2){
-		left = arglist[0]->get_int();
-		right = arglist[1]->get_int();
-	}
-	if (arglist.size() >= 3){
-		iterations = arglist[2]->get_int();
-	}
+	//if (arglist.size() >= 2){
+		//left = arglist[0]->get_int();
+		//right = arglist[1]->get_int();
+	//}
+	//if (arglist.size() >= 3){
+		//iterations = arglist[2]->get_int();
+	//}
 
-	result = new pqlsymbol(random_search_ktet( left, right, iterations ) );
+	//result = new pqlsymbol(random_search_ktet( left, right, iterations ) );
 
-	return result;
-}
+	//return result;
+//}
 
-pqlsymbol * u_ssk(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_ssk(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	int left = 2;
-	int right = 2;
-	int iterations = 1;
+	//int left = 2;
+	//int right = 2;
+	//int iterations = 1;
 
-	if (arglist.size() >= 2){
-		left = arglist[0]->get_int();
-		right = arglist[1]->get_int();
-	}
-	if (arglist.size() >= 3){
-		iterations = arglist[2]->get_int();
-	}
+	//if (arglist.size() >= 2){
+		//left = arglist[0]->get_int();
+		//right = arglist[1]->get_int();
+	//}
+	//if (arglist.size() >= 3){
+		//iterations = arglist[2]->get_int();
+	//}
 
-	result = new pqlsymbol(sucess_search_ktet( left, right, iterations ) );
+	//result = new pqlsymbol(sucess_search_ktet( left, right, iterations ) );
 
-	return result;
-}
+	//return result;
+//}
 
-pqlsymbol * u_fsk(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_fsk(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	int left = 2;
-	int right = 2;
-	int iterations = 1;
+	//int left = 2;
+	//int right = 2;
+	//int iterations = 1;
 
-	if (arglist.size() >= 2){
-		left = arglist[0]->get_int();
-		right = arglist[1]->get_int();
-	}
-	if (arglist.size() >= 3){
-		iterations = arglist[2]->get_int();
-	}
+	//if (arglist.size() >= 2){
+		//left = arglist[0]->get_int();
+		//right = arglist[1]->get_int();
+	//}
+	//if (arglist.size() >= 3){
+		//iterations = arglist[2]->get_int();
+	//}
 
-	result = new pqlsymbol(fail_search_ktet( left, right, iterations ) );
+	//result = new pqlsymbol(fail_search_ktet( left, right, iterations ) );
 
-	return result;
-}
+	//return result;
+//}
 
-pqlsymbol * u_rssc(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_rssc(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	int left = 2;
-	int iterations = 1;
+	//int left = 2;
+	//int iterations = 1;
 
-	if (arglist.size() >= 1){
-		left = arglist[0]->get_int();
-	}
-	if (arglist.size() >= 2){
-		iterations = arglist[1]->get_int();
-	}
+	//if (arglist.size() >= 1){
+		//left = arglist[0]->get_int();
+	//}
+	//if (arglist.size() >= 2){
+		//iterations = arglist[1]->get_int();
+	//}
 
-	result = new pqlsymbol(random_search_subclade( left, iterations ) );
+	//result = new pqlsymbol(random_search_subclade( left, iterations ) );
 
-	return result;
-}
+	//return result;
+//}
 
-pqlsymbol * u_sssc(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_sssc(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	int left = 2;
-	int iterations = 1;
+	//int left = 2;
+	//int iterations = 1;
 
-	if (arglist.size() >= 1){
-		left = arglist[0]->get_int();
-	}
-	if (arglist.size() >= 2){
-		iterations = arglist[1]->get_int();
-	}
+	//if (arglist.size() >= 1){
+		//left = arglist[0]->get_int();
+	//}
+	//if (arglist.size() >= 2){
+		//iterations = arglist[1]->get_int();
+	//}
 
-	result = new pqlsymbol(sucess_search_subclade( left, iterations ) );
+	//result = new pqlsymbol(sucess_search_subclade( left, iterations ) );
 
-	return result;
-}
+	//return result;
+//}
 
-pqlsymbol * u_fssc(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_fssc(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	int left = 2;
-	int iterations = 1;
+	//int left = 2;
+	//int iterations = 1;
 
-	if (arglist.size() >= 1){
-		left = arglist[0]->get_int();
-	}
-	if (arglist.size() >= 2){
-		iterations = arglist[1]->get_int();
-	}
-	result = new pqlsymbol(fail_search_subclade( left, iterations ) );
+	//if (arglist.size() >= 1){
+		//left = arglist[0]->get_int();
+	//}
+	//if (arglist.size() >= 2){
+		//iterations = arglist[1]->get_int();
+	//}
+	//result = new pqlsymbol(fail_search_subclade( left, iterations ) );
 
-	return result;
-}
+	//return result;
+//}
 
-pqlsymbol * u_ssc(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_ssc(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	int left = 2;
-	int iterations = 1;
+	//int left = 2;
+	//int iterations = 1;
 
-	if (arglist.size() >= 1){
-		left = arglist[0]->get_int();
-	}
-	if (arglist.size() >= 2){
-		iterations = arglist[1]->get_int();
-	}
+	//if (arglist.size() >= 1){
+		//left = arglist[0]->get_int();
+	//}
+	//if (arglist.size() >= 2){
+		//iterations = arglist[1]->get_int();
+	//}
 
-	result = new pqlsymbol(sucess_search_clade( left, iterations ) );
+	//result = new pqlsymbol(sucess_search_clade( left, iterations ) );
 
-	return result;
-}
+	//return result;
+//}
 
-pqlsymbol * u_fsc(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_fsc(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	int left = 2;
-	int iterations = 1;
+	//int left = 2;
+	//int iterations = 1;
 
-	if (arglist.size() >= 1){
-		left = arglist[0]->get_int();
-	}
-	if (arglist.size() >= 2){
-		iterations = arglist[1]->get_int();
-	}
-	result = new pqlsymbol(fail_search_clade( left, iterations ) );
+	//if (arglist.size() >= 1){
+		//left = arglist[0]->get_int();
+	//}
+	//if (arglist.size() >= 2){
+		//iterations = arglist[1]->get_int();
+	//}
+	//result = new pqlsymbol(fail_search_clade( left, iterations ) );
 
-	return result;
-}
-
-
-
-pqlsymbol * u_random_search(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
-
-	int left = 2;
-	int right = 2;
-	int strict = 0;
-	int iterations = 1;
-
-	if (arglist.size() >= 2){
-		left = arglist[0]->get_int();
-		right = arglist[1]->get_int();
-	}
-	if (arglist.size() >= 3){
-		strict = arglist[2]->get_int();
-
-	}
-	if (arglist.size() >= 4){
-		iterations = arglist[3]->get_int();
-	}
-
-	result = new pqlsymbol(random_search( left, right, strict, iterations ) );
-
-	return result;
-}
+	//return result;
+//}
 
 
-pqlsymbol * u_random_search2(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
 
-	int left = 2;
-	int right = 2;
-	int strict = 0;
-	int iterations = 1;
+//pqlsymbol * u_random_search(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	if (arglist.size() >= 2){
-		left = arglist[0]->get_int();
-		right = arglist[1]->get_int();
-	}
-	if (arglist.size() >= 3){
-		strict = arglist[2]->get_int();
+	//int left = 2;
+	//int right = 2;
+	//int strict = 0;
+	//int iterations = 1;
 
-	}
-	if (arglist.size() >= 4){
-		iterations = arglist[3]->get_int();
-	}
+	//if (arglist.size() >= 2){
+		//left = arglist[0]->get_int();
+		//right = arglist[1]->get_int();
+	//}
+	//if (arglist.size() >= 3){
+		//strict = arglist[2]->get_int();
 
-	result = new pqlsymbol(random_search2( left, right, strict, iterations ) );
+	//}
+	//if (arglist.size() >= 4){
+		//iterations = arglist[3]->get_int();
+	//}
 
-	return result;
-}
+	//result = new pqlsymbol(random_search( left, right, strict, iterations ) );
+
+	//return result;
+//}
+
+
+//pqlsymbol * u_random_search2(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
+
+	//int left = 2;
+	//int right = 2;
+	//int strict = 0;
+	//int iterations = 1;
+
+	//if (arglist.size() >= 2){
+		//left = arglist[0]->get_int();
+		//right = arglist[1]->get_int();
+	//}
+	//if (arglist.size() >= 3){
+		//strict = arglist[2]->get_int();
+
+	//}
+	//if (arglist.size() >= 4){
+		//iterations = arglist[3]->get_int();
+	//}
+
+	//result = new pqlsymbol(random_search2( left, right, strict, iterations ) );
+
+	//return result;
+//}
 /*
    pqlsymbol * u_search_hashtable_auto_and_timed(vector<pqlsymbol * > arglist) {  
    pqlsymbol * result;
@@ -1017,144 +1018,144 @@ pqlsymbol * u_search_ktet(vector<pqlsymbol * > arglist) {
 	return result;
 }
 
-pqlsymbol * u_search_hashtable_strict_and_timed(vector<pqlsymbol * > arglist) {  
-	pqlsymbol * result;
+//pqlsymbol * u_search_hashtable_strict_and_timed(vector<pqlsymbol * > arglist) {  
+	//pqlsymbol * result;
 
-	//type check and catch errors and handle any method overloading. 
+	////type check and catch errors and handle any method overloading. 
 
-	vector<int> left;
-	vector<int> right;
+	//vector<int> left;
+	//vector<int> right;
 
-	bool LeftIsGood = false;
-	bool RightIsGood = false;
-	int strict = 0;
+	//bool LeftIsGood = false;
+	//bool RightIsGood = false;
+	//int strict = 0;
 
-	if (arglist.size() == 2 || arglist.size() == 3){
-		if (arglist[0]->is_string() ){
-			if (arglist[0]->is_vect() ){
-				LeftIsGood = true;
-				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string_vect());
-			}
-			else if ( arglist[0]->is_atom() ){
-				LeftIsGood = true;
-				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string());
-			}
-		}
+	//if (arglist.size() == 2 || arglist.size() == 3){
+		//if (arglist[0]->is_string() ){
+			//if (arglist[0]->is_vect() ){
+				//LeftIsGood = true;
+				//left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string_vect());
+			//}
+			//else if ( arglist[0]->is_atom() ){
+				//LeftIsGood = true;
+				//left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string());
+			//}
+		//}
 
-		else if ( arglist[0]->is_emptylist() ){
-			LeftIsGood = true;
-		}
+		//else if ( arglist[0]->is_emptylist() ){
+			//LeftIsGood = true;
+		//}
 
-		if (arglist[1]->is_string() ){
-			if (arglist[1]->is_vect() ){
-				RightIsGood = true;
-				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string_vect());
-			}
-			else if ( arglist[1]->is_atom() ){
-				RightIsGood = true;
-				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string());
-			}
-		}
-		else if ( arglist[1]->is_emptylist() ){
-			RightIsGood = true;
-		}
-	}
+		//if (arglist[1]->is_string() ){
+			//if (arglist[1]->is_vect() ){
+				//RightIsGood = true;
+				//right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string_vect());
+			//}
+			//else if ( arglist[1]->is_atom() ){
+				//RightIsGood = true;
+				//right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string());
+			//}
+		//}
+		//else if ( arglist[1]->is_emptylist() ){
+			//RightIsGood = true;
+		//}
+	//}
 
-	if (arglist.size() == 3){
-		if (arglist[2]->get_string() == "neither" || arglist[2]->get_string() == "Neither" || arglist[2]->get_string() == "n" || arglist[2]->get_string() == "N" ){
-			strict = 0;		
-		}
-		else if (arglist[2]->get_string() == "left" || arglist[2]->get_string() == "Left" || arglist[2]->get_string() == "l" || arglist[2]->get_string() == "L"){
-			strict = 1;	
-		}
-		else if (arglist[2]->get_string() == "right" || arglist[2]->get_string() == "Right" || arglist[2]->get_string() == "r" || arglist[2]->get_string() == "R"){
-			strict = 2;		
-		}
-		else if (arglist[2]->get_string() == "both" || arglist[2]->get_string() == "Both" || arglist[2]->get_string() == "b" || arglist[2]->get_string() == "B"){
-			strict = 3;	
-		}
-	}
+	//if (arglist.size() == 3){
+		//if (arglist[2]->get_string() == "neither" || arglist[2]->get_string() == "Neither" || arglist[2]->get_string() == "n" || arglist[2]->get_string() == "N" ){
+			//strict = 0;		
+		//}
+		//else if (arglist[2]->get_string() == "left" || arglist[2]->get_string() == "Left" || arglist[2]->get_string() == "l" || arglist[2]->get_string() == "L"){
+			//strict = 1;	
+		//}
+		//else if (arglist[2]->get_string() == "right" || arglist[2]->get_string() == "Right" || arglist[2]->get_string() == "r" || arglist[2]->get_string() == "R"){
+			//strict = 2;		
+		//}
+		//else if (arglist[2]->get_string() == "both" || arglist[2]->get_string() == "Both" || arglist[2]->get_string() == "b" || arglist[2]->get_string() == "B"){
+			//strict = 3;	
+		//}
+	//}
 
-	if(LeftIsGood && RightIsGood){
-		result = new pqlsymbol(search_hashtable_strict_and_timed( left, right, strict ) );
-	}
-	else{
-		cout << "consensus expects either 2 string vectors or 2 string vectors and an int. " << "Found " << get_arg_types(arglist) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
+	//if(LeftIsGood && RightIsGood){
+		//result = new pqlsymbol(search_hashtable_strict_and_timed( left, right, strict ) );
+	//}
+	//else{
+		//cout << "consensus expects either 2 string vectors or 2 string vectors and an int. " << "Found " << get_arg_types(arglist) << endl;
+		//result = new pqlsymbol(ERROR, "Type Error");
+	//}
 
-	return result;
-}
+	//return result;
+//}
 
-pqlsymbol * u_new_search_hashtable_strict(vector<pqlsymbol * > arglist) 
-{  
-	pqlsymbol * result;
+//pqlsymbol * u_new_search_hashtable_strict(vector<pqlsymbol * > arglist) 
+//{  
+	//pqlsymbol * result;
 
-	//type check and catch errors and handle any method overloading. 
+	////type check and catch errors and handle any method overloading. 
 
-	vector<int> left;
-	vector<int> right;
+	//vector<int> left;
+	//vector<int> right;
 
-	bool LeftIsGood = false;
-	bool RightIsGood = false;
-	int strict = 0;
+	//bool LeftIsGood = false;
+	//bool RightIsGood = false;
+	//int strict = 0;
 
-	if (arglist.size() == 2 || arglist.size() == 3){
-		if (arglist[0]->is_string() ){
-			if (arglist[0]->is_vect() ){
-				LeftIsGood = true;
-				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string_vect());
-			}
-			else if ( arglist[0]->is_atom() ){
-				LeftIsGood = true;
-				left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string());
-			}
-		}
+	//if (arglist.size() == 2 || arglist.size() == 3){
+		//if (arglist[0]->is_string() ){
+			//if (arglist[0]->is_vect() ){
+				//LeftIsGood = true;
+				//left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string_vect());
+			//}
+			//else if ( arglist[0]->is_atom() ){
+				//LeftIsGood = true;
+				//left = ::biparttable.lm.lookUpLabels(arglist[0]->get_string());
+			//}
+		//}
 
-		else if ( arglist[0]->is_emptylist() ){
-			LeftIsGood = true;
-		}
+		//else if ( arglist[0]->is_emptylist() ){
+			//LeftIsGood = true;
+		//}
 
-		if (arglist[1]->is_string() ){
-			if (arglist[1]->is_vect() ){
-				RightIsGood = true;
-				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string_vect());
-			}
-			else if ( arglist[1]->is_atom() ){
-				RightIsGood = true;
-				right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string());
-			}
-		}
-		else if ( arglist[1]->is_emptylist() ){
-			RightIsGood = true;
-		}
-	}
+		//if (arglist[1]->is_string() ){
+			//if (arglist[1]->is_vect() ){
+				//RightIsGood = true;
+				//right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string_vect());
+			//}
+			//else if ( arglist[1]->is_atom() ){
+				//RightIsGood = true;
+				//right = ::biparttable.lm.lookUpLabels(arglist[1]->get_string());
+			//}
+		//}
+		//else if ( arglist[1]->is_emptylist() ){
+			//RightIsGood = true;
+		//}
+	//}
 
-	if (arglist.size() == 3){
-		if (arglist[2]->get_string() == "neither" || arglist[2]->get_string() == "Neither" || arglist[2]->get_string() == "n" || arglist[2]->get_string() == "N" ){
-			strict = 0;		
-		}
-		else if (arglist[2]->get_string() == "left" || arglist[2]->get_string() == "Left" || arglist[2]->get_string() == "l" || arglist[2]->get_string() == "L"){
-			strict = 1;	
-		}
-		else if (arglist[2]->get_string() == "right" || arglist[2]->get_string() == "Right" || arglist[2]->get_string() == "r" || arglist[2]->get_string() == "R"){
-			strict = 2;		
-		}
-		else if (arglist[2]->get_string() == "both" || arglist[2]->get_string() == "Both" || arglist[2]->get_string() == "b" || arglist[2]->get_string() == "B"){
-			strict = 3;	
-		}
-	}
+	//if (arglist.size() == 3){
+		//if (arglist[2]->get_string() == "neither" || arglist[2]->get_string() == "Neither" || arglist[2]->get_string() == "n" || arglist[2]->get_string() == "N" ){
+			//strict = 0;		
+		//}
+		//else if (arglist[2]->get_string() == "left" || arglist[2]->get_string() == "Left" || arglist[2]->get_string() == "l" || arglist[2]->get_string() == "L"){
+			//strict = 1;	
+		//}
+		//else if (arglist[2]->get_string() == "right" || arglist[2]->get_string() == "Right" || arglist[2]->get_string() == "r" || arglist[2]->get_string() == "R"){
+			//strict = 2;		
+		//}
+		//else if (arglist[2]->get_string() == "both" || arglist[2]->get_string() == "Both" || arglist[2]->get_string() == "b" || arglist[2]->get_string() == "B"){
+			//strict = 3;	
+		//}
+	//}
 
-	if(LeftIsGood && RightIsGood){
-		result = new pqlsymbol(search_hashtable_strict( left, right, strict ) );
-	}
-	else{
-		cout << "consensus expects either 2 string vectors or 2 string vectors and an int. " << "Found " << get_arg_types(arglist) << endl;
-		result = new pqlsymbol(ERROR, "Type Error");
-	}
+	//if(LeftIsGood && RightIsGood){
+		//result = new pqlsymbol(search_hashtable_strict( left, right, strict ) );
+	//}
+	//else{
+		//cout << "consensus expects either 2 string vectors or 2 string vectors and an int. " << "Found " << get_arg_types(arglist) << endl;
+		//result = new pqlsymbol(ERROR, "Type Error");
+	//}
 
-	return result;
-}
+	//return result;
+//}
 
 
 pqlsymbol * u_quick_quartet(vector<pqlsymbol * > arglist) 
@@ -1474,6 +1475,24 @@ pqlsymbol * u_search_bl(vector<pqlsymbol * > arglist){
 	//else{
 	//	return result = new pqlsymbol(ERROR, "Type Error: expects a clade, < or >, and a branchlength");
 	//}
+	return result;
+}
+
+pqlsymbol * u_search_bl_outliers(vector<pqlsymbol * > arglist){
+	pqlsymbol * result = new pqlsymbol();
+	float threshold = 1.0; 
+	
+	if (arglist.size() > 2 && arglist[2]->is_int()){
+		threshold = (float)arglist[2]->get_int();
+	}
+	else if (arglist.size() > 2 && arglist[2]->is_double()){
+		threshold = (float)arglist[2]->get_double();
+	}
+	else if (arglist.size() > 2 && arglist[2]->is_float()){
+		threshold = (float)arglist[2]->get_float();
+	}
+
+	return new pqlsymbol(search_bl_outliers(arglist[0]->get_string_vect(), arglist[1]->get_string(), threshold) );
 	return result;
 }
 
@@ -2188,6 +2207,7 @@ pqlsymbol * u_print_conflicting_quartets(vector<pqlsymbol * > arglist){
 	cout << "print_conflicting_quartets expects two INTs, i.e. bipartition indices. "  << "Found " << get_arg_types(move(arglist)) << endl;
 	result = new pqlsymbol(ERROR, "Type Error");
   	}
+  	return result;
 }
 
 pqlsymbol * u_average_depth(vector<pqlsymbol * > arglist){
@@ -2243,6 +2263,14 @@ pqlsymbol * u_get_num_quartets(vector<pqlsymbol * > arglist){
   return result;
 }
 
+pqlsymbol * u_graphtest(vector<pqlsymbol * > arglist){
+
+ pqlsymbol * result;
+ 
+  result = new pqlsymbol(graphtest());
+ 
+ return result;
+}
 
 
 
@@ -2781,40 +2809,37 @@ void init_the_functs()
 
 	//::functionKeys.push_back("");
 
-	//search
-
-	//The New way
+	//searching the new way
 	add_function("search_ktet", &u_search_ktet, "Returns trees which contain the searched ktet");
 	add_function("search_clade", &u_search_clade, "Returns trees which contain a clade containing the given taxa. This function has an optional strictness value. When turned on the search will only return trees with exact clades. ");
+	add_function("search_bl_outliers", &u_search_bl_outliers, "Returns the trees which have the searched clade, and the branch is more than the given value of standard deviations from the mean.");
+	add_function("search_bl", &u_search_bl, " ");	
 
-
-	add_function("psupport", &u_psupport, "computes psupport");
-
-
-	add_function("average_ancestral_distance", &u_average_ancestral_distance, "Returns average distance to common ancestor given two taxa and an optional set of trees (no third input = all trees");
-	add_function("get_trees_without_taxa", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 	add_function("gtwot", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 
 	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa");
 	add_function("clade_size_search", &u_clade_size_search, "Returns trees with clade of given size and taxa", TYPE_VECT, TYPE_INT);
 	add_function("smallest_clade_search", &u_smallest_clade_search, "Returns trees with the smallest clade of given taxa", TYPE_VECT);
-	
-	add_function("get_trees_with_taxa", &u_get_trees_with_taxa, "Returns the trees that have the input taxa", TYPE_VECT);
-	add_function("gtwt", &u_get_trees_with_taxa, "Returns the trees that have the input taxa", TYPE_VECT);
-	add_function("similarity_search", &u_similarity_search, "Returns the trees that are the most similar to the given tree in that they have the most shared bipartitions.", TYPE_STRING);
-
-	//add_function("get_trees_by_taxa", &u_get_trees_by_taxa, " ");
 	add_function("get_trees_by_subtree", &u_get_trees_by_subtree, "Returns the trees that contain the input subtree", TYPE_STRING);
 
 	add_function("subtree_search", &u_get_trees_by_subtree, "Returns the trees that contain the input subtree", TYPE_STRING);
-	//add_function("search_by_relationship", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
-	add_function("structural_search", &u_new_search_hashtable_strict, "Returns the trees that have the input bipartition");
-	add_function("ss", &u_new_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	add_function("similarity_search", &u_similarity_search, "Returns the trees that are the most similar to the given tree in that they have the most shared bipartitions.", TYPE_STRING);
 
+	add_function("get_trees_with_taxa", &u_get_trees_with_taxa, "Returns the trees that have the input taxa", TYPE_VECT);
+	add_function("gtwt", &u_get_trees_with_taxa, "Returns the trees that have the input taxa", TYPE_VECT);
+	add_function("get_trees_without_taxa", &u_get_trees_without_taxa, "Returns the trees that do not have the input taxa", TYPE_VECT);
 
-	//add_function("ss", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
-
-	add_function("timedsearch", &u_search_hashtable_strict_and_timed, "for testing only");
+	//Analysis functions
+	add_function("psupport", &u_psupport, "computes psupport");
+	add_function("count", &u_count, "Returns the number of objects in the treeset or list", TYPE_TREESET);
+	add_function("unique", &u_unique, "Returns the a subset of trees from a given treeset each with a unique topology.", TYPE_TREESET);
+	add_function("unique_biparts", &u_unique_biparts, "Returns the number of all unique bipartitions given a treeset", TYPE_TREESET);
+	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.", TYPE_TREESET);
+	add_function("sample_trees", &u_sample_trees, "Returns a random sampling of the input treeset of the requested size", TYPE_TREESET, TYPE_INT);
+	add_function("blstats", &u_blstats, "Prints each clade. the number of trees with it, The average, minimum and max values of the branch associated with the clade");
+	
+	//Tree measures
+	add_function("average_ancestral_distance", &u_average_ancestral_distance, "Returns average distance to common ancestor given two taxa and an optional set of trees (no third input = all trees");
 
 
 	//interface with outside programs
@@ -2832,13 +2857,6 @@ void init_the_functs()
 	add_function("set", &u_set, "Converts a list of ints into a treeset.");
 	add_function("to_newick", &u_to_newick, "Returns the newick string for the tree matching the input index.", TYPE_INT);
 
-	//analysis
-	add_function("count", &u_count, "Returns the number of objects in the treeset or list", TYPE_TREESET);
-	add_function("unique", &u_unique, "Returns the a subset of trees from a given treeset each with a unique topology.", TYPE_TREESET);
-	add_function("unique_biparts", &u_unique_biparts, "Returns the number of all unique bipartitions given a treeset", TYPE_TREESET);
-	add_function("duplicates", &u_duplicates, "Returns the set of trees with are topologically equal to the input tree.", TYPE_TREESET);
-
-	add_function("sample_trees", &u_sample_trees, "Returns a random sampling of the input treeset of the requested size", TYPE_TREESET, TYPE_INT);
 
 	//clustering
 	add_function("silhouette", &u_silhouette, "Returns the silhouette distance between given clusters of trees", TYPE_TREESETVECT, TYPE_STRING);
@@ -2934,11 +2952,12 @@ void init_the_functs()
 	
 	//Developer Functions
 	add_function("debug", &u_debug, " ");
+	add_function("graphtest", &u_graphtest, " ");
 	add_function("print_taxa_in_trees", &u_print_taxa_in_trees, " ");
 	add_function("print_biparttable", &u_print_biparttable, " ");
 	add_function("set_hetero", &u_set_hetero, " ", TYPE_BOOL);
-	add_function("rsearch", &u_random_search, " ");
-	add_function("rsearch2", &u_random_search2, " ");
+	//add_function("rsearch", &u_random_search, " ");
+	//add_function("rsearch2", &u_random_search2, " ");
 	
 	
 	
@@ -2961,24 +2980,28 @@ void init_the_functs()
 	add_function("rf_dist_bipart", &u_rf_dist_bipart, " ");
 
 	//GRB NEW TESTING FUNCTIONS!
-	add_function("rsk", &u_rsk, " ");
-	add_function("ssk", &u_ssk, " ");
-	add_function("fsk", &u_fsk, " ");
+	//add_function("rsk", &u_rsk, " ");
+	//add_function("ssk", &u_ssk, " ");
+	//add_function("fsk", &u_fsk, " ");
 	
-	add_function("rssc", &u_rssc, " ");
-	add_function("sssc", &u_sssc, " ");
-	add_function("fssc", &u_fssc, " ");
+	//add_function("rssc", &u_rssc, " ");
+	//add_function("sssc", &u_sssc, " ");
+	//add_function("fssc", &u_fssc, " ");
 	
-	add_function("ssc", &u_ssc, " ");
-	add_function("fsc", &u_fsc, " ");	
+	//add_function("ssc", &u_ssc, " ");
+	//add_function("fsc", &u_fsc, " ");	
 
-	add_function("blstats", &u_blstats, " ");
-	add_function("search_bl", &u_search_bl, " ");	
-	
+
+
+	//add_function("get_trees_by_taxa", &u_get_trees_by_taxa, " ");
+	//add_function("search_by_relationship", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	//add_function("structural_search", &u_new_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	//add_function("ss", &u_new_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	//add_function("ss", &u_search_hashtable_strict, "Returns the trees that have the input bipartition");
+	//add_function("timedsearch", &u_search_hashtable_strict_and_timed, "for testing only");
+
 	
 	cout << "Functions loaded into map" << endl;
-
-
 
 
 }

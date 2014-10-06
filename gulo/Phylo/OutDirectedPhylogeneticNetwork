@@ -1,0 +1,16 @@
+#ifndef GULO_OUTDIRECTEDPHYLOGENETICNETWORK_
+#define GULO_OUTDIRECTEDPHYLOGENETICNETWORK_
+
+#include "../Graph/outdirected.hpp"
+#include "../Graph/vertex.hpp"
+#include "../Graph/edge.hpp"
+#include "../Graph/graph.hpp"
+#include "phylogeneticnetwork.hpp"
+
+namespace Gulo
+{
+    template <typename VertexT, typename EdgeT>
+    using OutDirectedPhylogeneticNetwork = PhylogeneticNetwork<Directed<StoreOutEdges>, VertexT, EdgeT>;
+}
+
+#endif // GULO_OUTDIRECTEDPHYLOGENETICNETWORK_
