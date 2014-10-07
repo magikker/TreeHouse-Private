@@ -19,13 +19,10 @@ set<unsigned int> search_clade(vector<int> required);
 
 set<unsigned int> search_clade(vector<string> RequiredTaxa);
 
+
 set<unsigned int> search_bl(vector<string> RequiredTaxa, string GreaterOrLessThan, float bl);
 
 set<unsigned int> search_bl(vector<int> required, string GreaterOrLessThan, float bl);
-
-set<unsigned int> search_bl_outliers(vector<string> RequiredTaxa, string GreaterOrLessThan, float bl);
-
-set<unsigned int> search_bl_outliers(vector<int> required, string GreaterOrLessThan, float bl);
 
 set<unsigned int> search_ktet(vector<string> leftside, vector<string> rightside);
 

@@ -1,7 +1,6 @@
 CC = g++
 
 comdir = ${top_srcdir}/Common
-gulodir = ${top_srcdir}/gulo
 randir = ${comdir}/RandomLib
 tclap  = ${top_srcdir}/tclap
 treezipdir = ${top_srcdir}/TreeZip
@@ -29,18 +28,6 @@ treehouse_SOURCES =
 treehouse_SOURCES += ${comdir}/hashfunc.hh ${comdir}/randomc.h ${comdir}/hashfunc.cc
 treehouse_SOURCES += ${comdir}/label-map.hh ${comdir}/label-map.cc
 treehouse_SOURCES += ${comdir}/hash.hh ${comdir}/hash.cc
-treehouse_SOURCES += ${gulodir}/Phylo/ExtendedNewickFormat {gulodir}/Phylo/ExtendedNewickFormat.hpp
-treehouse_SOURCES += ${gulodir}/Phylo/newicktokens.hpp 
-treehouse_SOURCES += ${gulodir}/Phylo/newickparser.hpp 
-treehouse_SOURCES += ${gulodir}/Phylo/newickprocessorhelper.hpp
-treehouse_SOURCES += ${gulodir}/Graph/outbidirected.hpp
-
-treehouse_SOURCES += ${gulodir}/Graph/vertex.hpp
-treehouse_SOURCES += ${gulodir}/Graph/edge.hpp
-treehouse_SOURCES += ${gulodir}/Graph/graph.hpp
-treehouse_SOURCES += ${gulodir}/Graph/basicgraph.hpp
-treehouse_SOURCES += ${gulodir}/Graph/graphparser.hpp
-
 
 #antlr sources
 treehouse_SOURCES += ${antlrdir}/include/antlr3.h ${antlrdir}/antlr3config.h
@@ -96,7 +83,6 @@ treehouse_SOURCES += distance.h distance.cc
 #treehouse_SOURCES += hungarian.cpp hungarian.h
 treehouse_SOURCES += clustering.h clustering.cc
 treehouse_SOURCES += TreeSet.h TreeSet.cc
-treehouse_SOURCES += NewickParser.h NewickParser.cc
 treehouse_SOURCES += TreeMeasures.h TreeMeasures.cc
 treehouse_SOURCES += TreeHouse.cc
 treehouse_LDADD = ${antlrdir}/libantlr3c.la -lreadline -lncurses

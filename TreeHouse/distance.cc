@@ -2,7 +2,6 @@
 using namespace std;
 
 
-
 //Returns the number of unique bipartitions (essentially counts each bipartition once, 
 //ignoring duplicates as it goes)
 unsigned int num_unique_biparts(vector < vector < unsigned int > > biparts){
@@ -106,9 +105,6 @@ vector < vector <float> > bipart_distances(vector < vector <unsigned int> > bipa
 				case 15://Lance-Williams
 					dist = (b+c)/(2*a + b + c);
 					break;
-				case 27://Similarity
-					dist = a;
-					break;
 				default: //No proper distance measure given
 					cout << "Unknown Distance measure given.";
 					break;
@@ -130,8 +126,6 @@ vector < vector <float> > bipart_distances(vector < vector <unsigned int> > bipa
 	}*/
 	return distances;
 }
-
-
 
 //The if statement which converts distance strings to integers necessary for later switch
 unsigned int distance_switch(string measure){
@@ -208,12 +202,7 @@ unsigned int distance_switch(string measure){
 	else if (measure == "taxasim" || measure == "taxa-similarity"){
 		switch_value = 26;
 	}
-	else if (measure == "sim" || measure == "similarity"){
-		switch_value = 27;
-	}
-	else if (measure == "cp" || measure == "clade-potential"){
-		switch_value = 28;
-	}
+	
 	return switch_value;
 }
 
@@ -223,40 +212,17 @@ vector <vector < float> > compute_distances(set < unsigned int > treeset, string
 	vector < vector <float> > distances;
 	
 	unsigned int switch_value = distance_switch(measure);
-	if(switch_value < 20 || switch_value == 27){
+	if(switch_value < 20){
 		vector < vector < unsigned int> > biparts;
+	
 		for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
 			biparts.push_back(::biparttable.inverted_index.at(*pos));
 		}	
 		distances = bipart_distances(biparts, switch_value);
 	}
-	else if(switch_value == 26)
+	else if(switch_value = 26)
 		distances = taxaSimilarityMatrix(treeset);
-	else if(switch_value == 28){
-		vector < vector <float> > taxaInCommon;
-		taxaInCommon = taxaSimilarityMatrix(treeset);
-		distances = taxaInCommon;
-		vector < vector <float> > CladesInCommon;
-		vector < vector < unsigned int> > biparts;
-		for(std::set<unsigned int>::iterator pos = treeset.begin(); pos != treeset.end(); ++pos){//for each tree
-			biparts.push_back(::biparttable.inverted_index.at(*pos));
-		}	
-		CladesInCommon = bipart_distances(biparts, 27);
 	
-		cout << taxaInCommon.size() << ":" << CladesInCommon.size() << endl;
-	
-		for(int i = 0; i < taxaInCommon.size(); i++){
-			for (int j = 0; j < taxaInCommon[i].size(); j++){
-				if (taxaInCommon[i][j] > 1){
-					cout << "They have "<< taxaInCommon[i][j] <<" taxa in common and "<< CladesInCommon[i][j]- taxaInCommon[i][j] <<" clades in common "<< endl;
-					distances[i][j] = ( (CladesInCommon[i][j]- taxaInCommon[i][j]) / (taxaInCommon[i][j] -1) ) ;
-				}
-				else{
-					distances[i][j] = 0;
-				}
-			}
-		}
-	}	
 	else {
 		//Quartet and Edit distances
 		distances = distanceWrapper(treeset, switch_value);
@@ -768,8 +734,6 @@ void computeSimMatrixStats(vector<vector<float>> matrix){
 	write_tre_file(fourormoresimtrees, "temp/fourormoresimtrees");
 }
 
-
-
 //GRB
 unsigned int taxaSimilarity(unsigned int tree1, unsigned int tree2){
 	boost::dynamic_bitset<> temp(biparttable.lm.size());
@@ -788,8 +752,8 @@ unsigned int taxaSimilarity(unsigned int tree1, unsigned int tree2){
 	retVal.push_back(containers);
 	for(unsigned int j = 0; j < trees.size(); j++){
 		retVal.at(i).push_back(0);
+		}
 	}
-  }
  
 
   for(unsigned int i = 0; i < trees.size(); i++){
